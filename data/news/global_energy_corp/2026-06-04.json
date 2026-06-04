@@ -1,0 +1,173 @@
+{
+  "client_name": "Global Energy Corp",
+  "client_slug": "global_energy_corp",
+  "profile": {
+    "tier1_suppliers": [
+      {
+        "name": "Saudi Aramco",
+        "material": "Crude Oil",
+        "location": "Saudi Arabia"
+      },
+      {
+        "name": "Qatar Energy",
+        "material": "LNG",
+        "location": "Qatar"
+      },
+      {
+        "name": "ADNOC",
+        "material": "Petrochemicals",
+        "location": "UAE"
+      }
+    ],
+    "raw_materials": [
+      {
+        "commodity": "Crude Oil",
+        "region": "Middle East"
+      },
+      {
+        "commodity": "LNG",
+        "region": "Qatar"
+      },
+      {
+        "commodity": "Petrochemicals",
+        "region": "UAE"
+      }
+    ],
+    "logistics_nodes": [
+      {
+        "port": "Jebel Ali Port",
+        "carrier": "Maersk",
+        "route": "Gulf-Europe"
+      },
+      {
+        "port": "Strait of Hormuz",
+        "carrier": "MSC",
+        "route": "Gulf-Asia"
+      }
+    ],
+    "own_facilities": [
+      {
+        "name": "Refinery Unit",
+        "location": "India"
+      },
+      {
+        "name": "Storage Terminal",
+        "location": "Singapore"
+      }
+    ]
+  },
+  "created_at": "2026-06-04T06:13:58.948105",
+  "runs": [
+    {
+      "timestamp": "2026-06-04T06:13:58.948105",
+      "overall_risk": "CRITICAL",
+      "articles_added": 6,
+      "breakdown": {
+        "Supplier: Saudi Aramco": 0,
+        "Supplier: Qatar Energy": 0,
+        "Supplier: ADNOC": 0,
+        "Material: Crude Oil": 1,
+        "Material: LNG": 0,
+        "Material: Petrochemicals": 0,
+        "Logistics: Jebel Ali Port": 0,
+        "Logistics: Strait of Hormuz": 3,
+        "Facility: Refinery Unit": 0,
+        "Facility: Storage Terminal": 0,
+        "Global Baseline": 2
+      }
+    }
+  ],
+  "stats": {
+    "total_articles": 6,
+    "critical_alerts": 4,
+    "high_alerts": 1,
+    "medium_alerts": 1,
+    "low_alerts": 0,
+    "suppliers_count": 3,
+    "materials_count": 3,
+    "logistics_nodes_count": 2,
+    "facilities_count": 2,
+    "entities_scanned": 11,
+    "entities_skipped": 0
+  },
+  "articles": [
+    {
+      "title": "Iran war: Oil shortages threaten global energy security",
+      "description": "Strategic petroleum reserves are declining rapidly as countries release emergency crude supplies to cushion the economic impact of the Middle East conflict.",
+      "source": "Deutsche Welle: DW.com - Business",
+      "publishedAt": "2026-06-04T06:10:57.343412",
+      "url": "https://www.dw.com/en/iran-war-oil-shortages-threaten-global-energy-security/a-77313462?maca=en-rss-en-bus-2091-rdf",
+      "urlToImage": "",
+      "impact_level": "CRITICAL",
+      "_api": "RSS",
+      "_score": 6,
+      "_feed_group": "geopolitics",
+      "category": "Material: Crude Oil"
+    },
+    {
+      "title": "MAIA: OMIFCO CEO: Operation Not Impacted by Hormuz Closure",
+      "description": "Oman India Fertiliser Company, has announced a landmark IPO on the Muscat stock exchange, as it looks to capitalize on soaring prices and growing investor interest in the sector. The listing comes at a time when disruptions in the Strait of Hormuz is reshaping global fertilizer markets and raising concerns about food security. Ahmed Said Al-Marhoub",
+      "source": "Bloomberg Markets",
+      "publishedAt": "2026-06-04T06:01:25",
+      "url": "https://www.bloomberg.com/news/videos/2026-06-04/omifco-ceo-operation-not-impacted-by-hormuz-closure-video",
+      "urlToImage": "",
+      "impact_level": "CRITICAL",
+      "_api": "RSS",
+      "_score": 4,
+      "_feed_group": "geopolitics",
+      "category": "Logistics: Strait of Hormuz"
+    },
+    {
+      "title": "Geopolitics boost freight rates but pose challenges to shipowners elsewhere",
+      "description": "Geopolitical conflicts have pushed up vessel earnings while creating obstacles for shipping companies in crewing and making mid- and long-term investments, several shipowners said. Freight rates in various sectors have risen as Iran seized control of the Strait of Hormuz since its war with Israel and the US began Feb. 28, limiting maritime traffic ",
+      "source": "Hellenic Shipping News Worldwide",
+      "publishedAt": "2026-06-03T21:00:59",
+      "url": "https://www.hellenicshippingnews.com/geopolitics-boost-freight-rates-but-pose-challenges-to-shipowners-elsewhere/",
+      "urlToImage": "",
+      "impact_level": "CRITICAL",
+      "_api": "RSS",
+      "_score": 4,
+      "_feed_group": "logistics",
+      "category": "Logistics: Strait of Hormuz"
+    },
+    {
+      "title": "Continuing war pushes airfreight rates toward Covid peak",
+      "description": "<p>Air cargo rates climbed 36% year on year in May as conflict in the Middle East continued to disrupt global supply chains, according to data provider WorldACD.<br />\nPresenting at TIACA’s Executive Summit in Warsaw today (2 June), WorldACD CEO Ken De Witt Hamer said the market had experienced a sharp shift since early March, when geopolitical ten",
+      "source": "The Loadstar",
+      "publishedAt": "2026-06-02T15:05:20",
+      "url": "https://theloadstar.com/war-pushes-airfreight-rates-higher-still/",
+      "urlToImage": "",
+      "impact_level": "CRITICAL",
+      "_api": "RSS",
+      "_score": 4,
+      "_feed_group": "logistics",
+      "category": "Global Baseline"
+    },
+    {
+      "title": "Oil in spotlight as Venezuela’s Rodríguez visits India amid supply woes, shifting flows",
+      "description": "India&#8217;s growing appetite for Venezuelan crude will be in the spotlight during acting President Delcy Rodríguez&#8217;s visit to New Delhi this week, as the two countries look to expand energy ties amid a prolonged Middle East conflict and disruptions to flows through the Strait of Hormuz, which are reshaping the global oil flow map, governmen",
+      "source": "Hellenic Shipping News Worldwide",
+      "publishedAt": "2026-06-03T21:00:51",
+      "url": "https://www.hellenicshippingnews.com/oil-in-spotlight-as-venezuelas-rodriguez-visits-india-amid-supply-woes-shifting-flows/",
+      "urlToImage": "",
+      "impact_level": "HIGH",
+      "_api": "RSS",
+      "_score": 4,
+      "_feed_group": "logistics",
+      "category": "Material: Crude Oil"
+    },
+    {
+      "title": "Transportation pricing index logs record growth rate in May",
+      "description": "<p>Transportation prices surged throughout May, according to a monthly poll of supply chain executives, as available capacity remained on the decline.</p>\n<p>The post <a href=\"https://www.freightwaves.com/news/transportation-pricing-index-logs-record-growth-rate-in-may\">Transportation pricing index logs record growth rate in May</a> appeared first ",
+      "source": "news - FreightWaves",
+      "publishedAt": "2026-06-02T13:54:04",
+      "url": "https://www.freightwaves.com/news/transportation-pricing-index-logs-record-growth-rate-in-may",
+      "urlToImage": "",
+      "impact_level": "MEDIUM",
+      "_api": "RSS",
+      "_score": 4,
+      "_feed_group": "logistics",
+      "category": "Global Baseline"
+    }
+  ]
+}

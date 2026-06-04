@@ -1,0 +1,238 @@
+{
+  "client_name": "NovaTech Electronics",
+  "client_slug": "novatech_electronics",
+  "profile": {
+    "tier1_suppliers": [
+      {
+        "name": "TSMC",
+        "material": "Semiconductor Chips",
+        "location": "Taiwan"
+      },
+      {
+        "name": "Foxconn",
+        "material": "Electronics Components",
+        "location": "China"
+      },
+      {
+        "name": "Samsung Semiconductor",
+        "material": "Memory Chips",
+        "location": "South Korea"
+      }
+    ],
+    "raw_materials": [
+      {
+        "commodity": "Semiconductor",
+        "region": "Taiwan"
+      },
+      {
+        "commodity": "Rare Earth Metals",
+        "region": "China"
+      },
+      {
+        "commodity": "Silicon Wafers",
+        "region": "Japan"
+      }
+    ],
+    "logistics_nodes": [
+      {
+        "port": "Shanghai Port",
+        "carrier": "Maersk",
+        "route": "Asia-Europe"
+      },
+      {
+        "port": "Busan Port",
+        "carrier": "Hapag-Lloyd",
+        "route": "Asia-US"
+      }
+    ],
+    "own_facilities": [
+      {
+        "name": "Bangalore Assembly Plant",
+        "location": "India"
+      },
+      {
+        "name": "Munich Distribution Center",
+        "location": "Germany"
+      }
+    ]
+  },
+  "created_at": "2026-06-04T05:09:19.235858",
+  "runs": [
+    {
+      "timestamp": "2026-06-04T05:09:19.235858",
+      "overall_risk": "CRITICAL",
+      "articles_added": 11,
+      "breakdown": {
+        "Supplier: TSMC": 2,
+        "Supplier: Foxconn": 0,
+        "Supplier: Samsung Semiconductor": 1,
+        "Material: Semiconductor": 0,
+        "Material: Rare Earth Metals": 1,
+        "Material: Silicon Wafers": 0,
+        "Logistics: Shanghai Port": 3,
+        "Logistics: Busan Port": 0,
+        "Facility: Bangalore Assembly Plant": 0,
+        "Facility: Munich Distribution Center": 1,
+        "Global Baseline": 3
+      }
+    }
+  ],
+  "stats": {
+    "total_articles": 11,
+    "critical_alerts": 4,
+    "high_alerts": 1,
+    "medium_alerts": 3,
+    "low_alerts": 3,
+    "suppliers_count": 3,
+    "materials_count": 3,
+    "logistics_nodes_count": 2,
+    "facilities_count": 2,
+    "entities_scanned": 11,
+    "entities_skipped": 0
+  },
+  "articles": [
+    {
+      "title": "Rising aircargo rates take a bite out of Bangladesh’s perishable exports",
+      "description": "<p>Vegetables and seasonal fruit exports from Bangladesh are a facing severe downturn, after a near doubling in costs over the past five months as surging airfreight rates make themselves felt.<br />\nAirfares out of Bangladesh to Europe and the Middle East have proved most deleterious for exporters, who have seen their competitiveness against broad",
+      "source": "The Loadstar",
+      "publishedAt": "2026-06-03T15:28:25",
+      "url": "https://theloadstar.com/rising-aircargo-rates-take-a-bite-out-of-bangladeshs-perishable-exports/",
+      "urlToImage": "",
+      "impact_level": "CRITICAL",
+      "_api": "RSS",
+      "_score": 2,
+      "_feed_group": "logistics",
+      "category": "Logistics: Shanghai Port"
+    },
+    {
+      "title": "Ecommerce sector ready to adapt to looming EU import reforms",
+      "description": "<p>Europe&#8217;s planned reforms for low-value ecommerce imports are unlikely to trigger the sharp disruption seen in the US after the removal of de minimis exemptions, delegates heard yesterday.<br />\nAt TIACA&#8217;s Executive Summit in Warsaw they heard that e-tailers had repeatedly demonstrated an ability to adapt rapidly to regulatory change.",
+      "source": "The Loadstar",
+      "publishedAt": "2026-06-03T11:00:16",
+      "url": "https://theloadstar.com/ecommerce-sector-ready-to-adapt-to-looming-eu-import-reforms/",
+      "urlToImage": "",
+      "impact_level": "CRITICAL",
+      "_api": "RSS",
+      "_score": 2,
+      "_feed_group": "logistics",
+      "category": "Logistics: Shanghai Port"
+    },
+    {
+      "title": "Continuing war pushes airfreight rates toward Covid peak",
+      "description": "<p>Air cargo rates climbed 36% year on year in May as conflict in the Middle East continued to disrupt global supply chains, according to data provider WorldACD.<br />\nPresenting at TIACA’s Executive Summit in Warsaw today (2 June), WorldACD CEO Ken De Witt Hamer said the market had experienced a sharp shift since early March, when geopolitical ten",
+      "source": "The Loadstar",
+      "publishedAt": "2026-06-02T15:05:20",
+      "url": "https://theloadstar.com/war-pushes-airfreight-rates-higher-still/",
+      "urlToImage": "",
+      "impact_level": "CRITICAL",
+      "_api": "RSS",
+      "_score": 4,
+      "_feed_group": "logistics",
+      "category": "Global Baseline"
+    },
+    {
+      "title": "IBM and U.S. Department of Commerce Announce America’s First Purpose-Built Quantum Foundry, Supported by Proposed $1 Billion CHIPS Award",
+      "description": "<p>Today, IBM and the U.S. Department of Commerce (DoC) announced a Letter of Intent (LOI) to build an American quantum chip foundry, securing the nation's global quantum leadership and fueling the country's growing quantum ecosystem.</p>\n<p>The post <a href=\"https://www.semiconductor-digest.com/ibm-and-u-s-department-of-commerce-announce-americas-",
+      "source": "Semiconductor Digest",
+      "publishedAt": "2026-05-21T19:29:08",
+      "url": "https://www.semiconductor-digest.com/ibm-and-u-s-department-of-commerce-announce-americas-first-purpose-built-quantum-foundry-supported-by-proposed-1-billion-chips-award/?utm_source=rss&utm_medium=rss&utm_campaign=ibm-and-u-s-department-of-commerce-announce-americas-first-purpose-built-quantum-foundry-supported-by-proposed-1-billion-chips-award",
+      "urlToImage": "",
+      "impact_level": "CRITICAL",
+      "_api": "RSS",
+      "_score": 2,
+      "_feed_group": "manufacturing",
+      "category": "Supplier: TSMC"
+    },
+    {
+      "title": "Cadence and Samsung Foundry Deepen 2nm and 3D‑IC Collaboration to Meet Surging AI Infrastructure and Physical AI Demand",
+      "description": "<p>Multi-year agreement expands Memory, NVIDIA NVLink-C2C and advanced Interface IP, and agentic AI-optimized GPU‑accelerated EDA and SDA flows on Samsung Foundry’s second-generation 2nm node for next-generation AI infrastructure and physical AI designs.</p>\n<p>The post <a href=\"https://www.semiconductor-digest.com/cadence-and-samsung-foundry-deepe",
+      "source": "Semiconductor Digest",
+      "publishedAt": "2026-05-28T20:53:19",
+      "url": "https://www.semiconductor-digest.com/cadence-and-samsung-foundry-deepen-2nm-and-3d-ic-collaboration-to-meet-surging-ai-infrastructure-and-physical-ai-demand/?utm_source=rss&utm_medium=rss&utm_campaign=cadence-and-samsung-foundry-deepen-2nm-and-3d-ic-collaboration-to-meet-surging-ai-infrastructure-and-physical-ai-demand",
+      "urlToImage": "",
+      "impact_level": "HIGH",
+      "_api": "RSS",
+      "_score": 3,
+      "_feed_group": "manufacturing",
+      "category": "Supplier: Samsung Semiconductor"
+    },
+    {
+      "title": "COMMODITY TRACKER: 5 charts to watch this week",
+      "description": "European commodities markets face supply pressures, with LNG imports declining for a second consecutive month and aluminum shipments at decade lows. Meanwhile, Brazil continues to rely heavily on Russian diesel, and Asian rice markets diverge as Vietnam&#8217;s prices soften while Pakistan maintains competitive export positioning despite climate co",
+      "source": "Hellenic Shipping News Worldwide",
+      "publishedAt": "2026-06-03T21:00:47",
+      "url": "https://www.hellenicshippingnews.com/commodity-tracker-5-charts-to-watch-this-week-10/",
+      "urlToImage": "",
+      "impact_level": "MEDIUM",
+      "_api": "RSS",
+      "_score": 3,
+      "_feed_group": "logistics",
+      "category": "Logistics: Shanghai Port"
+    },
+    {
+      "title": "China Picks State Firm to Help Coordinate Mining Deals Abroad",
+      "description": "China has chosen a new state investment company to help coordinate its overseas metals and mining deals, and counter mounting geopolitical risks that threaten its ability to secure resources, according to people familiar with the matter.",
+      "source": "Bloomberg Markets",
+      "publishedAt": "2026-06-03T07:30:03",
+      "url": "https://www.bloomberg.com/news/articles/2026-06-03/china-picks-state-firm-to-help-coordinate-mining-deals-abroad",
+      "urlToImage": "",
+      "impact_level": "MEDIUM",
+      "_api": "RSS",
+      "_score": 2,
+      "_feed_group": "geopolitics",
+      "category": "Material: Rare Earth Metals"
+    },
+    {
+      "title": "Transportation pricing index logs record growth rate in May",
+      "description": "<p>Transportation prices surged throughout May, according to a monthly poll of supply chain executives, as available capacity remained on the decline.</p>\n<p>The post <a href=\"https://www.freightwaves.com/news/transportation-pricing-index-logs-record-growth-rate-in-may\">Transportation pricing index logs record growth rate in May</a> appeared first ",
+      "source": "news - FreightWaves",
+      "publishedAt": "2026-06-02T13:54:04",
+      "url": "https://www.freightwaves.com/news/transportation-pricing-index-logs-record-growth-rate-in-may",
+      "urlToImage": "",
+      "impact_level": "MEDIUM",
+      "_api": "RSS",
+      "_score": 4,
+      "_feed_group": "logistics",
+      "category": "Global Baseline"
+    },
+    {
+      "title": "Target debuts $367M food distribution center in Colorado",
+      "description": "<p>Target is beefing up its food supply chain with a new facility in Colorado to support more in-store food selection.</p>\n<p>The post <a href=\"https://www.freightwaves.com/news/target-debuts-367m-food-distribution-center-in-colorado\">Target debuts $367M food distribution center in Colorado</a> appeared first on <a href=\"https://www.freightwaves.co",
+      "source": "news - FreightWaves",
+      "publishedAt": "2026-06-03T11:15:54",
+      "url": "https://www.freightwaves.com/news/target-debuts-367m-food-distribution-center-in-colorado",
+      "urlToImage": "",
+      "impact_level": "LOW",
+      "_api": "RSS",
+      "_score": 2,
+      "_feed_group": "logistics",
+      "category": "Global Baseline"
+    },
+    {
+      "title": "Ocean rates creeping higher ahead of peak season",
+      "description": "<p>Rising costs and stubbornly high transits could further challenge supply chains in the second half of the year. </p>\n<p>The post <a href=\"https://www.freightwaves.com/news/ocean-rates-creeping-higher-ahead-of-peak-season\">Ocean rates creeping higher ahead of peak season</a> appeared first on <a href=\"https://www.freightwaves.com\">FreightWaves</a",
+      "source": "news - FreightWaves",
+      "publishedAt": "2026-05-31T00:30:00",
+      "url": "https://www.freightwaves.com/news/ocean-rates-creeping-higher-ahead-of-peak-season",
+      "urlToImage": "",
+      "impact_level": "LOW",
+      "_api": "RSS",
+      "_score": 3,
+      "_feed_group": "logistics",
+      "category": "Global Baseline"
+    },
+    {
+      "title": "World Micro Signs Distribution Agreement with Mobilint to Expand AI Semiconductor Solutions",
+      "description": "<p>World Micro, a global distributor of electronic components and supply chain solutions, is pleased to announce a new distribution agreement with Mobilint, a pioneering developer of AI accelerator chips.</p>\n<p>The post <a href=\"https://www.semiconductor-digest.com/world-micro-signs-distribution-agreement-with-mobilint-to-expand-ai-semiconductor-s",
+      "source": "Semiconductor Digest",
+      "publishedAt": "2026-05-22T15:48:57",
+      "url": "https://www.semiconductor-digest.com/world-micro-signs-distribution-agreement-with-mobilint-to-expand-ai-semiconductor-solutions/?utm_source=rss&utm_medium=rss&utm_campaign=world-micro-signs-distribution-agreement-with-mobilint-to-expand-ai-semiconductor-solutions",
+      "urlToImage": "",
+      "impact_level": "LOW",
+      "_api": "RSS",
+      "_score": 2,
+      "_feed_group": "manufacturing",
+      "category": "Supplier: TSMC"
+    }
+  ]
+}

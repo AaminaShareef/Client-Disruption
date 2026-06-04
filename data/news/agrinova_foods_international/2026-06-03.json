@@ -1,0 +1,296 @@
+{
+  "client_name": "AgriNova Foods International",
+  "client_slug": "agrinova_foods_international",
+  "profile": {
+    "tier1_suppliers": [
+      {
+        "name": "Gulf Fertilizer Exports",
+        "material": "Fertilizer",
+        "location": "UAE"
+      },
+      {
+        "name": "Black Sea Grain Traders",
+        "material": "Wheat",
+        "location": "Ukraine"
+      },
+      {
+        "name": "Bharat Agro Chemicals",
+        "material": "Pesticides",
+        "location": "India"
+      },
+      {
+        "name": "Brazilian Soy Group",
+        "material": "Soybeans",
+        "location": "Brazil"
+      }
+    ],
+    "raw_materials": [
+      {
+        "commodity": "Fertilizer",
+        "region": "Middle East"
+      },
+      {
+        "commodity": "Wheat",
+        "region": "Black Sea"
+      },
+      {
+        "commodity": "Diesel Fuel",
+        "region": "Gulf Region"
+      },
+      {
+        "commodity": "Soybeans",
+        "region": "South America"
+      }
+    ],
+    "logistics_nodes": [
+      {
+        "port": "Jebel Ali Port",
+        "carrier": "MSC",
+        "route": "Middle East-Europe"
+      },
+      {
+        "port": "Strait of Hormuz",
+        "carrier": "Maersk",
+        "route": "Gulf-Asia"
+      },
+      {
+        "port": "Odessa Port",
+        "carrier": "CMA CGM",
+        "route": "Black Sea-Europe"
+      }
+    ],
+    "own_facilities": [
+      {
+        "name": "Kochi Food Processing Unit",
+        "location": "India"
+      },
+      {
+        "name": "Rotterdam Distribution Hub",
+        "location": "Netherlands"
+      }
+    ]
+  },
+  "created_at": "2026-06-03T07:43:54.124929",
+  "runs": [
+    {
+      "timestamp": "2026-06-03T07:43:54.124929",
+      "overall_risk": "CRITICAL",
+      "articles_added": 9,
+      "query_breakdown": {
+        "Supplier: Gulf Fertilizer Exports": 0,
+        "Supplier: Black Sea Grain Traders": 0,
+        "Supplier: Bharat Agro Chemicals": 0,
+        "Supplier: Brazilian Soy Group": 0,
+        "Material: Fertilizer (Middle East)": 2,
+        "Material: Wheat (Black Sea)": 1,
+        "Material: Diesel Fuel (Gulf Region)": 3,
+        "Material: Soybeans (South America)": 2,
+        "Logistics: Jebel Ali Port": 0,
+        "Logistics: Strait of Hormuz": 1,
+        "Logistics: Odessa Port": 0,
+        "Facility: Kochi Food Processing Unit": 0,
+        "Facility: Rotterdam Distribution Hub": 0,
+        "Global Baseline": 0
+      }
+    },
+    {
+      "timestamp": "2026-06-03T07:54:43.703681",
+      "overall_risk": "CRITICAL",
+      "articles_added": 6,
+      "query_breakdown": {
+        "Supplier: Gulf Fertilizer Exports": 5,
+        "Supplier: Black Sea Grain Traders": 0,
+        "Supplier: Bharat Agro Chemicals": 0,
+        "Supplier: Brazilian Soy Group": 0,
+        "Material: Fertilizer (Middle East)": 3,
+        "Material: Wheat (Black Sea)": 1,
+        "Material: Diesel Fuel (Gulf Region)": 2,
+        "Material: Soybeans (South America)": 2,
+        "Logistics: Jebel Ali Port": 0,
+        "Logistics: Strait of Hormuz": 1,
+        "Logistics: Odessa Port": 0,
+        "Facility: Kochi Food Processing Unit": 0,
+        "Facility: Rotterdam Distribution Hub": 0,
+        "Global Baseline": 0
+      }
+    }
+  ],
+  "stats": {
+    "total_articles": 10,
+    "critical_alerts": 4,
+    "high_alerts": 6,
+    "medium_alerts": 0,
+    "low_alerts": 0,
+    "suppliers_count": 4,
+    "materials_count": 4,
+    "logistics_nodes_count": 3,
+    "facilities_count": 2
+  },
+  "articles": [
+    {
+      "title": "Oil Markets Ignore Red Flags as Global Energy Crisis Deepens",
+      "description": "Global oil markets remain under severe stress as Hormuz disruptions, weak economic data, and tightening inventories reshape energy flows worldwide.",
+      "source": "Yahoo Entertainment",
+      "publishedAt": "2026-05-22T15:24:02Z",
+      "url": "https://finance.yahoo.com/sectors/energy/articles/oil-markets-ignore-red-flags-152402853.html",
+      "urlToImage": "https://s.yimg.com/os/en/oilprice.com/dacf6ead540087761374cb97d0bd22b7",
+      "impact_level": "CRITICAL",
+      "_api": "NewsAPI",
+      "category": "Material: Diesel Fuel (Gulf Region)"
+    },
+    {
+      "title": "FAO warns Hormuz closure could trigger global food price crisis affecting 45 million people",
+      "description": "A prolonged Hormuz closure could exacerbate global hunger, disproportionately affecting vulnerable populations in the Global South.\nThe post FAO warns Hormuz closure could trigger global food price crisis affecting 45 million people appeared first on Crypto B…",
+      "source": "Crypto Briefing",
+      "publishedAt": "2026-05-21T01:15:35Z",
+      "url": "https://cryptobriefing.com/fao-hormuz-closure-food-price-crisis/",
+      "urlToImage": "https://static.cryptobriefing.com/wp-content/uploads/2026/05/20211535/iran-war-strait-of-hormuz-closure-could-create-global-food-c-1-800x420.jpeg",
+      "impact_level": "CRITICAL",
+      "_api": "NewsAPI",
+      "category": "Material: Wheat (Black Sea)"
+    },
+    {
+      "title": "Ships Stack Up at Hormuz Entrance as US Navy Escorts Reportedly Resume",
+      "description": "As Iranian brass maintains mixed messaging on whether the country will levy tolls for vesselsto pass, Freightos warns a sudden reopening could trigger Far East port congestion.",
+      "source": "WWD",
+      "publishedAt": "2026-05-26T16:34:50Z",
+      "url": "http://wwd.com/sourcing-journal/logistics/strait-of-hormuz-iran-war-ships-tolls-fees-us-navy-escorts-port-congestion-1238981430/",
+      "urlToImage": "https://wwd.com/wp-content/uploads/2026/05/straithormuzkhasab.jpg?w=1000&h=563&crop=1",
+      "impact_level": "HIGH",
+      "_api": "NewsAPI",
+      "category": "Logistics: Strait of Hormuz"
+    },
+    {
+      "title": "Why your barbecue will cost more this summer (and it's not just beef prices)",
+      "description": "Between beef prices and supply chain issues from the Iran war, a host of factors are making barbecues more expensive.",
+      "source": "Business Insider",
+      "publishedAt": "2026-05-23T10:09:01Z",
+      "url": "https://www.businessinsider.com/why-your-barbecue-will-cost-more-this-summer-2026-5",
+      "urlToImage": "https://i.insider.com/6a1060d47ff506e273e667d0?width=1200&format=jpeg",
+      "impact_level": "HIGH",
+      "_api": "NewsAPI",
+      "category": "Material: Fertilizer (Middle East)"
+    },
+    {
+      "title": "5 things you should know about the global energy crisis",
+      "description": "Experts break down five things to know about how global oil disruptions are already hitting American households.",
+      "source": "Futurity: Research News",
+      "publishedAt": "2026-05-22T16:23:01Z",
+      "url": "https://www.futurity.org/global-energy-crisis-americans-3334772/",
+      "urlToImage": "https://www.futurity.org/wp/wp-content/uploads/2026/05/global-energy-crisis-iran-war-money-1600.jpg",
+      "impact_level": "HIGH",
+      "_api": "NewsAPI",
+      "category": "Material: Fertilizer (Middle East)"
+    },
+    {
+      "title": "China exports 68 GW of Solar PV amid Hormuz Energy Crisis",
+      "description": "In all, 50 countries saw an all-time record in the solar panel imports from China in March.",
+      "source": "Juancole.com",
+      "publishedAt": "2026-05-28T04:15:55Z",
+      "url": "https://www.juancole.com/2026/05/exports-hormuz-energy.html",
+      "urlToImage": "https://media.juancole.com/images/2026/05/darmau-hYfOeNvDXWg-unsplash2.jpg",
+      "impact_level": "LOW",
+      "_api": "NewsAPI",
+      "category": "Material: Diesel Fuel (Gulf Region)"
+    },
+    {
+      "title": "The United States is a major energy exporter and importer, especially for petroleum",
+      "description": "Total energy exports from the United States reached a record 31 quadrillion British thermal units (quads) in 2025, 2% more than the previous record set in 2024. U.S. energy imports were 21 quads, down 5% from 2024. Taken together, net trade—total imports less…",
+      "source": "Eia.gov",
+      "publishedAt": "2026-05-27T13:23:44Z",
+      "url": "https://www.eia.gov/todayinenergy/detail.php?id=67724",
+      "urlToImage": "https://www.eia.gov/todayinenergy/images/2026.05.27/main.png?1779888308",
+      "impact_level": "LOW",
+      "_api": "NewsAPI",
+      "category": "Material: Diesel Fuel (Gulf Region)"
+    },
+    {
+      "title": "India cancels soymeal export deals, turns to African soybean imports, sources say",
+      "description": "The ‌sudden jump in domestic soybean prices pushed up soymeal\ncosts, making it ‌difficult ⁠for traders to fulfil export\ncommitments",
+      "source": "BusinessLine",
+      "publishedAt": "2026-05-26T09:38:55Z",
+      "url": "https://www.thehindubusinessline.com/economy/agri-business/india-cancels-soymeal-export-deals-turns-to-african-soybean-imports-sources-say/article71024341.ece",
+      "urlToImage": "https://bl-i.thgim.com/public/incoming/ddxezw/article71024420.ece/alternates/LANDSCAPE_1200/20251026012L.jpg",
+      "impact_level": "LOW",
+      "_api": "NewsAPI",
+      "category": "Material: Soybeans (South America)"
+    },
+    {
+      "title": "India cancels soymeal export deals, turns to Africa for soybean imports",
+      "description": "Indian traders have cancelled 25,000 metric tons of soymeal export contracts. This is the first time since 2021. They have also booked 80,000 tons of imports from African countries. Soaring domestic prices have reversed trade flows. This shift helps North and…",
+      "source": "The Times of India",
+      "publishedAt": "2026-05-26T09:25:04Z",
+      "url": "https://economictimes.indiatimes.com/news/economy/agriculture/india-cancels-soymeal-export-deals-turns-to-african-soybean-imports/articleshow/131325796.cms",
+      "urlToImage": "https://img.etimg.com/thumb/msid-131325912,width-1200,height-630,imgsize-176486,overlay-economictimes/articleshow.jpg",
+      "impact_level": "LOW",
+      "_api": "NewsAPI",
+      "category": "Material: Soybeans (South America)"
+    },
+    {
+      "title": "Oil exports through the Strait of Hormuz might not return to levels seen before the Iran war",
+      "description": "Iran's blockade of the Strait of Hormuz has seriously challenged freedom of navigation in the sea lane, raising questions about the future.",
+      "source": "CNBC",
+      "publishedAt": "2026-05-30T13:00:00Z",
+      "url": "https://www.cnbc.com/2026/05/30/oil-exports-through-hormuz-might-not-return-to-levels-before-iran-war.html",
+      "urlToImage": "https://image.cnbcfm.com/api/v1/image/108313172-1779976627096-GettyImages-2265963203_edited.png?v=1779977306&w=1920&h=1080",
+      "impact_level": "CRITICAL",
+      "_api": "NewsAPI",
+      "category": "Logistics: Strait of Hormuz"
+    },
+    {
+      "title": "Strait of Hormuz shutdown turns into a global food crisis",
+      "description": "The FAO has warned that the window is narrowing with every passing week of the planting season that passes without fertilizer reaching the fields that need it at this critical hour",
+      "source": "BusinessLine",
+      "publishedAt": "2026-05-23T03:54:13Z",
+      "url": "https://www.thehindubusinessline.com/economy/agri-business/strait-of-hormuz-shutdown-turns-into-a-global-food-crisis/article71012093.ece",
+      "urlToImage": "https://bl-i.thgim.com/public/incoming/21706h/article70997058.ece/alternates/LANDSCAPE_1200/2026-05-15T084554Z_789227049_RC2M5KAY9U7E_RTRMADP_3_INDIA-ECONOMY-TRADE.JPG",
+      "impact_level": "CRITICAL",
+      "_api": "NewsAPI",
+      "category": "Supplier: Gulf Fertilizer Exports"
+    },
+    {
+      "title": "Top 5 Commodities Impacted By The Iran War",
+      "description": "The Middle East conflict has triggered sweeping, multi-commodity supply shocks, profoundly impacting global energy, petrochemicals, agriculture and shipping industries, among others. The disruption of shipping through the Strait of Hormuz--which handles nearl…",
+      "source": "OilPrice.com",
+      "publishedAt": "2026-06-01T17:00:00Z",
+      "url": "https://oilprice.com/Energy/Energy-General/Top-5-Commodities-Impacted-By-The-Iran-War.html",
+      "urlToImage": "https://d32r1sh890xpii.cloudfront.net/article/1200x675/2026-06-01_hsotbe7xnv.jpg",
+      "impact_level": "HIGH",
+      "_api": "NewsAPI",
+      "category": "Material: Fertilizer (Middle East)"
+    },
+    {
+      "title": "How the war in Iran is affecting your dinner plate",
+      "description": "Agriculture is at risk of a crisis because of this Middle East conflict. The reason why has to do with how fertilizer is made",
+      "source": "Scientific American",
+      "publishedAt": "2026-06-01T16:00:00Z",
+      "url": "https://www.scientificamerican.com/article/how-the-war-in-iran-is-affecting-your-dinner-plate/",
+      "urlToImage": "https://static.scientificamerican.com/dam/asset/8e804cfb-0012-4af5-b187-e45f71360093/grocery-prices.jpg?m=1780328384.433&w=1200",
+      "impact_level": "HIGH",
+      "_api": "NewsAPI",
+      "category": "Material: Fertilizer (Middle East)"
+    },
+    {
+      "title": "Iran pushes “toll” plan on the Strait of Hormuz, threatening global trade chaos",
+      "description": "Instead of just reopening the waterway after recent conflicts, Iran has announced a plan with Oman to create a new authority that would charge fees for any ship passing through. This would effectively let Iran tax and control the flow of the world’s oil and n…",
+      "source": "Naturalnews.com",
+      "publishedAt": "2026-05-25T06:00:00Z",
+      "url": "https://www.naturalnews.com/2026-05-25-iran-pushes-toll-plan-on-strait-of-hormuz.html",
+      "urlToImage": "https://www.naturalnews.com/wp-content/uploads/sites/91/2026/05/iran-oil-storage-us-naval-blockade-strait-of-hormuz-1157-original.jpg",
+      "impact_level": "HIGH",
+      "_api": "NewsAPI",
+      "category": "Logistics: Strait of Hormuz"
+    },
+    {
+      "title": "Shipping Professionals Eye Relocation From Dubai to Greece Amid Gulf Conflict",
+      "description": "Some shipping industry workers based in Dubai are looking to relocate from the United Arab Emirates as a result of the ongoing U.S.-Israel war on Iran, according to one ship owner and two industry sources familiar with the matter. Western expats working in th…",
+      "source": "Naturalnews.com",
+      "publishedAt": "2026-05-24T06:00:00Z",
+      "url": "https://www.naturalnews.com/2026-05-24-shipping-professionals-relocation-dubai-greece-gulf-conflict.html",
+      "urlToImage": "https://www.naturalnews.com/wp-content/uploads/sites/91/2026/05/shipping-professionals-relocation-dubai-1638-original.jpg",
+      "impact_level": "HIGH",
+      "_api": "NewsAPI",
+      "category": "Supplier: Gulf Fertilizer Exports"
+    }
+  ]
+}

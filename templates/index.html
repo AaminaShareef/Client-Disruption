@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Chain Risk Intelligence | Disruption Monitoring Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg:        #F4F6F9;
+            --surface:   #FFFFFF;
+            --border:    #E2E8F0;
+            --border-md: #CBD5E1;
+            --text-1:    #0F172A;
+            --text-2:    #475569;
+            --text-3:    #94A3B8;
+            --blue:      #2563EB;
+            --blue-l:    #EFF6FF;
+            --green:     #059669;
+            --green-l:   #ECFDF5;
+            --orange:    #EA580C;
+            --orange-l:  #FFF7ED;
+            --red:       #DC2626;
+            --red-l:     #FEF2F2;
+            --amber:     #D97706;
+            --amber-l:   #FFFBEB;
+            --purple:    #7C3AED;
+            --radius-sm: 0.5rem;
+            --radius:    0.875rem;
+            --radius-lg: 1.25rem;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+            --shadow:    0 4px 12px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.04);
+            --shadow-lg: 0 12px 32px rgba(0,0,0,.10), 0 4px 8px rgba(0,0,0,.06);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-1);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ── NAVBAR ─────────────────────────────────────────── */
+        .navbar {
+            background: rgba(255,255,255,.96);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            padding: .875rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+        .brand {
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -.03em;
+            color: var(--text-1);
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            text-decoration: none;
+        }
+        .brand .dot { color: var(--blue); }
+        .brand .sentinel { color: var(--blue); }
+        .nav-pill {
+            background: var(--blue-l);
+            color: var(--blue);
+            border: 1px solid #BFDBFE;
+            border-radius: 2rem;
+            padding: .3rem .9rem;
+            font-size: .72rem;
+            font-weight: 600;
+            letter-spacing: .2px;
+        }
+        .nav-pill.green { background: var(--green-l); color: var(--green); border-color: #A7F3D0; }
+
+        /* ── HERO ────────────────────────────────────────────── */
+        .hero {
+            background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 60%, #1E1B4B 100%);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem 2.75rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 60% 60% at 80% 50%, rgba(124,58,237,.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero-eyebrow {
+            font-family: 'DM Mono', monospace;
+            font-size: .72rem;
+            color: #93C5FD;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            margin-bottom: .5rem;
+        }
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -.04em;
+            color: #FFFFFF;
+            line-height: 1.15;
+            margin-bottom: .75rem;
+        }
+        .hero-title span { color: #93C5FD; }
+        .hero-sub { color: #94A3B8; font-size: .9rem; }
+        .hero-badges { display: flex; gap: .5rem; flex-wrap: wrap; }
+        .hero-badge {
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.15);
+            color: #CBD5E1;
+            border-radius: 2rem;
+            padding: .3rem .85rem;
+            font-size: .75rem;
+            font-weight: 500;
+        }
+
+        /* ── ENTITY CARDS ────────────────────────────────────── */
+        .entity-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: box-shadow .2s, border-color .2s, transform .2s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .entity-card:hover {
+            box-shadow: var(--shadow);
+            border-color: var(--border-md);
+            transform: translateY(-2px);
+        }
+        .entity-card-header {
+            background: #F8FAFC;
+            padding: .875rem 1.125rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+        .entity-title {
+            font-weight: 600;
+            font-size: .875rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .icon-supplier  { color: var(--blue); }
+        .icon-material  { color: var(--green); }
+        .icon-logistics { color: var(--purple); }
+        .icon-facility  { color: var(--amber); }
+
+        .entity-badge {
+            background: #EEF2FF;
+            color: #4338CA;
+            border: 1px solid #C7D2FE;
+            padding: .2rem .65rem;
+            border-radius: 1rem;
+            font-size: .72rem;
+            font-weight: 700;
+            min-width: 1.6rem;
+            text-align: center;
+        }
+        .collapse-icon { font-size: .7rem; color: var(--text-3); transition: transform .25s; }
+        .entity-card-header[aria-expanded="false"] .collapse-icon { transform: rotate(-90deg); }
+
+        .entity-body {
+            padding: .875rem;
+            display: flex;
+            flex-direction: column;
+            gap: .625rem;
+            flex: 1;
+        }
+
+        .detail-item {
+            background: #F8FAFC;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: .75rem;
+            transition: border-color .15s, background .15s;
+        }
+        .detail-item:hover { background: #FFFFFF; border-color: var(--blue); }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: .5rem;
+        }
+        .detail-index {
+            background: var(--blue);
+            color: #fff;
+            font-size: .68rem;
+            font-weight: 700;
+            padding: .15rem .5rem;
+            border-radius: 1rem;
+            font-family: 'DM Mono', monospace;
+        }
+        .btn-remove {
+            background: none;
+            border: none;
+            color: var(--text-3);
+            cursor: pointer;
+            font-size: .75rem;
+            padding: .25rem .5rem;
+            border-radius: .375rem;
+            transition: color .15s, background .15s;
+        }
+        .btn-remove:hover { color: var(--red); background: var(--red-l); }
+
+        .input-field {
+            width: 100%;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .78rem;
+            padding: .45rem .7rem;
+            border: 1px solid var(--border);
+            border-radius: .45rem;
+            background: #FFFFFF;
+            color: var(--text-1);
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+        }
+        .input-row { display: flex; gap: .45rem; }
+        .input-row .input-field { flex: 1; }
+
+        .btn-add {
+            background: #F8FAFC;
+            border: 1.5px dashed #CBD5E1;
+            border-radius: .5rem;
+            padding: .55rem;
+            font-size: .78rem;
+            font-weight: 500;
+            color: var(--text-2);
+            width: 100%;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .btn-add:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-l); }
+
+        .empty-state {
+            text-align: center;
+            padding: .75rem;
+            color: var(--text-3);
+            font-size: .75rem;
+        }
+
+        /* ── CLIENT CARD ─────────────────────────────────────── */
+        .client-card {
+            background: linear-gradient(135deg, #1E3A5F, #1E1B4B);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            color: #fff;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+        .client-card label {
+            font-family: 'DM Mono', monospace;
+            font-size: .7rem;
+            color: #93C5FD;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: .5rem;
+        }
+        .client-card input {
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.2);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: .75rem 1rem;
+            width: 100%;
+            border-radius: .625rem;
+            transition: all .2s;
+        }
+        .client-card input::placeholder { color: rgba(255,255,255,.45); }
+        .client-card input:focus {
+            outline: none;
+            background: rgba(255,255,255,.18);
+            border-color: rgba(255,255,255,.45);
+            box-shadow: 0 0 0 3px rgba(255,255,255,.08);
+        }
+
+        /* ── ANALYZE BUTTON ──────────────────────────────────── */
+        .btn-analyze {
+            background: linear-gradient(135deg, #1E3A5F, #2563EB);
+            border: none;
+            border-radius: var(--radius);
+            padding: 1rem 2rem;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+            font-size: .95rem;
+            color: #fff;
+            width: 100%;
+            max-width: 520px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(37,99,235,.3);
+            transition: all .25s;
+            letter-spacing: -.01em;
+        }
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(37,99,235,.4);
+        }
+        .btn-analyze:active { transform: translateY(0); }
+
+        /* ── LOADING ─────────────────────────────────────────── */
+        .loading-box {
+            display: none;
+            text-align: center;
+            padding: 3.5rem 2rem;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .loading-box p { color: var(--text-2); margin-top: .75rem; font-size: .875rem; }
+
+        /* ── RESULTS ─────────────────────────────────────────── */
+        .results-section { display: none; }
+
+        .risk-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 1.75rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.25rem;
+        }
+        .risk-label {
+            font-family: 'DM Mono', monospace;
+            font-size: .7rem;
+            color: var(--text-3);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: .35rem;
+        }
+        .client-name-display {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -.03em;
+            color: var(--text-1);
+            margin-bottom: .625rem;
+        }
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .4rem 1.1rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: .78rem;
+            letter-spacing: .2px;
+            margin-bottom: .625rem;
+        }
+
+        /* ── STATS ROW ───────────────────────────────────────── */
+        .stat-card {
+            background: #F8FAFC;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            text-align: center;
+            transition: all .15s;
+        }
+        .stat-card:hover { background: #fff; box-shadow: var(--shadow-sm); }
+        .stat-num {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -.04em;
+            color: var(--text-1);
+            line-height: 1;
+        }
+        .stat-lbl {
+            font-size: .7rem;
+            font-weight: 600;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            margin-top: .3rem;
+        }
+
+        /* ── QUERY BREAKDOWN ─────────────────────────────────── */
+        .breakdown-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 1.25rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .card-header-bar {
+            background: #F8FAFC;
+            padding: .875rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: .875rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .breakdown-row {
+            display: flex;
+            align-items: center;
+            padding: .6rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            gap: .75rem;
+            font-size: .82rem;
+        }
+        .breakdown-row:last-child { border-bottom: none; }
+        .breakdown-label { flex: 1; color: var(--text-2); font-weight: 500; }
+        .breakdown-bar-wrap { flex: 2; background: #EFF6FF; border-radius: 1rem; height: 6px; overflow: hidden; }
+        .breakdown-bar { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 1rem; transition: width .6s ease; }
+        .breakdown-count {
+            font-family: 'DM Mono', monospace;
+            font-size: .75rem;
+            font-weight: 500;
+            color: var(--text-1);
+            min-width: 2.5rem;
+            text-align: right;
+        }
+
+        /* ── NEWS FEED ───────────────────────────────────────── */
+        .news-item {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            padding: 1rem 1.125rem;
+            margin-bottom: .75rem;
+            border: 1px solid var(--border);
+            border-left: 4px solid;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .news-item:hover { transform: translateX(4px); box-shadow: var(--shadow); }
+        .news-item:last-child { margin-bottom: 0; }
+
+        .impact-CRITICAL { border-left-color: var(--red); }
+        .impact-HIGH     { border-left-color: var(--orange); }
+        .impact-MEDIUM   { border-left-color: var(--blue); }
+        .impact-LOW      { border-left-color: #94A3B8; }
+
+        .impact-pill {
+            font-family: 'DM Mono', monospace;
+            font-size: .65rem;
+            font-weight: 500;
+            padding: .2rem .6rem;
+            border-radius: 1rem;
+            letter-spacing: .05em;
+        }
+        .pill-CRITICAL { background: var(--red-l);    color: var(--red);    border: 1px solid #FECACA; }
+        .pill-HIGH     { background: var(--orange-l); color: var(--orange); border: 1px solid #FED7AA; }
+        .pill-MEDIUM   { background: var(--blue-l);   color: var(--blue);   border: 1px solid #BFDBFE; }
+        .pill-LOW      { background: #F1F5F9;          color: #64748B;       border: 1px solid var(--border); }
+
+        .api-source-tag {
+            font-family: 'DM Mono', monospace;
+            font-size: .65rem;
+            padding: .15rem .55rem;
+            border-radius: 1rem;
+            background: #EFF6FF;
+            color: var(--blue);
+            border: 1px solid #BFDBFE;
+        }
+        .api-source-tag.rss { background: var(--blue-l); color: var(--blue); border-color: #BFDBFE; }
+
+        .category-tag {
+            font-size: .68rem;
+            font-weight: 600;
+            padding: .15rem .55rem;
+            border-radius: 1rem;
+            background: #F1F5F9;
+            color: #475569;
+            border: 1px solid var(--border);
+        }
+
+        .news-title {
+            font-weight: 600;
+            font-size: .85rem;
+            color: var(--text-1);
+            line-height: 1.4;
+        }
+        .news-desc { font-size: .8rem; color: var(--text-2); margin: .4rem 0 .625rem; line-height: 1.5; }
+        .news-meta { font-size: .72rem; color: var(--text-3); }
+
+        .read-link {
+            font-size: .75rem;
+            font-weight: 600;
+            color: var(--blue);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+        }
+        .read-link:hover { text-decoration: underline; }
+        .read-link.disabled { color: var(--text-3); pointer-events: none; }
+
+        /* ── SCROLL TO TOP ───────────────────────────────────── */
+        .scroll-top {
+            position: fixed;
+            bottom: 1.75rem;
+            right: 1.75rem;
+            background: var(--surface);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            z-index: 1000;
+            transition: all .25s;
+            color: var(--text-2);
+        }
+        .scroll-top.visible { opacity: 1; pointer-events: auto; }
+        .scroll-top:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+        /* ── ANIMATIONS ──────────────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp .4s ease-out both; }
+        .delay-1 { animation-delay: .08s; }
+        .delay-2 { animation-delay: .16s; }
+        .delay-3 { animation-delay: .24s; }
+
+        /* ── FOOTER ──────────────────────────────────────────── */
+        footer {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: var(--text-3);
+            font-size: .8rem;
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+
+        /* ── RESPONSIVE ──────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .hero { padding: 1.75rem 1.5rem; }
+            .hero-title { font-size: 1.5rem; }
+            .hero-badges { display: none; }
+        }
+        @media (max-width: 576px) {
+            .risk-card > .d-flex { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ──────────────────────────────────────────────── -->
+<nav class="navbar">
+    <div class="container">
+        <a class="brand" href="#">
+            <i class="fas fa-satellite-dish" style="color:var(--blue);font-size:.95rem;"></i>
+            Supply Chain <span class="sentinel">Risk Intelligence</span>
+        </a>
+        <div class="d-flex gap-2">
+            <span class="nav-pill"><i class="fas fa-bolt me-1"></i>Live Intel</span>
+            <span class="nav-pill green"><i class="fas fa-shield-alt me-1"></i>Risk Monitor</span>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <!-- ── HERO ──────────────────────────────────────────────── -->
+    <div class="hero mb-4 fade-up">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <div class="hero-eyebrow"><i class="fas fa-chart-network me-1"></i> Disruption Intelligence Platform</div>
+                <h1 class="hero-title">Supply Chain <span>Risk</span> Analysis</h1>
+                <p class="hero-sub mb-3">Identify external disruption factors from real-time global news, matched precisely to your supplier, material, and logistics profile.</p>
+                <div class="hero-badges">
+                    <span class="hero-badge"><i class="fas fa-map-marker-alt me-1"></i> Geopolitical</span>
+                    <span class="hero-badge"><i class="fas fa-cloud-rain me-1"></i> Climate</span>
+                    <span class="hero-badge"><i class="fas fa-anchor me-1"></i> Logistics</span>
+                    <span class="hero-badge"><i class="fas fa-industry me-1"></i> Supplier</span>
+                    <span class="hero-badge"><i class="fas fa-cube me-1"></i> Materials</span>
+                </div>
+            </div>
+            <div class="col-md-5 mt-3 mt-md-0 text-md-end">
+                <div style="display:inline-flex;flex-direction:column;gap:.5rem;align-items:flex-end;">
+                    <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:.75rem;padding:.75rem 1.25rem;color:#CBD5E1;font-size:.8rem;">
+                        <i class="fas fa-rss me-2" style="color:#93C5FD;"></i>Curated RSS Feeds — trade press
+                    </div>
+                    <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:.75rem;padding:.75rem 1.25rem;color:#CBD5E1;font-size:.8rem;">
+                        <i class="fas fa-balance-scale me-2" style="color:#93C5FD;"></i>Per-entity queries — no class imbalance
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── CLIENT NAME ──────────────────────────────────────── -->
+    <div class="client-card fade-up delay-1">
+        <label><i class="fas fa-building me-1"></i> Company / Client Name</label>
+        <input type="text" id="clientName" placeholder="e.g., Acme Global Manufacturing">
+    </div>
+
+    <!-- ── ENTITY CARDS GRID ────────────────────────────────── -->
+    <div class="row g-3 mb-3 fade-up delay-2">
+
+        <!-- Suppliers -->
+        <div class="col-lg-6 d-flex">
+            <div class="entity-card w-100">
+                <div class="entity-card-header"
+                     data-bs-toggle="collapse" data-bs-target="#suppliersCollapse"
+                     aria-expanded="true" aria-controls="suppliersCollapse">
+                    <div class="entity-title">
+                        <i class="fas fa-truck icon-supplier"></i>
+                        Tier-1 Suppliers
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="entity-badge" id="supplierCount">0</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                </div>
+                <div id="suppliersCollapse" class="collapse show">
+                    <div class="entity-body">
+                        <div id="suppliersList"></div>
+                        <button class="btn-add" onclick="addEntity('supplier')">
+                            <i class="fas fa-plus me-1"></i>Add Supplier
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Materials -->
+        <div class="col-lg-6 d-flex">
+            <div class="entity-card w-100">
+                <div class="entity-card-header"
+                     data-bs-toggle="collapse" data-bs-target="#materialsCollapse"
+                     aria-expanded="true" aria-controls="materialsCollapse">
+                    <div class="entity-title">
+                        <i class="fas fa-cubes icon-material"></i>
+                        Raw Materials
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="entity-badge" id="materialCount">0</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                </div>
+                <div id="materialsCollapse" class="collapse show">
+                    <div class="entity-body">
+                        <div id="materialsList"></div>
+                        <button class="btn-add" onclick="addEntity('material')">
+                            <i class="fas fa-plus me-1"></i>Add Material
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logistics -->
+        <div class="col-lg-6 d-flex">
+            <div class="entity-card w-100">
+                <div class="entity-card-header"
+                     data-bs-toggle="collapse" data-bs-target="#logisticsCollapse"
+                     aria-expanded="true" aria-controls="logisticsCollapse">
+                    <div class="entity-title">
+                        <i class="fas fa-ship icon-logistics"></i>
+                        Logistics Nodes
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="entity-badge" id="logisticsCount">0</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                </div>
+                <div id="logisticsCollapse" class="collapse show">
+                    <div class="entity-body">
+                        <div id="logisticsList"></div>
+                        <button class="btn-add" onclick="addEntity('logistics')">
+                            <i class="fas fa-plus me-1"></i>Add Logistics Node
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Facilities -->
+        <div class="col-lg-6 d-flex">
+            <div class="entity-card w-100">
+                <div class="entity-card-header"
+                     data-bs-toggle="collapse" data-bs-target="#facilitiesCollapse"
+                     aria-expanded="true" aria-controls="facilitiesCollapse">
+                    <div class="entity-title">
+                        <i class="fas fa-industry icon-facility"></i>
+                        Own Facilities
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="entity-badge" id="facilityCount">0</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                </div>
+                <div id="facilitiesCollapse" class="collapse show">
+                    <div class="entity-body">
+                        <div id="facilitiesList"></div>
+                        <button class="btn-add" onclick="addEntity('facility')">
+                            <i class="fas fa-plus me-1"></i>Add Facility
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── ANALYZE BUTTON ────────────────────────────────────── -->
+    <div class="d-flex justify-content-center mb-4 fade-up delay-3">
+        <button class="btn-analyze" onclick="analyzeProfile()">
+            <i class="fas fa-satellite-dish me-2"></i>Analyze Disruption Risks
+        </button>
+    </div>
+
+    <!-- ── LOADING ───────────────────────────────────────────── -->
+    <div id="loadingBox" class="loading-box">
+        <div class="spinner-border text-primary" style="width:2.75rem;height:2.75rem;" role="status"></div>
+        <p>Scanning global news sources per entity category…</p>
+        <small class="text-muted" style="font-size:.75rem;">Scanning curated RSS feeds from supply-chain trade publications…</small>
+    </div>
+
+    <!-- ── RESULTS ───────────────────────────────────────────── -->
+    <div id="resultsSection" class="results-section">
+
+        <!-- Risk summary card -->
+        <div class="risk-card fade-up" id="riskCard">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div>
+                    <div class="risk-label"><i class="fas fa-chart-line me-1"></i>Risk Assessment</div>
+                    <div class="client-name-display" id="clientNameDisplay">—</div>
+                    <div id="riskBadge" class="risk-badge">—</div>
+                    <p id="riskMessage" class="mb-0" style="font-size:.85rem;color:var(--text-2);">—</p>
+                </div>
+                <div style="text-align:right;">
+                    <div class="stat-card mb-2" style="min-width:6rem;">
+                        <div class="stat-num" id="riskScore">—</div>
+                        <div class="stat-lbl">Risk Score</div>
+                    </div>
+                    <small id="timestampDisplay" class="text-muted" style="font-size:.72rem;"></small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="row g-3 mb-3 fade-up" id="statsRow" style="display:none!important;">
+            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stSuppliers">0</div><div class="stat-lbl">Suppliers</div></div></div>
+            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stMaterials">0</div><div class="stat-lbl">Materials</div></div></div>
+            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stLogistics">0</div><div class="stat-lbl">Logistics</div></div></div>
+            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stAlerts">0</div><div class="stat-lbl">Active Alerts</div></div></div>
+        </div>
+
+        <!-- Query breakdown — shows how many articles per entity category -->
+        <div class="breakdown-card fade-up" id="breakdownCard" style="display:none;">
+            <div class="card-header-bar">
+                <span><i class="fas fa-layer-group me-2" style="color:var(--blue);"></i>News Coverage Breakdown by Entity Category</span>
+                <span class="nav-pill" style="font-size:.7rem;">Anti-imbalance</span>
+            </div>
+            <div id="breakdownRows"></div>
+        </div>
+
+        <!-- News feed -->
+        <div class="breakdown-card fade-up">
+            <div class="card-header-bar">
+                <span><i class="fas fa-newspaper me-2" style="color:var(--blue);"></i>Real-Time Supply Chain Intelligence</span>
+                <span id="articleCountBadge" class="nav-pill" style="font-size:.7rem;">0 articles</span>
+            </div>
+            <div id="newsFeed" class="p-3" style="max-height:600px;overflow-y:auto;">
+                <div class="text-center py-5" style="color:var(--text-3);">
+                    <i class="fas fa-satellite-dish fa-3x mb-3 opacity-50"></i>
+                    <p>News will appear here after analysis</p>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /results -->
+
+</div><!-- /container -->
+
+<footer>
+    <p><i class="fas fa-rss me-1"></i> Sources: Curated RSS Feeds from Trade Publications &nbsp;|&nbsp; <i class="fas fa-balance-scale me-1"></i> Per-entity queries prevent class imbalance</p>
+    <p class="mt-1">© 2024 Supply Chain Risk Intelligence</p>
+</footer>
+
+<div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <i class="fas fa-arrow-up" style="font-size:.8rem;"></i>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── STATE ──────────────────────────────────────────────────
+let suppliers = [];
+let materials = [];
+let logistics = [];
+let facilities = [];
+
+// ── COUNTERS ───────────────────────────────────────────────
+function updateCounters() {
+    document.getElementById('supplierCount').textContent  = suppliers.length;
+    document.getElementById('materialCount').textContent  = materials.length;
+    document.getElementById('logisticsCount').textContent = logistics.length;
+    document.getElementById('facilityCount').textContent  = facilities.length;
+}
+
+// ── ADD / REMOVE ───────────────────────────────────────────
+function addEntity(type) {
+    if (type === 'supplier')  { suppliers.push({ name:'', material:'', location:'' }); renderSuppliers(); }
+    if (type === 'material')  { materials.push({ commodity:'', region:'' });           renderMaterials(); }
+    if (type === 'logistics') { logistics.push({ port:'', carrier:'', route:'' });     renderLogistics(); }
+    if (type === 'facility')  { facilities.push({ name:'', location:'' });             renderFacilities(); }
+    updateCounters();
+}
+
+function removeEntity(type, idx) {
+    if (type === 'supplier')  { suppliers.splice(idx,1);  renderSuppliers(); }
+    if (type === 'material')  { materials.splice(idx,1);  renderMaterials(); }
+    if (type === 'logistics') { logistics.splice(idx,1);  renderLogistics(); }
+    if (type === 'facility')  { facilities.splice(idx,1); renderFacilities(); }
+    updateCounters();
+}
+
+// ── LIVE UPDATE HELPERS ────────────────────────────────────
+function updateSupplier(i, f, v)  { suppliers[i][f]  = v; }
+function updateMaterial(i, f, v)  { materials[i][f]  = v; }
+function updateLogistics(i, f, v) { logistics[i][f]  = v; }
+function updateFacility(i, f, v)  { facilities[i][f] = v; }
+
+function esc(s) {
+    if (!s) return '';
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+// ── RENDER FUNCTIONS ───────────────────────────────────────
+function renderSuppliers() {
+    const el = document.getElementById('suppliersList');
+    if (!suppliers.length) { el.innerHTML = '<div class="empty-state">No suppliers added</div>'; return; }
+    el.innerHTML = suppliers.map((s,i) => `
+        <div class="detail-item">
+            <div class="detail-header">
+                <span class="detail-index">${i+1}</span>
+                <button class="btn-remove" onclick="removeEntity('supplier',${i})"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <input class="input-field mb-1" placeholder="Supplier name" value="${esc(s.name)}"
+                   oninput="updateSupplier(${i},'name',this.value)">
+            <div class="input-row">
+                <input class="input-field" placeholder="Material provided" value="${esc(s.material)}"
+                       oninput="updateSupplier(${i},'material',this.value)">
+                <input class="input-field" placeholder="Location / country" value="${esc(s.location)}"
+                       oninput="updateSupplier(${i},'location',this.value)">
+            </div>
+        </div>`).join('');
+}
+
+function renderMaterials() {
+    const el = document.getElementById('materialsList');
+    if (!materials.length) { el.innerHTML = '<div class="empty-state">No materials added</div>'; return; }
+    el.innerHTML = materials.map((m,i) => `
+        <div class="detail-item">
+            <div class="detail-header">
+                <span class="detail-index">${i+1}</span>
+                <button class="btn-remove" onclick="removeEntity('material',${i})"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <div class="input-row">
+                <input class="input-field" placeholder="Commodity (e.g., lithium)" value="${esc(m.commodity)}"
+                       oninput="updateMaterial(${i},'commodity',this.value)">
+                <input class="input-field" placeholder="Source region" value="${esc(m.region)}"
+                       oninput="updateMaterial(${i},'region',this.value)">
+            </div>
+        </div>`).join('');
+}
+
+function renderLogistics() {
+    const el = document.getElementById('logisticsList');
+    if (!logistics.length) { el.innerHTML = '<div class="empty-state">No logistics nodes added</div>'; return; }
+    el.innerHTML = logistics.map((l,i) => `
+        <div class="detail-item">
+            <div class="detail-header">
+                <span class="detail-index">${i+1}</span>
+                <button class="btn-remove" onclick="removeEntity('logistics',${i})"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <input class="input-field mb-1" placeholder="Port / terminal" value="${esc(l.port)}"
+                   oninput="updateLogistics(${i},'port',this.value)">
+            <div class="input-row">
+                <input class="input-field" placeholder="Carrier / forwarder" value="${esc(l.carrier)}"
+                       oninput="updateLogistics(${i},'carrier',this.value)">
+                <input class="input-field" placeholder="Trade route" value="${esc(l.route)}"
+                       oninput="updateLogistics(${i},'route',this.value)">
+            </div>
+        </div>`).join('');
+}
+
+function renderFacilities() {
+    const el = document.getElementById('facilitiesList');
+    if (!facilities.length) { el.innerHTML = '<div class="empty-state">No facilities added</div>'; return; }
+    el.innerHTML = facilities.map((f,i) => `
+        <div class="detail-item">
+            <div class="detail-header">
+                <span class="detail-index">${i+1}</span>
+                <button class="btn-remove" onclick="removeEntity('facility',${i})"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <div class="input-row">
+                <input class="input-field" placeholder="Facility name" value="${esc(f.name)}"
+                       oninput="updateFacility(${i},'name',this.value)">
+                <input class="input-field" placeholder="Location / city" value="${esc(f.location)}"
+                       oninput="updateFacility(${i},'location',this.value)">
+            </div>
+        </div>`).join('');
+}
+
+// ── ANALYZE ────────────────────────────────────────────────
+async function analyzeProfile() {
+    const clientName = document.getElementById('clientName').value.trim() || 'Unnamed Client';
+    const payload = {
+        client_name:     clientName,
+        tier1_suppliers: suppliers,
+        raw_materials:   materials,
+        logistics_nodes: logistics,
+        own_facilities:  facilities,
+    };
+
+    document.getElementById('loadingBox').style.display     = 'block';
+    document.getElementById('resultsSection').style.display = 'none';
+
+    try {
+        const res  = await fetch('/analyze', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            displayResults(data);
+        } else {
+            alert('Analysis error: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Could not reach the server. Is Flask running?');
+    } finally {
+        document.getElementById('loadingBox').style.display     = 'none';
+        document.getElementById('resultsSection').style.display = 'block';
+        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// ── DISPLAY RESULTS ────────────────────────────────────────
+function displayResults(data) {
+
+    // ── Risk header
+    document.getElementById('clientNameDisplay').textContent = data.client_name;
+    document.getElementById('timestampDisplay').innerHTML =
+        `<i class="far fa-clock me-1"></i>${data.analysis_timestamp}`;
+
+    const riskColors = {
+        CRITICAL: { bg: 'var(--red-l)',    color: 'var(--red)',    border: '#FECACA' },
+        HIGH:     { bg: 'var(--orange-l)', color: 'var(--orange)', border: '#FED7AA' },
+        MEDIUM:   { bg: 'var(--amber-l)',  color: 'var(--amber)',  border: '#FDE68A' },
+        LOW:      { bg: 'var(--green-l)',  color: 'var(--green)',  border: '#A7F3D0' },
+    };
+    const rc = riskColors[data.overall_risk] || riskColors.LOW;
+    const badge = document.getElementById('riskBadge');
+    badge.textContent = `${data.overall_risk} RISK`;
+    badge.style.background   = rc.bg;
+    badge.style.color        = rc.color;
+    badge.style.border       = `1px solid ${rc.border}`;
+
+    document.getElementById('riskMessage').textContent = data.risk_message;
+
+    const scoreMap = { LOW: 18, MEDIUM: 42, HIGH: 72, CRITICAL: 91 };
+    document.getElementById('riskScore').innerHTML =
+        `${scoreMap[data.overall_risk] || 35}<span style="font-size:.65rem;font-family:'DM Mono',monospace;">/100</span>`;
+
+    // ── Stats row
+    if (data.stats) {
+        const sr = document.getElementById('statsRow');
+        sr.style.cssText = ''; // remove display:none!important
+        sr.style.display = 'flex';
+        document.getElementById('stSuppliers').textContent = data.stats.suppliers_count;
+        document.getElementById('stMaterials').textContent = data.stats.materials_count;
+        document.getElementById('stLogistics').textContent = data.stats.logistics_nodes_count;
+        document.getElementById('stAlerts').textContent    =
+            (data.stats.critical_alerts || 0) + (data.stats.high_alerts || 0);
+    }
+
+    // ── Query breakdown panel (new in this version)
+    if (data.query_breakdown && Object.keys(data.query_breakdown).length) {
+        const bc   = document.getElementById('breakdownCard');
+        const rows = document.getElementById('breakdownRows');
+        bc.style.display = 'block';
+        const maxVal = Math.max(...Object.values(data.query_breakdown), 1);
+        rows.innerHTML = Object.entries(data.query_breakdown).map(([label, count]) => {
+            const pct = Math.round((count / maxVal) * 100);
+            return `
+            <div class="breakdown-row">
+                <span class="breakdown-label"><i class="fas fa-tag me-1" style="color:var(--blue);opacity:.5;"></i>${label}</span>
+                <div class="breakdown-bar-wrap">
+                    <div class="breakdown-bar" style="width:${pct}%;"></div>
+                </div>
+                <span class="breakdown-count">${count} art.</span>
+            </div>`;
+        }).join('');
+    }
+
+    // ── News feed
+    const feed = document.getElementById('newsFeed');
+    document.getElementById('articleCountBadge').textContent =
+        `${(data.news||[]).length} articles`;
+
+    if (!data.news || !data.news.length) {
+        feed.innerHTML = `
+            <div class="text-center py-5" style="color:var(--text-3);">
+                <i class="fas fa-newspaper fa-3x mb-3 opacity-50"></i>
+                <p>No relevant news found for this profile.</p>
+                <small>Check your API keys in environment variables.</small>
+            </div>`;
+        return;
+    }
+
+    feed.innerHTML = data.news.map(a => {
+        const level    = a.impact_level || 'LOW';
+        const apiName  = (a._api || 'RSS').toLowerCase().replace(/\s/g,'');
+        const apiClass = apiName.includes('rss') ? 'rss' : '';
+        const apiLabel = a._api || 'RSS';
+        const catTag   = a.category ? `<span class="category-tag ms-1">${a.category}</span>` : '';
+
+        let dateStr = '';
+        try {
+            dateStr = new Date(a.publishedAt).toLocaleDateString('en-US',
+                { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+        } catch(_) {}
+
+        const isReal = a.url && a.url !== '#';
+        const readBtn = isReal
+            ? `<a href="${a.url}" target="_blank" rel="noopener" class="read-link">Read <i class="fas fa-arrow-right"></i></a>`
+            : `<span class="read-link disabled">No link</span>`;
+
+        return `
+        <div class="news-item impact-${level}">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                <div class="news-title">${a.title || '—'}</div>
+                <span class="impact-pill pill-${level} flex-shrink-0">${level}</span>
+            </div>
+            <p class="news-desc">${a.description || ''}</p>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+                <div class="d-flex align-items-center gap-1 flex-wrap">
+                    <span class="news-meta"><i class="far fa-building me-1"></i>${a.source || '—'}</span>
+                    ${dateStr ? `<span class="news-meta">· ${dateStr}</span>` : ''}
+                    <span class="api-source-tag ${apiClass}">${apiLabel}</span>
+                    ${catTag}
+                </div>
+                ${readBtn}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ── SCROLL TO TOP ──────────────────────────────────────────
+window.addEventListener('scroll', () => {
+    document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 350);
+});
+
+// ── COLLAPSE ICON SYNC ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(trigger => {
+        const targetId = trigger.getAttribute('data-bs-target');
+        const target   = document.querySelector(targetId);
+        if (!target) return;
+        target.addEventListener('show.bs.collapse', () => trigger.setAttribute('aria-expanded','true'));
+        target.addEventListener('hide.bs.collapse', () => trigger.setAttribute('aria-expanded','false'));
+    });
+
+    // Pre-populate one row per section
+    addEntity('supplier');
+    addEntity('material');
+    addEntity('logistics');
+    updateCounters();
+});
+</script>
+</body>
+</html>
