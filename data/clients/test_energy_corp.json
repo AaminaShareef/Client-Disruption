@@ -1,0 +1,25 @@
+{
+  "client_name": "Test Energy Corp",
+  "tier1_suppliers": [
+    {
+      "name": "",
+      "material": "",
+      "location": ""
+    }
+  ],
+  "raw_materials": [
+    {
+      "commodity": "",
+      "region": ""
+    }
+  ],
+  "logistics_nodes": [
+    {
+      "port": "",
+      "carrier": "",
+      "route": ""
+    }
+  ],
+  "own_facilities": [],
+  "saved_at": "2026-06-04T13:00:21.075633"
+}

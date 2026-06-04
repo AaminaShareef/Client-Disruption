@@ -1,0 +1,117 @@
+{
+  "client_name": "Test Energy Corp",
+  "client_slug": "test_energy_corp",
+  "profile": {
+    "tier1_suppliers": [
+      {
+        "location": "",
+        "material": "",
+        "name": ""
+      }
+    ],
+    "raw_materials": [
+      {
+        "commodity": "",
+        "region": ""
+      }
+    ],
+    "logistics_nodes": [
+      {
+        "carrier": "",
+        "port": "",
+        "route": ""
+      }
+    ],
+    "own_facilities": []
+  },
+  "created_at": "2026-06-04T07:33:15.437609",
+  "runs": [
+    {
+      "timestamp": "2026-06-04T07:33:15.437609",
+      "overall_risk": "HIGH",
+      "articles_added": 2,
+      "breakdown": {
+        "Global Baseline": 2
+      }
+    }
+  ],
+  "stats": {
+    "total_articles": 2,
+    "critical_alerts": 1,
+    "high_alerts": 0,
+    "medium_alerts": 1,
+    "low_alerts": 0,
+    "suppliers_count": 1,
+    "materials_count": 1,
+    "logistics_nodes_count": 1,
+    "facilities_count": 0,
+    "entities_scanned": 1,
+    "entities_skipped": 3
+  },
+  "articles": [
+    {
+      "title": "Continuing war pushes airfreight rates toward Covid peak",
+      "description": "<p>Air cargo rates climbed 36% year on year in May as conflict in the Middle East continued to disrupt global supply chains, according to data provider WorldACD.<br />\nPresenting at TIACA’s Executive Summit in Warsaw today (2 June), WorldACD CEO Ken De Witt Hamer said the market had experienced a sharp shift since early March, when geopolitical ten",
+      "source": "The Loadstar",
+      "publishedAt": "2026-06-02T15:05:20",
+      "url": "https://theloadstar.com/war-pushes-airfreight-rates-higher-still/",
+      "urlToImage": "",
+      "impact_level": "CRITICAL",
+      "_api": "RSS",
+      "_score": 4,
+      "_feed_group": "logistics",
+      "category": "Global Baseline",
+      "_disruption_meta": {
+        "event_type": "geopolitical_crisis",
+        "locations": [
+          "dubai"
+        ],
+        "commodities": [],
+        "severity": "high",
+        "disruption_keywords": [
+          "supply chain disruption",
+          "trade delays",
+          "cost increases"
+        ]
+      },
+      "affected_entities": [
+        "Supplier: #1",
+        "Material: #1",
+        "Logistics: #1"
+      ],
+      "impact_reasons": [
+        "Direct disruption signal in article"
+      ],
+      "confidence": 0.3
+    },
+    {
+      "title": "Transportation pricing index logs record growth rate in May",
+      "description": "<p>Transportation prices surged throughout May, according to a monthly poll of supply chain executives, as available capacity remained on the decline.</p>\n<p>The post <a href=\"https://www.freightwaves.com/news/transportation-pricing-index-logs-record-growth-rate-in-may\">Transportation pricing index logs record growth rate in May</a> appeared first ",
+      "source": "news - FreightWaves",
+      "publishedAt": "2026-06-02T13:54:04",
+      "url": "https://www.freightwaves.com/news/transportation-pricing-index-logs-record-growth-rate-in-may",
+      "urlToImage": "",
+      "impact_level": "MEDIUM",
+      "_api": "RSS",
+      "_score": 4,
+      "_feed_group": "logistics",
+      "category": "Global Baseline",
+      "_disruption_meta": {
+        "event_type": "",
+        "locations": [],
+        "commodities": [],
+        "severity": "medium",
+        "disruption_keywords": []
+      },
+      "affected_entities": [
+        "Supplier: #1",
+        "Material: #1",
+        "Logistics: #1"
+      ],
+      "impact_reasons": [
+        "Direct disruption signal in article"
+      ],
+      "confidence": 0.3
+    }
+  ]
+}

@@ -618,6 +618,14 @@
     <div class="client-card fade-up delay-1">
         <label><i class="fas fa-building me-1"></i> Company / Client Name</label>
         <input type="text" id="clientName" placeholder="e.g., Acme Global Manufacturing">
+        <div style="display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;">
+            <button onclick="saveClientProfile()" style="flex:1;min-width:120px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.6rem;border-radius:.5rem;font-weight:600;cursor:pointer;transition:all .2s;font-size:.85rem;">
+                <i class="fas fa-save me-1"></i>Save Profile
+            </button>
+            <button onclick="loadClientModal()" style="flex:1;min-width:120px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:.6rem;border-radius:.5rem;font-weight:600;cursor:pointer;transition:all .2s;font-size:.85rem;">
+                <i class="fas fa-folder-open me-1"></i>Load Profile
+            </button>
+        </div>
     </div>
 
     <!-- ── ENTITY CARDS GRID ────────────────────────────────── -->
@@ -804,6 +812,22 @@
     <p class="mt-1">© 2024 Supply Chain Risk Intelligence</p>
 </footer>
 
+<!-- ── LOAD CLIENT MODAL ────────────────────────────────────── -->
+<div id="loadClientModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:1rem;padding:2rem;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+            <h3 style="margin:0;font-size:1.3rem;font-weight:700;"><i class="fas fa-folder-open me-2" style="color:#2563EB;"></i>Load Saved Client</h3>
+            <button onclick="closeLoadModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#94A3B8;">&times;</button>
+        </div>
+        <div id="clientsList" style="max-height:300px;overflow-y:auto;margin-bottom:1.5rem;">
+            <p style="text-align:center;color:#94A3B8;">Loading clients...</p>
+        </div>
+        <div style="display:flex;gap:0.75rem;">
+            <button onclick="closeLoadModal()" style="flex:1;background:#F1F5F9;border:1px solid #E2E8F0;color:#475569;padding:.75rem;border-radius:.5rem;font-weight:600;cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
     <i class="fas fa-arrow-up" style="font-size:.8rem;"></i>
 </div>
@@ -927,6 +951,105 @@ function renderFacilities() {
                        oninput="updateFacility(${i},'location',this.value)">
             </div>
         </div>`).join('');
+}
+
+// ── CLIENT PROFILE MANAGEMENT ──────────────────────────────
+async function saveClientProfile() {
+    const clientName = document.getElementById('clientName').value.trim();
+    if (!clientName) {
+        alert('Please enter a client name');
+        return;
+    }
+    
+    const payload = {
+        client_name:     clientName,
+        tier1_suppliers: suppliers,
+        raw_materials:   materials,
+        logistics_nodes: logistics,
+        own_facilities:  facilities,
+    };
+    
+    try {
+        const res = await fetch('/save-client', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            alert(`✓ Profile saved: ${clientName}`);
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Could not save profile');
+    }
+}
+
+async function loadClientModal() {
+    const modal = document.getElementById('loadClientModal');
+    modal.style.display = 'flex';
+    
+    try {
+        const res = await fetch('/load-clients');
+        const data = await res.json();
+        
+        if (data.status === 'success' && data.clients.length > 0) {
+            const listHTML = data.clients.map(client => `
+                <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:.5rem;padding:1rem;margin-bottom:.75rem;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background='#F8FAFC'" onclick="selectAndLoadClient('${client.filename}')">
+                    <div style="font-weight:600;margin-bottom:.3rem;">${esc(client.name)}</div>
+                    <div style="font-size:.8rem;color:#94A3B8;">
+                        <span style="background:#E0E7FF;color:#4338CA;padding:.2rem .5rem;border-radius:.3rem;margin-right:.5rem;">${client.suppliers} suppliers</span>
+                        <span style="background:#DBEAFE;color:#1E40AF;padding:.2rem .5rem;border-radius:.3rem;margin-right:.5rem;">${client.materials} materials</span>
+                        <span style="background:#F3E8FF;color:#5B21B6;padding:.2rem .5rem;border-radius:.3rem;margin-right:.5rem;">${client.logistics} logistics</span>
+                        <span style="background:#FEF3C7;color:#B45309;padding:.2rem .5rem;border-radius:.3rem;">${client.facilities} facilities</span>
+                    </div>
+                    <div style="font-size:.75rem;color:#CBD5E1;margin-top:.5rem;">Saved: ${new Date(client.saved_at).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+            document.getElementById('clientsList').innerHTML = listHTML;
+        } else {
+            document.getElementById('clientsList').innerHTML = '<p style="text-align:center;color:#94A3B8;">No saved clients found</p>';
+        }
+    } catch (err) {
+        console.error(err);
+        document.getElementById('clientsList').innerHTML = '<p style="color:#DC2626;">Error loading clients</p>';
+    }
+}
+
+async function selectAndLoadClient(filename) {
+    try {
+        const res = await fetch(`/get-client/${filename}`);
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            const profile = data.profile;
+            document.getElementById('clientName').value = profile.client_name;
+            suppliers = profile.tier1_suppliers || [];
+            materials = profile.raw_materials || [];
+            logistics = profile.logistics_nodes || [];
+            facilities = profile.own_facilities || [];
+            
+            renderSuppliers();
+            renderMaterials();
+            renderLogistics();
+            renderFacilities();
+            updateCounters();
+            
+            closeLoadModal();
+            alert(`✓ Loaded: ${profile.client_name}`);
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Could not load client profile');
+    }
+}
+
+function closeLoadModal() {
+    document.getElementById('loadClientModal').style.display = 'none';
 }
 
 // ── ANALYZE ────────────────────────────────────────────────
