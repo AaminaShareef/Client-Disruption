@@ -225,16 +225,13 @@ async function analyzeProfile() {
         _nlpRawData = data;   // store for NLP panel
 
         stepDone(5);
-        stepActivate(6); await sleep(250);
-        // Step 6 = client-side NLP preprocessing (done after render)
-        stepDone(6);
-        stepActivate(7); await sleep(200);
-        stepDone(7);
-        await sleep(200);
+        stepActivate(6); // NLP preprocessing — handled by runNLPPreprocessingAuto
 
         document.getElementById('pipelineBox').style.display    = 'none';
         document.getElementById('resultsSection').style.display = 'block';
         displayResults(data);
+        // Auto-run NLP preprocessing — articles are hidden until this completes
+        await runNLPPreprocessingAuto();
         document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     } catch (err) {
@@ -335,6 +332,10 @@ function displayResults(data) {
     }
 
     // ── News feed ────────────────────────────────────────
+    // Hide feed container until NLP preprocessing finishes
+    const feedSection = document.getElementById('newsFeedSection');
+    if (feedSection) feedSection.style.display = 'none';
+
     const feed = document.getElementById('newsFeed');
     document.getElementById('articleCountBadge').textContent =
         `${(data.news||[]).length} articles`;
@@ -951,7 +952,80 @@ function nlpFilter(el, filter) {
     });
 }
 
-// ── Run preprocessing ──────────────────────────────────────
+// ── Auto-run preprocessing (called after analyze, returns Promise) ──
+function runNLPPreprocessingAuto() {
+    return new Promise(resolve => {
+        if (!_nlpRawData || !_nlpRawData.news || !_nlpRawData.news.length) {
+            resolve(); return;
+        }
+
+        // Update pipeline step 6 to show it's running
+        stepActivate(6);
+
+        const btn = document.getElementById('btnRunNLP');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…'; }
+
+        const exposure = _nlpRawData.exposure_map || {};
+        const articles = _nlpRawData.news || [];
+
+        _nlpResults = [];
+        const grid = document.getElementById('nlpArticleGrid');
+        if (grid) grid.innerHTML = '<div class="text-center py-3" style="color:var(--text-3);font-size:.82rem;"><i class="fas fa-spinner fa-spin me-2"></i>Preprocessing articles…</div>';
+
+        setTimeout(() => {
+            for (const art of articles) {
+                _nlpResults.push(_preprocessArticle(art, exposure));
+            }
+
+            if (grid) {
+                const html = _nlpResults.map((a, i) => _renderNLPCard(a, i)).join('');
+                grid.innerHTML = html || '<div class="text-center py-4" style="color:var(--text-3);">No articles to display.</div>';
+            }
+
+            const ok       = _nlpResults.filter(a => a.preprocessing_ok).length;
+            const err      = _nlpResults.length - ok;
+            const totalEnt = _nlpResults.reduce((s,a) => s + (a.ner_entities||[]).length, 0);
+            const avgSent  = ok ? Math.round(_nlpResults.filter(a=>a.preprocessing_ok).reduce((s,a)=>s+(a.sentences||[]).length,0)/ok) : 0;
+            const avgTok   = ok ? Math.round(_nlpResults.filter(a=>a.preprocessing_ok).reduce((s,a)=>s+(a.token_estimate||0),0)/ok) : 0;
+
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            set('nlpStatTotal',  _nlpResults.length);
+            set('nlpStatOk',     ok);
+            set('nlpStatErr',    err);
+            set('nlpStatEnts',   totalEnt);
+            set('nlpStatSents',  avgSent);
+            set('nlpStatTokens', avgTok);
+
+            const showEl = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; };
+            showEl('nlpStatusBar', true);
+            showEl('nlpExportBar', true);
+
+            ['btnExpandAll','btnCollapseAll','btnClearNLP','btnExportSBERT','btnExportCSV'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.disabled = false;
+            });
+
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> Re-run'; }
+
+            const activeChip = document.querySelector('.filter-chip.active');
+            if (activeChip) nlpFilter(activeChip, activeChip.dataset.filter);
+
+            // Mark step 6 done, complete step 7
+            stepDone(6);
+            stepActivate(7);
+            setTimeout(() => {
+                stepDone(7);
+
+                // Now reveal the news feed section
+                const feedSection = document.getElementById('newsFeedSection');
+                if (feedSection) feedSection.style.display = '';
+
+                resolve();
+            }, 200);
+        }, 50);
+    });
+}
+
+// ── Run preprocessing (manual button — now just calls auto version) ──
 function runNLPPreprocessing() {
     if (!_nlpRawData || !_nlpRawData.news || !_nlpRawData.news.length) {
         alert('Run an analysis first to fetch articles.');

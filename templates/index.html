@@ -306,6 +306,7 @@
         </div>
 
         <!-- News feed -->
+        <div id="newsFeedSection">
         <div class="breakdown-card fade-up">
             <div class="card-header-bar">
                 <span><i class="fas fa-newspaper me-2" style="color:var(--blue);"></i>Real-Time Supply Chain Intelligence</span>
@@ -317,6 +318,7 @@
                     <p>News will appear here after analysis</p>
                 </div>
             </div>
+        </div>
         </div>
 
         <!-- Event Clusters panel -->
@@ -376,7 +378,7 @@
             <!-- Action bar -->
             <div class="nlp-action-bar">
                 <button class="btn-nlp btn-nlp-primary" id="btnRunNLP" onclick="runNLPPreprocessing()">
-                    <i class="fas fa-play"></i> Run Preprocessing
+                    <i class="fas fa-sync-alt"></i> Re-run Preprocessing
                 </button>
                 <button class="btn-nlp btn-nlp-outline" id="btnExpandAll" onclick="nlpExpandAll(true)" disabled>
                     <i class="fas fa-expand-alt"></i> Expand All
@@ -400,7 +402,7 @@
             <div class="nlp-article-grid" id="nlpArticleGrid">
                 <div class="text-center py-5" style="color:var(--text-3);">
                     <i class="fas fa-brain fa-3x mb-3 opacity-25"></i>
-                    <p style="font-size:.85rem;">Click <strong>Run Preprocessing</strong> to clean, segment and NER-tag the fetched articles.</p>
+                    <p style="font-size:.85rem;">Preprocessing will run automatically after analysis completes.</p>
                     <p style="font-size:.78rem;margin-top:.5rem;">Output is a Sentence-BERT–ready corpus with entity annotations.</p>
                 </div>
             </div>
