@@ -53,11 +53,9 @@ CLIENT_DIR = "data/clients"
 os.makedirs(CLIENT_DIR, exist_ok=True)
 
 # Max queries fired against Google News RSS per analysis run.
-# Entity prongs (supplier names) go first — highest signal density.
 MAX_QUERY_FETCHES = 15
 
-# Max queries sent to NewsAPI per run (each costs 1 API credit).
-# Keep conservative — free tier is 100/day, developer is 500/day.
+# Max queries sent to NewsAPI per run.
 MAX_NEWSAPI_QUERIES = 5
 
 # ==========================================
@@ -65,52 +63,30 @@ MAX_NEWSAPI_QUERIES = 5
 # ==========================================
 
 def save_client_profile(profile):
-
-    client_name = profile.get(
-        "client_name",
-        "unknown_client"
-    )
-
-    filename = (
-        client_name
-        .lower()
-        .replace(" ", "_")
-    )
-
-    filepath = os.path.join(
-        CLIENT_DIR,
-        f"{filename}.json"
-    )
-
+    client_name = profile.get("client_name", "unknown_client")
+    filename = client_name.lower().replace(" ", "_")
+    filepath = os.path.join(CLIENT_DIR, f"{filename}.json")
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(profile, f, indent=4, ensure_ascii=False)
-
     return filepath
 
 # ==========================================
 # GEOGRAPHIC SOURCE VIEW
-# (builds the response payload for the UI source panel)
 # ==========================================
 
 def build_geographic_sources(exposure):
-    """
-    Returns a dict of {country: [source_name, ...]} for the frontend
-    to display which outlets are being monitored per country.
-    """
     geo_sources = {}
-
     for country in exposure.get("countries", []):
         sources = get_sources_for_country(country)
         geo_sources[country] = [
             {
-                "name":       s.get("name", ""),
-                "category":   s.get("category", ""),
+                "name":        s.get("name", ""),
+                "category":    s.get("category", ""),
                 "trust_score": s.get("trust_score", 0.65),
-                "type":       s.get("type", "rss"),
+                "type":        s.get("type", "rss"),
             }
             for s in sources
         ]
-
     return geo_sources
 
 # ==========================================
@@ -118,50 +94,30 @@ def build_geographic_sources(exposure):
 # ==========================================
 
 def build_node_risk_summary(scored_articles, exposure):
-    """
-    Aggregate per-node risk from scored articles.
-
-    Returns a dict:
-    {
-      "suppliers":  { "TSMC": {"high": 2, "medium": 1, "low": 0, "top_score": 88} },
-      "materials":  { "semiconductors": {...} },
-      "ports":      { "Port of Kaohsiung": {...} },
-      "routes":     { "Taiwan Strait": {...} },
-    }
-    """
     node_types = {
-        "suppliers":  exposure.get("suppliers",       []),
-        "materials":  exposure.get("materials",        []),
-        "ports":      exposure.get("ports",            []),
-        "routes":     exposure.get("routes",           []),
+        "suppliers": exposure.get("suppliers", []),
+        "materials": exposure.get("materials", []),
+        "ports":     exposure.get("ports",     []),
+        "routes":    exposure.get("routes",    []),
     }
-
     summary = {nt: {} for nt in node_types}
-
-    # Initialise counters
     for node_type, node_list in node_types.items():
         for node in node_list:
             summary[node_type][node] = {
                 "high": 0, "medium": 0, "low": 0, "top_score": 0
             }
-
-    # Walk articles and credit linked nodes
     for article in scored_articles:
         level = article.get("impact_level", "LOW").lower()
         score = article.get("relevance_score", 0)
-
         for linked in article.get("linked_nodes", []):
-            # linked_nodes format: "type:name"
             parts = linked.split(":", 1)
             if len(parts) != 2:
                 continue
             node_type_tag, node_name = parts[0] + "s", parts[1]
-
             if node_type_tag in summary and node_name in summary[node_type_tag]:
                 summary[node_type_tag][node_name][level] += 1
                 if score > summary[node_type_tag][node_name]["top_score"]:
                     summary[node_type_tag][node_name]["top_score"] = score
-
     return summary
 
 # ==========================================
@@ -171,6 +127,99 @@ def build_node_risk_summary(scored_articles, exposure):
 @app.route("/")
 def home():
     return render_template("index.html")
+
+# ==========================================
+# LIST SAVED CLIENT PROFILES
+# GET /clients
+# Returns: [{ id, client_name, saved_at, supplier_count, material_count }, ...]
+# ==========================================
+
+@app.route("/clients", methods=["GET"])
+def list_clients():
+    try:
+        profiles = []
+        for fname in sorted(os.listdir(CLIENT_DIR)):
+            if not fname.endswith(".json"):
+                continue
+            fpath = os.path.join(CLIENT_DIR, fname)
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                mtime = os.path.getmtime(fpath)
+                profiles.append({
+                    "id":              fname[:-5],           # filename without .json
+                    "client_name":     data.get("client_name", fname[:-5]),
+                    "saved_at":        datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M"),
+                    "supplier_count":  len(data.get("tier1_suppliers", [])),
+                    "material_count":  len(data.get("raw_materials",   [])),
+                    "logistics_count": len(data.get("logistics_nodes", [])),
+                    "facility_count":  len(data.get("own_facilities",  [])),
+                })
+            except Exception as e:
+                logger.warning(f"Could not read client file {fname}: {e}")
+        return jsonify({"status": "success", "profiles": profiles})
+    except Exception as e:
+        logger.exception("Error in GET /clients")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==========================================
+# LOAD A SINGLE CLIENT PROFILE
+# GET /clients/<client_id>
+# Returns the full profile JSON
+# ==========================================
+
+@app.route("/clients/<client_id>", methods=["GET"])
+def get_client(client_id):
+    try:
+        # Sanitise — only allow safe filename characters
+        safe_id = "".join(c for c in client_id if c.isalnum() or c in ("_", "-"))
+        fpath = os.path.join(CLIENT_DIR, f"{safe_id}.json")
+        if not os.path.exists(fpath):
+            return jsonify({"status": "error", "message": "Profile not found"}), 404
+        with open(fpath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return jsonify({"status": "success", "profile": data})
+    except Exception as e:
+        logger.exception(f"Error in GET /clients/{client_id}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==========================================
+# DELETE A CLIENT PROFILE
+# DELETE /clients/<client_id>
+# ==========================================
+
+@app.route("/clients/<client_id>", methods=["DELETE"])
+def delete_client(client_id):
+    try:
+        safe_id = "".join(c for c in client_id if c.isalnum() or c in ("_", "-"))
+        fpath = os.path.join(CLIENT_DIR, f"{safe_id}.json")
+        if not os.path.exists(fpath):
+            return jsonify({"status": "error", "message": "Profile not found"}), 404
+        os.remove(fpath)
+        logger.info(f"Deleted client profile: {safe_id}.json")
+        return jsonify({"status": "success", "message": f"{safe_id} deleted"})
+    except Exception as e:
+        logger.exception(f"Error in DELETE /clients/{client_id}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==========================================
+# SAVE PROFILE (without running analysis)
+# POST /save_profile
+# Body: same JSON schema as /analyze payload
+# ==========================================
+
+@app.route("/save_profile", methods=["POST"])
+def save_profile_route():
+    try:
+        profile = request.json
+        if not profile or not profile.get("client_name", "").strip():
+            return jsonify({"status": "error", "message": "client_name is required"}), 400
+        filepath = save_client_profile(profile)
+        logger.info(f"Profile saved via /save_profile: {filepath}")
+        return jsonify({"status": "success", "message": f"Profile saved to {filepath}"})
+    except Exception as e:
+        logger.exception("Error in /save_profile")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # ==========================================
 # ANALYZE
@@ -219,31 +268,25 @@ def analyze():
 
         # ------------------------------
         # Fetch Articles
-        # (reset dedup store for this run)
         # ------------------------------
 
         clear_seen_urls()
         newsapi_clear_seen_urls()
         all_articles = []
 
-        # Phase 1 — Country-level RSS sources (local + gov + wires)
+        # Phase 1 — Country-level RSS sources
         for country in exposure.get("countries", []):
             try:
                 articles = fetch_articles_for_country(country)
                 all_articles.extend(articles)
-                logger.info(
-                    f"Country fetch [{country}]: {len(articles)} articles"
-                )
+                logger.info(f"Country fetch [{country}]: {len(articles)} articles")
             except Exception as e:
                 logger.warning(f"Country fetch error [{country}]: {e}")
 
         # Phase 2 — Three-prong queries via Google News RSS
-        # Entity prongs first (highest precision), then geo, then commodity.
-        # Slice to MAX_QUERY_FETCHES so we don't hammer the endpoint.
         try:
             query_articles = fetch_articles_for_queries(
-                queries,
-                max_queries=MAX_QUERY_FETCHES
+                queries, max_queries=MAX_QUERY_FETCHES
             )
             all_articles.extend(query_articles)
             logger.info(f"Query fetch (RSS): {len(query_articles)} articles")
@@ -251,21 +294,16 @@ def analyze():
             logger.warning(f"Query fetch error (RSS): {e}")
 
         # Phase 3 — NewsAPI country-level broad queries
-        # One request per country; catches signals the geo prongs might miss.
         for country in exposure.get("countries", []):
             try:
                 na_country = fetch_newsapi_for_country(country)
                 all_articles.extend(na_country)
                 if na_country:
-                    logger.info(
-                        f"NewsAPI country [{country}]: {len(na_country)} articles"
-                    )
+                    logger.info(f"NewsAPI country [{country}]: {len(na_country)} articles")
             except Exception as e:
                 logger.warning(f"NewsAPI country error [{country}]: {e}")
 
-        # Phase 4 — NewsAPI targeted queries (entity + commodity prongs)
-        # Use entity and commodity prongs only — highest value for API credits.
-        # Skip geo prongs (already covered by Phase 3 above).
+        # Phase 4 — NewsAPI targeted queries
         entity_and_commodity_queries = [
             q for q in queries
             if not ('"' in q and ' AND (' in q and
@@ -275,8 +313,7 @@ def analyze():
         ]
         try:
             na_query_articles = fetch_newsapi_for_queries(
-                entity_and_commodity_queries,
-                max_queries=MAX_NEWSAPI_QUERIES,
+                entity_and_commodity_queries, max_queries=MAX_NEWSAPI_QUERIES,
             )
             all_articles.extend(na_query_articles)
             if na_query_articles:
@@ -302,17 +339,11 @@ def analyze():
         # Overall Risk Calculation
         # ------------------------------
 
-        high_count   = sum(
-            1 for a in scored_articles if a.get("impact_level") == "HIGH"
-        )
-        medium_count = sum(
-            1 for a in scored_articles if a.get("impact_level") == "MEDIUM"
-        )
+        high_count   = sum(1 for a in scored_articles if a.get("impact_level") == "HIGH")
+        medium_count = sum(1 for a in scored_articles if a.get("impact_level") == "MEDIUM")
 
-        # Weighted risk score (capped at 100)
         risk_score = min(high_count * 20 + medium_count * 10, 100)
 
-        # Overall level considers both article counts and node coverage
         nodes_at_high_risk = sum(
             1
             for node_type in node_risk.values()
@@ -334,66 +365,46 @@ def analyze():
             )
         else:
             overall_risk = "LOW"
-            risk_message = (
-                "No significant disruption signals detected currently."
-            )
+            risk_message = "No significant disruption signals detected currently."
 
         # ------------------------------
         # Response
         # ------------------------------
 
-        # Strip internal-only fields from exposure before sending
-        # (material_records, port_records, route_records are large and
-        #  only needed by the scorer — don't bloat the response)
         exposure_for_response = {
             k: v for k, v in exposure.items()
             if k not in ("material_records", "port_records", "route_records")
         }
 
         response = {
-
             "status":             "success",
-
-            "client_name":        profile.get(
-                                      "client_name", "Unknown Client"
-                                  ),
-
-            "analysis_timestamp": datetime.now().strftime(
-                                      "%Y-%m-%d %H:%M:%S"
-                                  ),
-
+            "client_name":        profile.get("client_name", "Unknown Client"),
+            "analysis_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "overall_risk":       overall_risk,
             "risk_message":       risk_message,
             "risk_score":         risk_score,
-
             "exposure_map":       exposure_for_response,
-
             "node_risk":          node_risk,
-
             "stats": {
-                "suppliers_count":      len(profile.get("tier1_suppliers",  [])),
-                "materials_count":      len(profile.get("raw_materials",    [])),
-                "logistics_nodes_count": len(profile.get("logistics_nodes", [])),
-                "total_articles":       len(all_articles),
-                "scored_articles":      len(scored_articles),
-                "critical_alerts":      0,
-                "high_alerts":          high_count,
-                "medium_alerts":        medium_count,
+                "suppliers_count":       len(profile.get("tier1_suppliers",  [])),
+                "materials_count":       len(profile.get("raw_materials",    [])),
+                "logistics_nodes_count": len(profile.get("logistics_nodes",  [])),
+                "total_articles":        len(all_articles),
+                "scored_articles":       len(scored_articles),
+                "critical_alerts":       0,
+                "high_alerts":           high_count,
+                "medium_alerts":         medium_count,
             },
-
             "query_breakdown": {
-                "Countries":        len(exposure.get("countries",  [])),
-                "Materials":        len(exposure.get("materials",  [])),
-                "Ports":            len(exposure.get("ports",      [])),
-                "Routes":           len(exposure.get("routes",     [])),
-                "Suppliers":        len(exposure.get("suppliers",  [])),
+                "Countries":         len(exposure.get("countries",  [])),
+                "Materials":         len(exposure.get("materials",  [])),
+                "Ports":             len(exposure.get("ports",      [])),
+                "Routes":            len(exposure.get("routes",     [])),
+                "Suppliers":         len(exposure.get("suppliers",  [])),
                 "Generated Queries": len(queries),
             },
-
             "queries":            queries[:50],
-
             "geographic_sources": geographic_sources,
-
             "news":               scored_articles[:30],
         }
 
@@ -401,10 +412,7 @@ def analyze():
 
     except Exception as e:
         logger.exception("Error in /analyze")
-        return jsonify({
-            "status":  "error",
-            "message": str(e)
-        }), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # ==========================================
 # RUN
