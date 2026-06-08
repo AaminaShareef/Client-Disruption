@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "description": "Six-domain disruption lexicon used to build geographic query prongs",
+    "usage": "Each city in the exposure map is searched against ALL terms from ALL domains simultaneously. This guarantees no disruption type is missed for any geographic node.",
+    "version": "1.0",
+    "domains": ["pandemic", "labour", "conflict", "weather", "commodity", "political"]
+  },
+  "domains": {
+    "pandemic": {
+      "description": "Health events that restrict workforce movement or shut facilities",
+      "terms": [
+        "outbreak", "virus", "quarantine", "lockdown", "epidemic", "pandemic",
+        "disease", "health emergency", "infection", "contagion", "closure",
+        "health crisis", "public health", "containment zone", "factory shutdown"
+      ],
+      "weight": 1.0
+    },
+    "labour": {
+      "description": "Workforce disruptions that halt or slow production",
+      "terms": [
+        "strike", "union", "walkout", "layoff", "worker shortage", "protest",
+        "industrial action", "work stoppage", "labour dispute", "wage dispute",
+        "worker protest", "picket", "collective bargaining", "redundancy",
+        "workforce reduction", "automation protest", "port workers", "dock workers"
+      ],
+      "weight": 1.0
+    },
+    "conflict": {
+      "description": "Geopolitical and military events affecting trade and operations",
+      "terms": [
+        "war", "attack", "sanctions", "blockade", "missile", "embargo",
+        "military", "conflict", "invasion", "airstrike", "naval blockade",
+        "trade war", "export ban", "import restriction", "blacklist",
+        "asset freeze", "travel ban", "diplomatic crisis", "tension",
+        "territorial dispute", "armed conflict", "insurgency"
+      ],
+      "weight": 1.0
+    },
+    "weather": {
+      "description": "Natural and weather events that damage infrastructure or disrupt operations",
+      "terms": [
+        "flood", "hurricane", "earthquake", "typhoon", "drought", "wildfire",
+        "tsunami", "cyclone", "tornado", "landslide", "storm", "blizzard",
+        "extreme weather", "heatwave", "monsoon", "flash flood", "storm surge",
+        "seismic", "volcanic", "natural disaster", "heavy rain", "snowstorm"
+      ],
+      "weight": 1.0
+    },
+    "commodity": {
+      "description": "Supply and price events affecting raw materials and inputs",
+      "terms": [
+        "shortage", "price surge", "export ban", "scarcity", "stockpile",
+        "supply disruption", "price spike", "supply squeeze", "raw material shortage",
+        "commodity shortage", "hoarding", "rationing", "allocation",
+        "supply chain disruption", "input cost", "material shortage",
+        "inventory shortage", "capacity shortage", "chip shortage",
+        "energy shortage", "fuel shortage", "water shortage"
+      ],
+      "weight": 1.0
+    },
+    "political": {
+      "description": "Regulatory and political events that constrain trade or operations",
+      "terms": [
+        "tariff", "regulation", "trade restriction", "nationalization",
+        "policy change", "import duty", "export control", "licensing",
+        "compliance", "customs delay", "border closure", "visa restriction",
+        "government shutdown", "political instability", "election unrest",
+        "coup", "protest", "civil unrest", "government crackdown",
+        "new law", "regulatory change", "trade policy", "subsidy cut"
+      ],
+      "weight": 1.0
+    }
+  },
+  "query_templates": {
+    "entity_prong": "{entity_name}",
+    "geo_prong": "\"{city}\" AND ({all_terms})",
+    "geo_prong_split": "\"{city}\" AND ({domain_terms})",
+    "commodity_prong": "\"{commodity}\" AND ({commodity_terms})",
+    "commodity_origin_prong": "\"{origin_region}\" AND {commodity} AND ({origin_terms})"
+  },
+  "commodity_disruption_terms": [
+    "shortage", "export ban", "scarcity", "supply disruption",
+    "price surge", "supply squeeze", "production halt", "output cut"
+  ],
+  "commodity_origin_terms": [
+    "strike", "ban", "shortage", "protest", "earthquake",
+    "flood", "conflict", "embargo", "export restriction", "drought"
+  ],
+  "api_query_length_limit": 500,
+  "split_threshold_chars": 400,
+  "notes": "If a single geo prong query exceeds split_threshold_chars, split into one sub-query per domain bucket. Coverage is identical — only the API payload size changes."
+}

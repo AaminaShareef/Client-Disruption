@@ -45,7 +45,7 @@
             min-height: 100vh;
         }
 
-        /* ── NAVBAR ─────────────────────────────────────────── */
+        /* ── NAVBAR ─────────────────────────────── */
         .navbar {
             background: rgba(255,255,255,.96);
             backdrop-filter: blur(12px);
@@ -66,7 +66,6 @@
             gap: .5rem;
             text-decoration: none;
         }
-        .brand .dot { color: var(--blue); }
         .brand .sentinel { color: var(--blue); }
         .nav-pill {
             background: var(--blue-l);
@@ -80,7 +79,7 @@
         }
         .nav-pill.green { background: var(--green-l); color: var(--green); border-color: #A7F3D0; }
 
-        /* ── HERO ────────────────────────────────────────────── */
+        /* ── HERO ───────────────────────────────── */
         .hero {
             background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 60%, #1E1B4B 100%);
             border-radius: var(--radius-lg);
@@ -109,7 +108,7 @@
             font-size: 2rem;
             font-weight: 800;
             letter-spacing: -.04em;
-            color: #FFFFFF;
+            color: #FFF;
             line-height: 1.15;
             margin-bottom: .75rem;
         }
@@ -126,7 +125,7 @@
             font-weight: 500;
         }
 
-        /* ── ENTITY CARDS ────────────────────────────────────── */
+        /* ── ENTITY CARDS ───────────────────────── */
         .entity-card {
             background: var(--surface);
             border-radius: var(--radius);
@@ -138,11 +137,7 @@
             flex-direction: column;
             height: 100%;
         }
-        .entity-card:hover {
-            box-shadow: var(--shadow);
-            border-color: var(--border-md);
-            transform: translateY(-2px);
-        }
+        .entity-card:hover { box-shadow: var(--shadow); border-color: var(--border-md); transform: translateY(-2px); }
         .entity-card-header {
             background: #F8FAFC;
             padding: .875rem 1.125rem;
@@ -153,18 +148,11 @@
             cursor: pointer;
             user-select: none;
         }
-        .entity-title {
-            font-weight: 600;
-            font-size: .875rem;
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-        }
+        .entity-title { font-weight: 600; font-size: .875rem; display: flex; align-items: center; gap: .5rem; }
         .icon-supplier  { color: var(--blue); }
         .icon-material  { color: var(--green); }
         .icon-logistics { color: var(--purple); }
         .icon-facility  { color: var(--amber); }
-
         .entity-badge {
             background: #EEF2FF;
             color: #4338CA;
@@ -178,14 +166,7 @@
         }
         .collapse-icon { font-size: .7rem; color: var(--text-3); transition: transform .25s; }
         .entity-card-header[aria-expanded="false"] .collapse-icon { transform: rotate(-90deg); }
-
-        .entity-body {
-            padding: .875rem;
-            display: flex;
-            flex-direction: column;
-            gap: .625rem;
-            flex: 1;
-        }
+        .entity-body { padding: .875rem; display: flex; flex-direction: column; gap: .625rem; flex: 1; }
 
         .detail-item {
             background: #F8FAFC;
@@ -194,14 +175,8 @@
             padding: .75rem;
             transition: border-color .15s, background .15s;
         }
-        .detail-item:hover { background: #FFFFFF; border-color: var(--blue); }
-
-        .detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: .5rem;
-        }
+        .detail-item:hover { background: #FFF; border-color: var(--blue); }
+        .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
         .detail-index {
             background: var(--blue);
             color: #fff;
@@ -212,14 +187,9 @@
             font-family: 'DM Mono', monospace;
         }
         .btn-remove {
-            background: none;
-            border: none;
-            color: var(--text-3);
-            cursor: pointer;
-            font-size: .75rem;
-            padding: .25rem .5rem;
-            border-radius: .375rem;
-            transition: color .15s, background .15s;
+            background: none; border: none; color: var(--text-3);
+            cursor: pointer; font-size: .75rem; padding: .25rem .5rem;
+            border-radius: .375rem; transition: color .15s, background .15s;
         }
         .btn-remove:hover { color: var(--red); background: var(--red-l); }
 
@@ -230,15 +200,11 @@
             padding: .45rem .7rem;
             border: 1px solid var(--border);
             border-radius: .45rem;
-            background: #FFFFFF;
+            background: #FFF;
             color: var(--text-1);
             transition: border-color .15s, box-shadow .15s;
         }
-        .input-field:focus {
-            outline: none;
-            border-color: var(--blue);
-            box-shadow: 0 0 0 3px rgba(37,99,235,.1);
-        }
+        .input-field:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
         .input-row { display: flex; gap: .45rem; }
         .input-row .input-field { flex: 1; }
 
@@ -255,15 +221,9 @@
             transition: all .15s;
         }
         .btn-add:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-l); }
+        .empty-state { text-align: center; padding: .75rem; color: var(--text-3); font-size: .75rem; }
 
-        .empty-state {
-            text-align: center;
-            padding: .75rem;
-            color: var(--text-3);
-            font-size: .75rem;
-        }
-
-        /* ── CLIENT CARD ─────────────────────────────────────── */
+        /* ── CLIENT CARD ────────────────────────── */
         .client-card {
             background: linear-gradient(135deg, #1E3A5F, #1E1B4B);
             border-radius: var(--radius);
@@ -294,14 +254,9 @@
             transition: all .2s;
         }
         .client-card input::placeholder { color: rgba(255,255,255,.45); }
-        .client-card input:focus {
-            outline: none;
-            background: rgba(255,255,255,.18);
-            border-color: rgba(255,255,255,.45);
-            box-shadow: 0 0 0 3px rgba(255,255,255,.08);
-        }
+        .client-card input:focus { outline: none; background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.45); box-shadow: 0 0 0 3px rgba(255,255,255,.08); }
 
-        /* ── ANALYZE BUTTON ──────────────────────────────────── */
+        /* ── ANALYZE BUTTON ─────────────────────── */
         .btn-analyze {
             background: linear-gradient(135deg, #1E3A5F, #2563EB);
             border: none;
@@ -318,27 +273,61 @@
             transition: all .25s;
             letter-spacing: -.01em;
         }
-        .btn-analyze:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(37,99,235,.4);
-        }
+        .btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,.4); }
         .btn-analyze:active { transform: translateY(0); }
+        .btn-analyze:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
-        /* ── LOADING ─────────────────────────────────────────── */
-        .loading-box {
+        /* ── PIPELINE PROGRESS ──────────────────── */
+        .pipeline-box {
             display: none;
-            text-align: center;
-            padding: 3.5rem 2rem;
             background: var(--surface);
             border-radius: var(--radius);
             border: 1px solid var(--border);
             box-shadow: var(--shadow-sm);
+            padding: 2rem;
         }
-        .loading-box p { color: var(--text-2); margin-top: .75rem; font-size: .875rem; }
+        .pipeline-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-1);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .pipeline-step {
+            display: flex;
+            align-items: center;
+            gap: .875rem;
+            padding: .6rem .75rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: .4rem;
+            font-size: .83rem;
+            transition: background .2s;
+        }
+        .pipeline-step.active   { background: var(--blue-l); }
+        .pipeline-step.done     { background: var(--green-l); }
+        .pipeline-step.waiting  { color: var(--text-3); }
+        .step-icon {
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .75rem;
+            flex-shrink: 0;
+        }
+        .step-icon.wait   { background: #F1F5F9; color: var(--text-3); }
+        .step-icon.run    { background: var(--blue); color: #fff; }
+        .step-icon.ok     { background: var(--green); color: #fff; }
+        .step-icon.pulse  { animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+        .step-label { flex: 1; font-weight: 500; }
+        .step-sub   { font-size: .72rem; color: var(--text-3); font-family: 'DM Mono', monospace; }
 
-        /* ── RESULTS ─────────────────────────────────────────── */
+        /* ── RESULTS ────────────────────────────── */
         .results-section { display: none; }
-
         .risk-card {
             background: var(--surface);
             border-radius: var(--radius);
@@ -355,13 +344,7 @@
             text-transform: uppercase;
             margin-bottom: .35rem;
         }
-        .client-name-display {
-            font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: -.03em;
-            color: var(--text-1);
-            margin-bottom: .625rem;
-        }
+        .client-name-display { font-size: 1.4rem; font-weight: 800; letter-spacing: -.03em; color: var(--text-1); margin-bottom: .625rem; }
         .risk-badge {
             display: inline-flex;
             align-items: center;
@@ -374,7 +357,43 @@
             margin-bottom: .625rem;
         }
 
-        /* ── STATS ROW ───────────────────────────────────────── */
+        /* ── EXPOSURE CHIPS ─────────────────────── */
+        .exposure-section {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        .exposure-group { margin-bottom: .75rem; }
+        .exposure-group:last-child { margin-bottom: 0; }
+        .exposure-group-label {
+            font-family: 'DM Mono', monospace;
+            font-size: .68rem;
+            color: var(--text-3);
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            margin-bottom: .4rem;
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            padding: .25rem .65rem;
+            border-radius: 2rem;
+            font-size: .73rem;
+            font-weight: 600;
+            margin: .2rem .2rem .2rem 0;
+            border: 1px solid;
+        }
+        .chip-country   { background: #EFF6FF; color: var(--blue);   border-color: #BFDBFE; }
+        .chip-material  { background: var(--green-l); color: var(--green); border-color: #A7F3D0; }
+        .chip-port      { background: #F5F3FF; color: var(--purple); border-color: #DDD6FE; }
+        .chip-route     { background: var(--amber-l); color: var(--amber); border-color: #FDE68A; }
+        .chip-supplier  { background: #FFF7ED; color: var(--orange); border-color: #FED7AA; }
+
+        /* ── STATS ──────────────────────────────── */
         .stat-card {
             background: #F8FAFC;
             border: 1px solid var(--border);
@@ -384,23 +403,10 @@
             transition: all .15s;
         }
         .stat-card:hover { background: #fff; box-shadow: var(--shadow-sm); }
-        .stat-num {
-            font-size: 1.75rem;
-            font-weight: 800;
-            letter-spacing: -.04em;
-            color: var(--text-1);
-            line-height: 1;
-        }
-        .stat-lbl {
-            font-size: .7rem;
-            font-weight: 600;
-            color: var(--text-3);
-            text-transform: uppercase;
-            letter-spacing: .3px;
-            margin-top: .3rem;
-        }
+        .stat-num { font-size: 1.75rem; font-weight: 800; letter-spacing: -.04em; color: var(--text-1); line-height: 1; }
+        .stat-lbl { font-size: .7rem; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .3px; margin-top: .3rem; }
 
-        /* ── QUERY BREAKDOWN ─────────────────────────────────── */
+        /* ── BREAKDOWN ──────────────────────────── */
         .breakdown-card {
             background: var(--surface);
             border-radius: var(--radius);
@@ -431,16 +437,9 @@
         .breakdown-label { flex: 1; color: var(--text-2); font-weight: 500; }
         .breakdown-bar-wrap { flex: 2; background: #EFF6FF; border-radius: 1rem; height: 6px; overflow: hidden; }
         .breakdown-bar { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 1rem; transition: width .6s ease; }
-        .breakdown-count {
-            font-family: 'DM Mono', monospace;
-            font-size: .75rem;
-            font-weight: 500;
-            color: var(--text-1);
-            min-width: 2.5rem;
-            text-align: right;
-        }
+        .breakdown-count { font-family: 'DM Mono', monospace; font-size: .75rem; font-weight: 500; color: var(--text-1); min-width: 2.5rem; text-align: right; }
 
-        /* ── NEWS FEED ───────────────────────────────────────── */
+        /* ── NEWS FEED ──────────────────────────── */
         .news-item {
             background: var(--surface);
             border-radius: var(--radius-sm);
@@ -452,7 +451,6 @@
         }
         .news-item:hover { transform: translateX(4px); box-shadow: var(--shadow); }
         .news-item:last-child { margin-bottom: 0; }
-
         .impact-CRITICAL { border-left-color: var(--red); }
         .impact-HIGH     { border-left-color: var(--orange); }
         .impact-MEDIUM   { border-left-color: var(--blue); }
@@ -471,6 +469,15 @@
         .pill-MEDIUM   { background: var(--blue-l);   color: var(--blue);   border: 1px solid #BFDBFE; }
         .pill-LOW      { background: #F1F5F9;          color: #64748B;       border: 1px solid var(--border); }
 
+        .score-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: .65rem;
+            padding: .15rem .55rem;
+            border-radius: 1rem;
+            background: #F1F5F9;
+            color: var(--text-2);
+            border: 1px solid var(--border);
+        }
         .api-source-tag {
             font-family: 'DM Mono', monospace;
             font-size: .65rem;
@@ -480,26 +487,25 @@
             color: var(--blue);
             border: 1px solid #BFDBFE;
         }
-        .api-source-tag.rss { background: var(--blue-l); color: var(--blue); border-color: #BFDBFE; }
+        .api-source-tag.gdelt  { background: #F5F3FF; color: var(--purple); border-color: #DDD6FE; }
+        .api-source-tag.newsapi { background: var(--green-l); color: var(--green); border-color: #A7F3D0; }
+        .api-source-tag.gnews  { background: #FFF7ED; color: var(--orange); border-color: #FED7AA; }
+        .category-tag { font-size: .68rem; font-weight: 600; padding: .15rem .55rem; border-radius: 1rem; background: #F1F5F9; color: #475569; border: 1px solid var(--border); }
 
-        .category-tag {
-            font-size: .68rem;
-            font-weight: 600;
-            padding: .15rem .55rem;
+        .matched-entity-tag {
+            font-size: .67rem;
+            padding: .12rem .45rem;
             border-radius: 1rem;
-            background: #F1F5F9;
-            color: #475569;
-            border: 1px solid var(--border);
+            background: #FFF7ED;
+            color: var(--orange);
+            border: 1px solid #FED7AA;
+            display: inline-block;
+            margin: .1rem .1rem 0 0;
         }
 
-        .news-title {
-            font-weight: 600;
-            font-size: .85rem;
-            color: var(--text-1);
-            line-height: 1.4;
-        }
-        .news-desc { font-size: .8rem; color: var(--text-2); margin: .4rem 0 .625rem; line-height: 1.5; }
-        .news-meta { font-size: .72rem; color: var(--text-3); }
+        .news-title { font-weight: 600; font-size: .85rem; color: var(--text-1); line-height: 1.4; }
+        .news-desc  { font-size: .8rem; color: var(--text-2); margin: .4rem 0 .625rem; line-height: 1.5; }
+        .news-meta  { font-size: .72rem; color: var(--text-3); }
 
         .read-link {
             font-size: .75rem;
@@ -513,14 +519,24 @@
         .read-link:hover { text-decoration: underline; }
         .read-link.disabled { color: var(--text-3); pointer-events: none; }
 
-        /* ── SCROLL TO TOP ───────────────────────────────────── */
+        /* ── ERROR BOX ──────────────────────────── */
+        .error-box {
+            display: none;
+            background: var(--red-l);
+            border: 1px solid #FECACA;
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            color: var(--red);
+            font-size: .875rem;
+        }
+
+        /* ── SCROLL TOP ─────────────────────────── */
         .scroll-top {
             position: fixed;
             bottom: 1.75rem;
             right: 1.75rem;
             background: var(--surface);
-            width: 44px;
-            height: 44px;
+            width: 44px; height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -537,40 +553,331 @@
         .scroll-top.visible { opacity: 1; pointer-events: auto; }
         .scroll-top:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
 
-        /* ── ANIMATIONS ──────────────────────────────────────── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
+        /* ── ANIMATIONS ─────────────────────────── */
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
         .fade-up { animation: fadeUp .4s ease-out both; }
         .delay-1 { animation-delay: .08s; }
         .delay-2 { animation-delay: .16s; }
         .delay-3 { animation-delay: .24s; }
 
-        /* ── FOOTER ──────────────────────────────────────────── */
-        footer {
-            text-align: center;
-            padding: 2.5rem 1rem;
-            color: var(--text-3);
-            font-size: .8rem;
-            border-top: 1px solid var(--border);
-            margin-top: 3rem;
-        }
+        footer { text-align: center; padding: 2.5rem 1rem; color: var(--text-3); font-size: .8rem; border-top: 1px solid var(--border); margin-top: 3rem; }
 
-        /* ── RESPONSIVE ──────────────────────────────────────── */
-        @media (max-width: 768px) {
-            .hero { padding: 1.75rem 1.5rem; }
-            .hero-title { font-size: 1.5rem; }
-            .hero-badges { display: none; }
+        @media (max-width:768px) { .hero{padding:1.75rem 1.5rem;} .hero-title{font-size:1.5rem;} .hero-badges{display:none;} }
+        @media (max-width:576px) { .risk-card>.d-flex{flex-direction:column;} }
+
+        /* ── NLP / PREPROCESSING PANEL ─────────────── */
+        .nlp-panel {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.25rem;
+            overflow: hidden;
         }
-        @media (max-width: 576px) {
-            .risk-card > .d-flex { flex-direction: column; }
+        .nlp-panel-header {
+            background: linear-gradient(90deg,#F8FAFC,#EFF6FF);
+            border-bottom: 1px solid var(--border);
+            padding: .875rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nlp-panel-title {
+            font-weight: 700;
+            font-size: .875rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: var(--text-1);
+        }
+        .nlp-action-bar {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            padding: .875rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            background: #FAFBFD;
+            align-items: center;
+        }
+        .btn-nlp {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .45rem .95rem;
+            border-radius: .5rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .18s;
+            border: 1.5px solid;
+        }
+        .btn-nlp-primary {
+            background: var(--blue);
+            color: #fff;
+            border-color: var(--blue);
+            box-shadow: 0 2px 8px rgba(37,99,235,.2);
+        }
+        .btn-nlp-primary:hover { background: #1D4ED8; border-color: #1D4ED8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,.3); }
+        .btn-nlp-primary:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+        .btn-nlp-outline {
+            background: #fff;
+            color: var(--text-2);
+            border-color: var(--border-md);
+        }
+        .btn-nlp-outline:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-l); }
+        .btn-nlp-outline:disabled { opacity:.5; cursor:not-allowed; }
+        .btn-nlp-danger {
+            background: #fff;
+            color: var(--red);
+            border-color: #FECACA;
+        }
+        .btn-nlp-danger:hover { background: var(--red-l); border-color: var(--red); }
+        .btn-nlp-success {
+            background: var(--green-l);
+            color: var(--green);
+            border-color: #A7F3D0;
+        }
+        .btn-nlp-success:hover { background: #D1FAE5; border-color: var(--green); }
+        .btn-nlp-purple {
+            background: #F5F3FF;
+            color: var(--purple);
+            border-color: #DDD6FE;
+        }
+        .btn-nlp-purple:hover { background: #EDE9FE; border-color: var(--purple); }
+
+        /* Filter chips */
+        .filter-chip-bar {
+            display: flex;
+            gap: .35rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-chip {
+            padding: .25rem .65rem;
+            border-radius: 2rem;
+            font-size: .72rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: #F8FAFC;
+            color: var(--text-2);
+            transition: all .15s;
+            user-select: none;
+        }
+        .filter-chip:hover { border-color: var(--blue); color: var(--blue); }
+        .filter-chip.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .filter-chip.chip-HIGH   { border-color: #FED7AA; color: var(--orange); background: var(--orange-l); }
+        .filter-chip.chip-HIGH.active  { background: var(--orange); color: #fff; }
+        .filter-chip.chip-MEDIUM { border-color: #BFDBFE; color: var(--blue); background: var(--blue-l); }
+        .filter-chip.chip-MEDIUM.active{ background: var(--blue); color: #fff; }
+        .filter-chip.chip-LOW    { border-color: #E2E8F0; color: #64748B; background: #F1F5F9; }
+        .filter-chip.chip-LOW.active   { background: #64748B; color: #fff; }
+        .filter-chip.chip-ok { border-color: #A7F3D0; color: var(--green); background: var(--green-l); }
+        .filter-chip.chip-ok.active    { background: var(--green); color: #fff; }
+        .filter-chip.chip-err { border-color: #FECACA; color: var(--red); background: var(--red-l); }
+        .filter-chip.chip-err.active   { background: var(--red); color: #fff; }
+
+        /* NLP article cards */
+        .nlp-article-grid {
+            padding: .875rem;
+            display: flex;
+            flex-direction: column;
+            gap: .625rem;
+            max-height: 700px;
+            overflow-y: auto;
+        }
+        .nlp-card {
+            background: #FAFBFD;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            transition: box-shadow .18s, border-color .18s;
+        }
+        .nlp-card:hover { box-shadow: var(--shadow); border-color: var(--border-md); }
+        .nlp-card.nlp-err { border-left: 3px solid var(--red); }
+        .nlp-card.nlp-ok  { border-left: 3px solid var(--green); }
+
+        .nlp-card-top {
+            display: flex;
+            align-items: flex-start;
+            gap: .75rem;
+            padding: .75rem;
+            cursor: pointer;
+        }
+        .nlp-card-idx {
+            background: var(--blue);
+            color: #fff;
+            font-size: .65rem;
+            font-weight: 700;
+            padding: .2rem .5rem;
+            border-radius: 1rem;
+            font-family: 'DM Mono', monospace;
+            flex-shrink: 0;
+            margin-top: .1rem;
+        }
+        .nlp-card-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: .83rem;
+            color: var(--text-1);
+            line-height: 1.4;
+        }
+        .nlp-card-badges {
+            display: flex;
+            gap: .35rem;
+            flex-shrink: 0;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .nlp-card-body {
+            padding: 0 .75rem .75rem;
+            display: none;
+        }
+        .nlp-card-body.open { display: block; }
+
+        /* Stage blocks inside expanded card */
+        .nlp-stage {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: .5rem;
+            padding: .65rem .875rem;
+            margin-bottom: .5rem;
+        }
+        .nlp-stage:last-child { margin-bottom: 0; }
+        .nlp-stage-label {
+            font-family: 'DM Mono', monospace;
+            font-size: .68rem;
+            font-weight: 600;
+            color: var(--text-3);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            margin-bottom: .4rem;
+            display: flex;
+            align-items: center;
+            gap: .35rem;
+        }
+        .nlp-stage-label i { color: var(--blue); }
+        .nlp-clean-text {
+            font-size: .78rem;
+            color: var(--text-2);
+            line-height: 1.55;
+            font-family: 'DM Mono', monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .nlp-sent-list {
+            display: flex;
+            flex-direction: column;
+            gap: .3rem;
+        }
+        .nlp-sent {
+            font-size: .77rem;
+            color: var(--text-2);
+            padding: .3rem .6rem;
+            border-radius: .375rem;
+            background: #F8FAFC;
+            border: 1px solid var(--border);
+            line-height: 1.5;
+        }
+        .nlp-sent:hover { background: var(--blue-l); border-color: #BFDBFE; }
+        .nlp-entity-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .3rem;
+            margin-top: .25rem;
+        }
+        .nlp-ent-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            padding: .2rem .55rem;
+            border-radius: 2rem;
+            font-size: .68rem;
+            font-weight: 600;
+            border: 1px solid;
+        }
+        .nlp-ent-ORG     { background: #EFF6FF; color: var(--blue);   border-color: #BFDBFE; }
+        .nlp-ent-GPE     { background: var(--green-l); color: var(--green); border-color: #A7F3D0; }
+        .nlp-ent-LOC     { background: #F0FDF4; color: #166534; border-color: #BBF7D0; }
+        .nlp-ent-FAC     { background: #F5F3FF; color: var(--purple); border-color: #DDD6FE; }
+        .nlp-ent-PRODUCT { background: var(--amber-l); color: var(--amber); border-color: #FDE68A; }
+        .nlp-ent-EVENT   { background: var(--red-l); color: var(--red); border-color: #FECACA; }
+        .nlp-ent-NORP    { background: #FFF7ED; color: var(--orange); border-color: #FED7AA; }
+        .nlp-ent-RULE    { background: #0F172A; color: #93C5FD; border-color: #1E3A5F; }
+
+        .nlp-sbert-box {
+            background: #0F172A;
+            border-radius: .45rem;
+            padding: .65rem .875rem;
+            font-family: 'DM Mono', monospace;
+            font-size: .72rem;
+            color: #93C5FD;
+            word-break: break-all;
+            line-height: 1.6;
+        }
+        .nlp-token-bar {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin-top: .4rem;
+            font-size: .7rem;
+            color: var(--text-3);
+        }
+        .nlp-token-track {
+            flex: 1;
+            height: 5px;
+            background: #E2E8F0;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        .nlp-token-fill {
+            height: 100%;
+            border-radius: 1rem;
+            transition: width .4s ease;
+        }
+        .nlp-status-bar {
+            padding: .625rem 1.25rem;
+            border-top: 1px solid var(--border);
+            background: #F8FAFC;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .nlp-stat-chip {
+            font-family: 'DM Mono', monospace;
+            font-size: .7rem;
+            color: var(--text-2);
+            display: flex;
+            align-items: center;
+            gap: .3rem;
+        }
+        .nlp-stat-chip i { color: var(--blue); }
+
+        /* Export buttons */
+        .export-bar {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            padding: .75rem 1.25rem;
+            border-top: 1px solid var(--border);
+            background: #F8FAFC;
+            align-items: center;
+        }
+        .export-bar-label {
+            font-family: 'DM Mono', monospace;
+            font-size: .68rem;
+            color: var(--text-3);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-right: .25rem;
         }
     </style>
 </head>
 <body>
 
-<!-- ── NAVBAR ──────────────────────────────────────────────── -->
+<!-- ── NAVBAR ──────────────────────────────────────────── -->
 <nav class="navbar">
     <div class="container">
         <a class="brand" href="#">
@@ -586,53 +893,51 @@
 
 <div class="container py-4">
 
-    <!-- ── HERO ──────────────────────────────────────────────── -->
+    <!-- ── HERO ──────────────────────────────────────────── -->
     <div class="hero mb-4 fade-up">
         <div class="row align-items-center">
             <div class="col-md-7">
-                <div class="hero-eyebrow"><i class="fas fa-chart-network me-1"></i> Disruption Intelligence Platform</div>
+                <div class="hero-eyebrow"><i class="fas fa-chart-network me-1"></i> Disruption Intelligence Platform — Phase 2</div>
                 <h1 class="hero-title">Supply Chain <span>Risk</span> Analysis</h1>
-                <p class="hero-sub mb-3">Identify external disruption factors from real-time global news, matched precisely to your supplier, material, and logistics profile.</p>
+                <p class="hero-sub mb-3">Client-centric, geography-aware disruption monitoring. News fetched and filtered against your exact supplier, material, port, and route footprint.</p>
                 <div class="hero-badges">
-                    <span class="hero-badge"><i class="fas fa-map-marker-alt me-1"></i> Geopolitical</span>
-                    <span class="hero-badge"><i class="fas fa-cloud-rain me-1"></i> Climate</span>
-                    <span class="hero-badge"><i class="fas fa-anchor me-1"></i> Logistics</span>
-                    <span class="hero-badge"><i class="fas fa-industry me-1"></i> Supplier</span>
-                    <span class="hero-badge"><i class="fas fa-cube me-1"></i> Materials</span>
+                    <span class="hero-badge"><i class="fas fa-map-marker-alt me-1"></i>Geopolitical</span>
+                    <span class="hero-badge"><i class="fas fa-cloud-rain me-1"></i>Climate</span>
+                    <span class="hero-badge"><i class="fas fa-anchor me-1"></i>Logistics</span>
+                    <span class="hero-badge"><i class="fas fa-industry me-1"></i>Supplier</span>
+                    <span class="hero-badge"><i class="fas fa-cube me-1"></i>Materials</span>
                 </div>
             </div>
             <div class="col-md-5 mt-3 mt-md-0 text-md-end">
                 <div style="display:inline-flex;flex-direction:column;gap:.5rem;align-items:flex-end;">
                     <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:.75rem;padding:.75rem 1.25rem;color:#CBD5E1;font-size:.8rem;">
-                        <i class="fas fa-rss me-2" style="color:#93C5FD;"></i>Curated RSS Feeds — trade press
+                        <i class="fas fa-rss me-2" style="color:#93C5FD;"></i>RSS · NewsAPI · GDELT — all three sources
                     </div>
                     <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:.75rem;padding:.75rem 1.25rem;color:#CBD5E1;font-size:.8rem;">
-                        <i class="fas fa-balance-scale me-2" style="color:#93C5FD;"></i>Per-entity queries — no class imbalance
+                        <i class="fas fa-balance-scale me-2" style="color:#93C5FD;"></i>Rule-based scoring — no ML required
+                    </div>
+                    <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:.75rem;padding:.75rem 1.25rem;color:#CBD5E1;font-size:.8rem;">
+                        <i class="fas fa-globe me-2" style="color:#93C5FD;"></i>Auto geographic source selection
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ── CLIENT NAME ──────────────────────────────────────── -->
+    <!-- ── CLIENT NAME ────────────────────────────────────── -->
     <div class="client-card fade-up delay-1">
         <label><i class="fas fa-building me-1"></i> Company / Client Name</label>
         <input type="text" id="clientName" placeholder="e.g., Acme Global Manufacturing">
     </div>
 
-    <!-- ── ENTITY CARDS GRID ────────────────────────────────── -->
+    <!-- ── ENTITY CARDS ───────────────────────────────────── -->
     <div class="row g-3 mb-3 fade-up delay-2">
 
         <!-- Suppliers -->
         <div class="col-lg-6 d-flex">
             <div class="entity-card w-100">
-                <div class="entity-card-header"
-                     data-bs-toggle="collapse" data-bs-target="#suppliersCollapse"
-                     aria-expanded="true" aria-controls="suppliersCollapse">
-                    <div class="entity-title">
-                        <i class="fas fa-truck icon-supplier"></i>
-                        Tier-1 Suppliers
-                    </div>
+                <div class="entity-card-header" data-bs-toggle="collapse" data-bs-target="#suppliersCollapse" aria-expanded="true">
+                    <div class="entity-title"><i class="fas fa-truck icon-supplier"></i>Tier-1 Suppliers</div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="entity-badge" id="supplierCount">0</span>
                         <i class="fas fa-chevron-down collapse-icon"></i>
@@ -641,9 +946,7 @@
                 <div id="suppliersCollapse" class="collapse show">
                     <div class="entity-body">
                         <div id="suppliersList"></div>
-                        <button class="btn-add" onclick="addEntity('supplier')">
-                            <i class="fas fa-plus me-1"></i>Add Supplier
-                        </button>
+                        <button class="btn-add" onclick="addEntity('supplier')"><i class="fas fa-plus me-1"></i>Add Supplier</button>
                     </div>
                 </div>
             </div>
@@ -652,13 +955,8 @@
         <!-- Materials -->
         <div class="col-lg-6 d-flex">
             <div class="entity-card w-100">
-                <div class="entity-card-header"
-                     data-bs-toggle="collapse" data-bs-target="#materialsCollapse"
-                     aria-expanded="true" aria-controls="materialsCollapse">
-                    <div class="entity-title">
-                        <i class="fas fa-cubes icon-material"></i>
-                        Raw Materials
-                    </div>
+                <div class="entity-card-header" data-bs-toggle="collapse" data-bs-target="#materialsCollapse" aria-expanded="true">
+                    <div class="entity-title"><i class="fas fa-cubes icon-material"></i>Raw Materials</div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="entity-badge" id="materialCount">0</span>
                         <i class="fas fa-chevron-down collapse-icon"></i>
@@ -667,9 +965,7 @@
                 <div id="materialsCollapse" class="collapse show">
                     <div class="entity-body">
                         <div id="materialsList"></div>
-                        <button class="btn-add" onclick="addEntity('material')">
-                            <i class="fas fa-plus me-1"></i>Add Material
-                        </button>
+                        <button class="btn-add" onclick="addEntity('material')"><i class="fas fa-plus me-1"></i>Add Material</button>
                     </div>
                 </div>
             </div>
@@ -678,13 +974,8 @@
         <!-- Logistics -->
         <div class="col-lg-6 d-flex">
             <div class="entity-card w-100">
-                <div class="entity-card-header"
-                     data-bs-toggle="collapse" data-bs-target="#logisticsCollapse"
-                     aria-expanded="true" aria-controls="logisticsCollapse">
-                    <div class="entity-title">
-                        <i class="fas fa-ship icon-logistics"></i>
-                        Logistics Nodes
-                    </div>
+                <div class="entity-card-header" data-bs-toggle="collapse" data-bs-target="#logisticsCollapse" aria-expanded="true">
+                    <div class="entity-title"><i class="fas fa-ship icon-logistics"></i>Logistics Nodes</div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="entity-badge" id="logisticsCount">0</span>
                         <i class="fas fa-chevron-down collapse-icon"></i>
@@ -693,9 +984,7 @@
                 <div id="logisticsCollapse" class="collapse show">
                     <div class="entity-body">
                         <div id="logisticsList"></div>
-                        <button class="btn-add" onclick="addEntity('logistics')">
-                            <i class="fas fa-plus me-1"></i>Add Logistics Node
-                        </button>
+                        <button class="btn-add" onclick="addEntity('logistics')"><i class="fas fa-plus me-1"></i>Add Logistics Node</button>
                     </div>
                 </div>
             </div>
@@ -704,13 +993,8 @@
         <!-- Facilities -->
         <div class="col-lg-6 d-flex">
             <div class="entity-card w-100">
-                <div class="entity-card-header"
-                     data-bs-toggle="collapse" data-bs-target="#facilitiesCollapse"
-                     aria-expanded="true" aria-controls="facilitiesCollapse">
-                    <div class="entity-title">
-                        <i class="fas fa-industry icon-facility"></i>
-                        Own Facilities
-                    </div>
+                <div class="entity-card-header" data-bs-toggle="collapse" data-bs-target="#facilitiesCollapse" aria-expanded="true">
+                    <div class="entity-title"><i class="fas fa-industry icon-facility"></i>Own Facilities</div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="entity-badge" id="facilityCount">0</span>
                         <i class="fas fa-chevron-down collapse-icon"></i>
@@ -719,33 +1003,66 @@
                 <div id="facilitiesCollapse" class="collapse show">
                     <div class="entity-body">
                         <div id="facilitiesList"></div>
-                        <button class="btn-add" onclick="addEntity('facility')">
-                            <i class="fas fa-plus me-1"></i>Add Facility
-                        </button>
+                        <button class="btn-add" onclick="addEntity('facility')"><i class="fas fa-plus me-1"></i>Add Facility</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ── ANALYZE BUTTON ────────────────────────────────────── -->
+    <!-- ── ANALYZE BUTTON ──────────────────────────────────── -->
     <div class="d-flex justify-content-center mb-4 fade-up delay-3">
-        <button class="btn-analyze" onclick="analyzeProfile()">
+        <button class="btn-analyze" id="analyzeBtn" onclick="analyzeProfile()">
             <i class="fas fa-satellite-dish me-2"></i>Analyze Disruption Risks
         </button>
     </div>
 
-    <!-- ── LOADING ───────────────────────────────────────────── -->
-    <div id="loadingBox" class="loading-box">
-        <div class="spinner-border text-primary" style="width:2.75rem;height:2.75rem;" role="status"></div>
-        <p>Scanning global news sources per entity category…</p>
-        <small class="text-muted" style="font-size:.75rem;">Scanning curated RSS feeds from supply-chain trade publications…</small>
+    <!-- ── ERROR BOX ───────────────────────────────────────── -->
+    <div id="errorBox" class="error-box mb-3">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span id="errorMsg"></span>
     </div>
 
-    <!-- ── RESULTS ───────────────────────────────────────────── -->
+    <!-- ── PIPELINE PROGRESS ───────────────────────────────── -->
+    <div id="pipelineBox" class="pipeline-box mb-4">
+        <div class="pipeline-title">
+            <i class="fas fa-cog fa-spin" style="color:var(--blue);"></i>
+            Running Analysis Pipeline…
+        </div>
+        <div id="step1"  class="pipeline-step waiting">
+            <div class="step-icon wait" id="icon1"><i class="fas fa-circle-dot"></i></div>
+            <div><div class="step-label">Building Exposure Map</div><div class="step-sub">Extracting countries, materials, ports, routes</div></div>
+        </div>
+        <div id="step2" class="pipeline-step waiting">
+            <div class="step-icon wait" id="icon2"><i class="fas fa-circle-dot"></i></div>
+            <div><div class="step-label">Selecting Geographic Sources</div><div class="step-sub">Local · Global · Government · Industry per country</div></div>
+        </div>
+        <div id="step3" class="pipeline-step waiting">
+            <div class="step-icon wait" id="icon3"><i class="fas fa-circle-dot"></i></div>
+            <div><div class="step-label">Generating Search Targets</div><div class="step-sub">Material × Region · Port · Route · Supplier combinations</div></div>
+        </div>
+        <div id="step4" class="pipeline-step waiting">
+            <div class="step-icon wait" id="icon4"><i class="fas fa-circle-dot"></i></div>
+            <div><div class="step-label">Fetching Articles</div><div class="step-sub">RSS feeds · NewsAPI · GDELT</div></div>
+        </div>
+        <div id="step5" class="pipeline-step waiting">
+            <div class="step-icon wait" id="icon5"><i class="fas fa-circle-dot"></i></div>
+            <div><div class="step-label">Scoring & Filtering</div><div class="step-sub">Material · Country · Port · Route · Disruption · Source</div></div>
+        </div>
+        <div id="step6" class="pipeline-step waiting">
+            <div class="step-icon wait" id="icon6"><i class="fas fa-circle-dot"></i></div>
+            <div><div class="step-label">NER Preprocessing</div><div class="step-sub">HTML strip · Boilerplate removal · Entity extraction · SBERT payload</div></div>
+        </div>
+        <div id="step7" class="pipeline-step waiting">
+            <div class="step-icon wait" id="icon7"><i class="fas fa-circle-dot"></i></div>
+            <div><div class="step-label">Ready</div><div class="step-sub">Results compiled and ready for review</div></div>
+        </div>
+    </div>
+
+    <!-- ── RESULTS ─────────────────────────────────────────── -->
     <div id="resultsSection" class="results-section">
 
-        <!-- Risk summary card -->
+        <!-- Risk summary -->
         <div class="risk-card fade-up" id="riskCard">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                 <div>
@@ -764,19 +1081,25 @@
             </div>
         </div>
 
+        <!-- Exposure map chips -->
+        <div id="exposureSection" class="exposure-section fade-up" style="display:none;">
+            <div class="risk-label mb-2"><i class="fas fa-map me-1"></i>Exposure Map — Detected Entities</div>
+            <div id="exposureChips"></div>
+        </div>
+
         <!-- Stats row -->
-        <div class="row g-3 mb-3 fade-up" id="statsRow" style="display:none!important;">
+        <div class="row g-3 mb-3 fade-up" id="statsRow" style="display:none;">
             <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stSuppliers">0</div><div class="stat-lbl">Suppliers</div></div></div>
             <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stMaterials">0</div><div class="stat-lbl">Materials</div></div></div>
             <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stLogistics">0</div><div class="stat-lbl">Logistics</div></div></div>
             <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stAlerts">0</div><div class="stat-lbl">Active Alerts</div></div></div>
         </div>
 
-        <!-- Query breakdown — shows how many articles per entity category -->
+        <!-- Query breakdown -->
         <div class="breakdown-card fade-up" id="breakdownCard" style="display:none;">
             <div class="card-header-bar">
-                <span><i class="fas fa-layer-group me-2" style="color:var(--blue);"></i>News Coverage Breakdown by Entity Category</span>
-                <span class="nav-pill" style="font-size:.7rem;">Anti-imbalance</span>
+                <span><i class="fas fa-layer-group me-2" style="color:var(--blue);"></i>News Coverage Breakdown</span>
+                <span class="nav-pill" style="font-size:.7rem;">Entity categories</span>
             </div>
             <div id="breakdownRows"></div>
         </div>
@@ -787,11 +1110,91 @@
                 <span><i class="fas fa-newspaper me-2" style="color:var(--blue);"></i>Real-Time Supply Chain Intelligence</span>
                 <span id="articleCountBadge" class="nav-pill" style="font-size:.7rem;">0 articles</span>
             </div>
-            <div id="newsFeed" class="p-3" style="max-height:600px;overflow-y:auto;">
+            <div id="newsFeed" class="p-3" style="max-height:680px;overflow-y:auto;">
                 <div class="text-center py-5" style="color:var(--text-3);">
                     <i class="fas fa-satellite-dish fa-3x mb-3 opacity-50"></i>
                     <p>News will appear here after analysis</p>
                 </div>
+            </div>
+        </div>
+
+        <!-- NLP Preprocessing Panel -->
+        <div class="nlp-panel fade-up" id="nlpPanel" style="display:none;">
+            <div class="nlp-panel-header">
+                <div class="nlp-panel-title">
+                    <i class="fas fa-brain" style="color:var(--purple);"></i>
+                    NLP Preprocessing — SBERT-Ready Corpus
+                    <span class="nav-pill" style="font-size:.68rem;background:#F5F3FF;color:var(--purple);border-color:#DDD6FE;">
+                        <i class="fas fa-microchip me-1"></i>Stage 2
+                    </span>
+                </div>
+                <div class="filter-chip-bar" id="nlpFilterBar">
+                    <span class="filter-chip active" data-filter="all" onclick="nlpFilter(this,'all')">All</span>
+                    <span class="filter-chip chip-HIGH" data-filter="HIGH" onclick="nlpFilter(this,'HIGH')">HIGH</span>
+                    <span class="filter-chip chip-MEDIUM" data-filter="MEDIUM" onclick="nlpFilter(this,'MEDIUM')">MEDIUM</span>
+                    <span class="filter-chip chip-LOW" data-filter="LOW" onclick="nlpFilter(this,'LOW')">LOW</span>
+                    <span class="filter-chip chip-ok" data-filter="ok" onclick="nlpFilter(this,'ok')">✓ Preprocessed</span>
+                    <span class="filter-chip chip-err" data-filter="err" onclick="nlpFilter(this,'err')">⚠ Errors</span>
+                </div>
+            </div>
+
+            <!-- Action bar -->
+            <div class="nlp-action-bar">
+                <button class="btn-nlp btn-nlp-primary" id="btnRunNLP" onclick="runNLPPreprocessing()">
+                    <i class="fas fa-play"></i> Run Preprocessing
+                </button>
+                <button class="btn-nlp btn-nlp-outline" id="btnExpandAll" onclick="nlpExpandAll(true)" disabled>
+                    <i class="fas fa-expand-alt"></i> Expand All
+                </button>
+                <button class="btn-nlp btn-nlp-outline" id="btnCollapseAll" onclick="nlpExpandAll(false)" disabled>
+                    <i class="fas fa-compress-alt"></i> Collapse All
+                </button>
+                <button class="btn-nlp btn-nlp-danger" id="btnClearNLP" onclick="clearNLPResults()" disabled>
+                    <i class="fas fa-trash-alt"></i> Clear
+                </button>
+                <div style="flex:1;"></div>
+                <button class="btn-nlp btn-nlp-success" id="btnExportSBERT" onclick="exportSBERT()" disabled>
+                    <i class="fas fa-download"></i> Export SBERT JSON
+                </button>
+                <button class="btn-nlp btn-nlp-purple" id="btnExportCSV" onclick="exportCSV()" disabled>
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </button>
+            </div>
+
+            <!-- Article grid -->
+            <div class="nlp-article-grid" id="nlpArticleGrid">
+                <div class="text-center py-5" style="color:var(--text-3);">
+                    <i class="fas fa-brain fa-3x mb-3 opacity-25"></i>
+                    <p style="font-size:.85rem;">Click <strong>Run Preprocessing</strong> to clean, segment and NER-tag the fetched articles.</p>
+                    <p style="font-size:.78rem;margin-top:.5rem;">Output is a Sentence-BERT–ready corpus with entity annotations.</p>
+                </div>
+            </div>
+
+            <!-- Status / summary bar -->
+            <div class="nlp-status-bar" id="nlpStatusBar" style="display:none;">
+                <span class="nlp-stat-chip"><i class="fas fa-file-alt"></i><span id="nlpStatTotal">0</span> articles</span>
+                <span class="nlp-stat-chip"><i class="fas fa-check-circle" style="color:var(--green);"></i><span id="nlpStatOk">0</span> ok</span>
+                <span class="nlp-stat-chip"><i class="fas fa-exclamation-circle" style="color:var(--red);"></i><span id="nlpStatErr">0</span> errors</span>
+                <span class="nlp-stat-chip"><i class="fas fa-tags"></i><span id="nlpStatEnts">0</span> total entities</span>
+                <span class="nlp-stat-chip"><i class="fas fa-align-left"></i>avg <span id="nlpStatSents">0</span> sentences</span>
+                <span class="nlp-stat-chip"><i class="fas fa-microchip"></i>avg <span id="nlpStatTokens">0</span> tokens</span>
+            </div>
+
+            <!-- Export bar (shown after preprocessing) -->
+            <div class="export-bar" id="nlpExportBar" style="display:none;">
+                <span class="export-bar-label"><i class="fas fa-code-branch me-1"></i>Pipeline output</span>
+                <button class="btn-nlp btn-nlp-primary" onclick="exportSBERT()">
+                    <i class="fas fa-download"></i> SBERT JSON
+                </button>
+                <button class="btn-nlp btn-nlp-outline" onclick="exportCleanText()">
+                    <i class="fas fa-file-alt"></i> Clean Text (.txt)
+                </button>
+                <button class="btn-nlp btn-nlp-purple" onclick="exportCSV()">
+                    <i class="fas fa-table"></i> Entities CSV
+                </button>
+                <button class="btn-nlp btn-nlp-outline" onclick="exportSentences()">
+                    <i class="fas fa-list-ul"></i> Sentences JSONL
+                </button>
             </div>
         </div>
 
@@ -800,8 +1203,8 @@
 </div><!-- /container -->
 
 <footer>
-    <p><i class="fas fa-rss me-1"></i> Sources: Curated RSS Feeds from Trade Publications &nbsp;|&nbsp; <i class="fas fa-balance-scale me-1"></i> Per-entity queries prevent class imbalance</p>
-    <p class="mt-1">© 2024 Supply Chain Risk Intelligence</p>
+    <p><i class="fas fa-rss me-1"></i> Sources: Curated RSS Feeds · NewsAPI · GDELT &nbsp;|&nbsp; <i class="fas fa-map-marker-alt me-1"></i> Geography-aware source selection &nbsp;|&nbsp; <i class="fas fa-balance-scale me-1"></i> Rule-based relevance scoring &nbsp;|&nbsp; <i class="fas fa-brain me-1"></i> NER preprocessing · SBERT-ready output</p>
+    <p class="mt-1">© 2024 Supply Chain Risk Intelligence — Phase 2</p>
 </footer>
 
 <div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
@@ -810,13 +1213,17 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// ── STATE ──────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════
 let suppliers = [];
 let materials = [];
 let logistics = [];
 let facilities = [];
 
-// ── COUNTERS ───────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+//  ENTITY MANAGEMENT
+// ══════════════════════════════════════════════════════════
 function updateCounters() {
     document.getElementById('supplierCount').textContent  = suppliers.length;
     document.getElementById('materialCount').textContent  = materials.length;
@@ -824,7 +1231,6 @@ function updateCounters() {
     document.getElementById('facilityCount').textContent  = facilities.length;
 }
 
-// ── ADD / REMOVE ───────────────────────────────────────────
 function addEntity(type) {
     if (type === 'supplier')  { suppliers.push({ name:'', material:'', location:'' }); renderSuppliers(); }
     if (type === 'material')  { materials.push({ commodity:'', region:'' });           renderMaterials(); }
@@ -841,18 +1247,20 @@ function removeEntity(type, idx) {
     updateCounters();
 }
 
-// ── LIVE UPDATE HELPERS ────────────────────────────────────
-function updateSupplier(i, f, v)  { suppliers[i][f]  = v; }
-function updateMaterial(i, f, v)  { materials[i][f]  = v; }
-function updateLogistics(i, f, v) { logistics[i][f]  = v; }
-function updateFacility(i, f, v)  { facilities[i][f] = v; }
+function updateSupplier(i,f,v)  { suppliers[i][f] = v; }
+function updateMaterial(i,f,v)  { materials[i][f] = v; }
+function updateLogistics(i,f,v) { logistics[i][f] = v; }
+function updateFacility(i,f,v)  { facilities[i][f] = v; }
 
 function esc(s) {
     if (!s) return '';
-    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+    return String(s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 }
 
-// ── RENDER FUNCTIONS ───────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+//  RENDER FUNCTIONS
+// ══════════════════════════════════════════════════════════
 function renderSuppliers() {
     const el = document.getElementById('suppliersList');
     if (!suppliers.length) { el.innerHTML = '<div class="empty-state">No suppliers added</div>'; return; }
@@ -885,7 +1293,7 @@ function renderMaterials() {
             <div class="input-row">
                 <input class="input-field" placeholder="Commodity (e.g., lithium)" value="${esc(m.commodity)}"
                        oninput="updateMaterial(${i},'commodity',this.value)">
-                <input class="input-field" placeholder="Source region" value="${esc(m.region)}"
+                <input class="input-field" placeholder="Source region / country" value="${esc(m.region)}"
                        oninput="updateMaterial(${i},'region',this.value)">
             </div>
         </div>`).join('');
@@ -905,7 +1313,7 @@ function renderLogistics() {
             <div class="input-row">
                 <input class="input-field" placeholder="Carrier / forwarder" value="${esc(l.carrier)}"
                        oninput="updateLogistics(${i},'carrier',this.value)">
-                <input class="input-field" placeholder="Trade route" value="${esc(l.route)}"
+                <input class="input-field" placeholder="Trade route (e.g., Red Sea)" value="${esc(l.route)}"
                        oninput="updateLogistics(${i},'route',this.value)">
             </div>
         </div>`).join('');
@@ -929,19 +1337,87 @@ function renderFacilities() {
         </div>`).join('');
 }
 
-// ── ANALYZE ────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+//  PIPELINE PROGRESS HELPERS
+// ══════════════════════════════════════════════════════════
+function stepActivate(n) {
+    const step = document.getElementById(`step${n}`);
+    const icon = document.getElementById(`icon${n}`);
+    step.classList.remove('waiting');
+    step.classList.add('active');
+    icon.className = 'step-icon run pulse';
+    icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+}
+
+function stepDone(n) {
+    const step = document.getElementById(`step${n}`);
+    const icon = document.getElementById(`icon${n}`);
+    step.classList.remove('active', 'waiting');
+    step.classList.add('done');
+    icon.className = 'step-icon ok';
+    icon.innerHTML = '<i class="fas fa-check"></i>';
+}
+
+function resetPipeline() {
+    for (let n = 1; n <= 7; n++) {
+        const step = document.getElementById(`step${n}`);
+        const icon = document.getElementById(`icon${n}`);
+        step.className = 'pipeline-step waiting';
+        icon.className = 'step-icon wait';
+        icon.innerHTML = '<i class="fas fa-circle-dot"></i>';
+    }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ══════════════════════════════════════════════════════════
+//  MAIN ANALYZE FLOW
+// ══════════════════════════════════════════════════════════
 async function analyzeProfile() {
     const clientName = document.getElementById('clientName').value.trim() || 'Unnamed Client';
+
+    // Hide old results, show pipeline
+    document.getElementById('errorBox').style.display      = 'none';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('pipelineBox').style.display    = 'block';
+    document.getElementById('analyzeBtn').disabled          = true;
+    resetPipeline();
+
+    // Scroll to pipeline
+    document.getElementById('pipelineBox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Animate steps 1-3 immediately (they are fast, done server-side in one call)
+    stepActivate(1); await sleep(400);
+    stepDone(1);
+    stepActivate(2); await sleep(300);
+    stepDone(2);
+    stepActivate(3); await sleep(300);
+    stepDone(3);
+    stepActivate(4);  // fetching — this is the slow part
+
+    // Map suppliers UI shape {name, material, location} → backend {name, country, city}
+    const tier1_suppliers = suppliers.map(s => ({
+        name:    s.name,
+        country: s.location,
+        city:    '',
+    }));
+
+    // Map logistics UI shape {port, carrier, route} → backend [{name, type}, ...]
+    // A single logistics row can have both a port AND a route — emit both nodes
+    const logistics_nodes = logistics.flatMap(l => {
+        const nodes = [];
+        if (l.port)  nodes.push({ name: l.port,  type: 'port',  carrier: l.carrier || '' });
+        if (l.route) nodes.push({ name: l.route, type: 'route' });
+        return nodes;
+    }).filter(n => n.name.trim());
+
     const payload = {
         client_name:     clientName,
-        tier1_suppliers: suppliers,
+        tier1_suppliers: tier1_suppliers,
         raw_materials:   materials,
-        logistics_nodes: logistics,
+        logistics_nodes: logistics_nodes,
         own_facilities:  facilities,
     };
-
-    document.getElementById('loadingBox').style.display     = 'block';
-    document.getElementById('resultsSection').style.display = 'none';
 
     try {
         const res  = await fetch('/analyze', {
@@ -949,62 +1425,106 @@ async function analyzeProfile() {
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify(payload),
         });
+
+        stepDone(4);
+        stepActivate(5); await sleep(300);
+
         const data = await res.json();
-        if (data.status === 'success') {
-            displayResults(data);
-        } else {
-            alert('Analysis error: ' + data.message);
+
+        if (data.status !== 'success') {
+            throw new Error(data.message || 'Server returned an error');
         }
+
+        stepDone(5);
+        stepActivate(6); await sleep(250);
+        // Step 6 = client-side NLP preprocessing (done after render)
+        stepDone(6);
+        stepActivate(7); await sleep(200);
+        stepDone(7);
+        await sleep(200);
+
+        document.getElementById('pipelineBox').style.display    = 'none';
+        document.getElementById('resultsSection').style.display = 'block';
+        displayResults(data);
+        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
     } catch (err) {
         console.error(err);
-        alert('Could not reach the server. Is Flask running?');
+        document.getElementById('pipelineBox').style.display = 'none';
+        const eb  = document.getElementById('errorBox');
+        const em  = document.getElementById('errorMsg');
+        em.textContent = err.message || 'Could not reach the server. Is Flask running?';
+        eb.style.display = 'block';
     } finally {
-        document.getElementById('loadingBox').style.display     = 'none';
-        document.getElementById('resultsSection').style.display = 'block';
-        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('analyzeBtn').disabled = false;
     }
 }
 
-// ── DISPLAY RESULTS ────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+//  DISPLAY RESULTS
+// ══════════════════════════════════════════════════════════
 function displayResults(data) {
 
-    // ── Risk header
+    // ── Risk header ──────────────────────────────────────
     document.getElementById('clientNameDisplay').textContent = data.client_name;
     document.getElementById('timestampDisplay').innerHTML =
         `<i class="far fa-clock me-1"></i>${data.analysis_timestamp}`;
 
     const riskColors = {
-        CRITICAL: { bg: 'var(--red-l)',    color: 'var(--red)',    border: '#FECACA' },
-        HIGH:     { bg: 'var(--orange-l)', color: 'var(--orange)', border: '#FED7AA' },
-        MEDIUM:   { bg: 'var(--amber-l)',  color: 'var(--amber)',  border: '#FDE68A' },
-        LOW:      { bg: 'var(--green-l)',  color: 'var(--green)',  border: '#A7F3D0' },
+        CRITICAL: { bg:'var(--red-l)',    color:'var(--red)',    border:'#FECACA' },
+        HIGH:     { bg:'var(--orange-l)', color:'var(--orange)', border:'#FED7AA' },
+        MEDIUM:   { bg:'var(--amber-l)',  color:'var(--amber)',  border:'#FDE68A' },
+        LOW:      { bg:'var(--green-l)',  color:'var(--green)',  border:'#A7F3D0' },
     };
     const rc = riskColors[data.overall_risk] || riskColors.LOW;
     const badge = document.getElementById('riskBadge');
-    badge.textContent = `${data.overall_risk} RISK`;
-    badge.style.background   = rc.bg;
-    badge.style.color        = rc.color;
-    badge.style.border       = `1px solid ${rc.border}`;
+    badge.innerHTML = `<i class="fas fa-shield-alt"></i> ${data.overall_risk} RISK`;
+    badge.style.background = rc.bg;
+    badge.style.color      = rc.color;
+    badge.style.border     = `1px solid ${rc.border}`;
 
     document.getElementById('riskMessage').textContent = data.risk_message;
 
-    const scoreMap = { LOW: 18, MEDIUM: 42, HIGH: 72, CRITICAL: 91 };
+    const scoreMap = { LOW:18, MEDIUM:42, HIGH:72, CRITICAL:91 };
     document.getElementById('riskScore').innerHTML =
-        `${scoreMap[data.overall_risk] || 35}<span style="font-size:.65rem;font-family:'DM Mono',monospace;">/100</span>`;
+        `${scoreMap[data.overall_risk]||35}<span style="font-size:.65rem;font-family:'DM Mono',monospace;">/100</span>`;
 
-    // ── Stats row
+    // ── Exposure map chips ───────────────────────────────
+    const em = data.exposure_map;
+    if (em && Object.values(em).some(v => v.length)) {
+        const sec   = document.getElementById('exposureSection');
+        const chips = document.getElementById('exposureChips');
+        sec.style.display = 'block';
+        let html = '';
+
+        const renderGroup = (label, items, cls, icon) => {
+            if (!items || !items.length) return '';
+            return `<div class="exposure-group">
+                <div class="exposure-group-label"><i class="${icon} me-1"></i>${label}</div>
+                ${items.map(v => `<span class="chip ${cls}">${v}</span>`).join('')}
+            </div>`;
+        };
+
+        html += renderGroup('Countries',    em.countries,  'chip-country',  'fas fa-globe');
+        html += renderGroup('Materials',    em.materials,  'chip-material', 'fas fa-cubes');
+        html += renderGroup('Ports',        em.ports,      'chip-port',     'fas fa-anchor');
+        html += renderGroup('Trade Routes', em.routes,     'chip-route',    'fas fa-route');
+        html += renderGroup('Suppliers',    em.suppliers,  'chip-supplier', 'fas fa-truck');
+        chips.innerHTML = html;
+    }
+
+    // ── Stats row ────────────────────────────────────────
     if (data.stats) {
         const sr = document.getElementById('statsRow');
-        sr.style.cssText = ''; // remove display:none!important
         sr.style.display = 'flex';
         document.getElementById('stSuppliers').textContent = data.stats.suppliers_count;
         document.getElementById('stMaterials').textContent = data.stats.materials_count;
         document.getElementById('stLogistics').textContent = data.stats.logistics_nodes_count;
         document.getElementById('stAlerts').textContent    =
-            (data.stats.critical_alerts || 0) + (data.stats.high_alerts || 0);
+            (data.stats.critical_alerts||0) + (data.stats.high_alerts||0);
     }
 
-    // ── Query breakdown panel (new in this version)
+    // ── Query breakdown ──────────────────────────────────
     if (data.query_breakdown && Object.keys(data.query_breakdown).length) {
         const bc   = document.getElementById('breakdownCard');
         const rows = document.getElementById('breakdownRows');
@@ -1015,15 +1535,13 @@ function displayResults(data) {
             return `
             <div class="breakdown-row">
                 <span class="breakdown-label"><i class="fas fa-tag me-1" style="color:var(--blue);opacity:.5;"></i>${label}</span>
-                <div class="breakdown-bar-wrap">
-                    <div class="breakdown-bar" style="width:${pct}%;"></div>
-                </div>
-                <span class="breakdown-count">${count} art.</span>
+                <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:${pct}%;"></div></div>
+                <span class="breakdown-count">${count}</span>
             </div>`;
         }).join('');
     }
 
-    // ── News feed
+    // ── News feed ────────────────────────────────────────
     const feed = document.getElementById('newsFeed');
     document.getElementById('articleCountBadge').textContent =
         `${(data.news||[]).length} articles`;
@@ -1032,66 +1550,562 @@ function displayResults(data) {
         feed.innerHTML = `
             <div class="text-center py-5" style="color:var(--text-3);">
                 <i class="fas fa-newspaper fa-3x mb-3 opacity-50"></i>
-                <p>No relevant news found for this profile.</p>
-                <small>Check your API keys in environment variables.</small>
+                <p>No relevant news found for this supply chain profile.</p>
+                <small>Tip: Add more suppliers, materials or logistics nodes, or check your .env API keys.</small>
             </div>`;
         return;
     }
 
     feed.innerHTML = data.news.map(a => {
         const level    = a.impact_level || 'LOW';
-        const apiName  = (a._api || 'RSS').toLowerCase().replace(/\s/g,'');
-        const apiClass = apiName.includes('rss') ? 'rss' : '';
-        const apiLabel = a._api || 'RSS';
+        const srcType  = (a.source_type || a.fetch_method || 'RSS').toUpperCase().replace('GOOGLE_NEWS_RSS','GNEWS').replace('RSS','RSS');
+        const srcClass = srcType === 'GDELT' ? 'gdelt' : srcType === 'NEWSAPI' ? 'newsapi' : srcType === 'GNEWS' ? 'gnews' : '';
         const catTag   = a.category ? `<span class="category-tag ms-1">${a.category}</span>` : '';
+        const score    = a.relevance_score || 0;
 
         let dateStr = '';
         try {
-            dateStr = new Date(a.publishedAt).toLocaleDateString('en-US',
-                { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+            const d = new Date(a.published_at || a.published || '');
+            if (!isNaN(d)) dateStr = d.toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
         } catch(_) {}
+
+        // Build score breakdown tooltip
+        const bd = a.score_breakdown || {};
+        const bdTip = bd && Object.keys(bd).length
+            ? `title="Disruption:${bd.disruption||0} SC:${bd.supply_chain||0} Entity:${bd.entity||0} Geo:${bd.geographic||0} Trust:${bd.trust||0}${bd.pr_penalty ? ' PR:'+bd.pr_penalty : ''}"`
+            : '';
+
+        // matched entities chips
+        const entityChips = (a.matched_entities || [])
+            .slice(0, 5)
+            .map(e => `<span class="matched-entity-tag">${e}</span>`)
+            .join('');
 
         const isReal = a.url && a.url !== '#';
         const readBtn = isReal
-            ? `<a href="${a.url}" target="_blank" rel="noopener" class="read-link">Read <i class="fas fa-arrow-right"></i></a>`
+            ? `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="read-link">Read <i class="fas fa-arrow-right"></i></a>`
             : `<span class="read-link disabled">No link</span>`;
 
         return `
         <div class="news-item impact-${level}">
             <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-                <div class="news-title">${a.title || '—'}</div>
-                <span class="impact-pill pill-${level} flex-shrink-0">${level}</span>
+                <div class="news-title">${esc(a.title) || '—'}</div>
+                <div class="d-flex gap-1 flex-shrink-0 align-items-center">
+                    <span class="impact-pill pill-${level}">${level}</span>
+                    <span class="score-badge" ${bdTip} style="cursor:help;">${score}/100</span>
+                </div>
             </div>
-            <p class="news-desc">${a.description || ''}</p>
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+            ${(a.description || a.summary) ? `<p class="news-desc">${esc(a.description || a.summary)}</p>` : ''}
+            ${entityChips ? `<div class="mb-1">${entityChips}</div>` : ''}
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mt-1">
                 <div class="d-flex align-items-center gap-1 flex-wrap">
-                    <span class="news-meta"><i class="far fa-building me-1"></i>${a.source || '—'}</span>
+                    <span class="news-meta"><i class="far fa-building me-1"></i>${esc(a.source)||'—'}</span>
                     ${dateStr ? `<span class="news-meta">· ${dateStr}</span>` : ''}
-                    <span class="api-source-tag ${apiClass}">${apiLabel}</span>
+                    <span class="api-source-tag ${srcClass}">${srcType}</span>
                     ${catTag}
                 </div>
                 ${readBtn}
             </div>
         </div>`;
     }).join('');
+
+    // Show the NLP preprocessing panel
+    document.getElementById('nlpPanel').style.display = 'block';
+    // Reset NLP state for new results
+    clearNLPResults(true);
 }
 
-// ── SCROLL TO TOP ──────────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+//  NLP PREPROCESSING ENGINE (CLIENT-SIDE)
+//  Mirrors utils/article_preprocessor.py in JS
+// ══════════════════════════════════════════════════════════
+
+let _nlpResults   = [];   // preprocessed article objects
+let _nlpRawData   = null; // last /analyze response
+let _nlpFilter    = 'all';
+
+// ── Text cleaning ──────────────────────────────────────────
+const _BOILERPLATE_RE = new RegExp([
+    'subscribe\\s+to\\s+our\\s+newsletter.*',
+    'click\\s+here\\s+to\\s+(read|view|subscribe).*',
+    'copyright\\s+©?\\s*\\d{4}.*',
+    'all\\s+rights\\s+reserved.*',
+    'this\\s+article\\s+(originally\\s+)?appeared.*',
+    'read\\s+more\\s*:.*',
+    'related\\s+articles?\\s*:.*',
+    'advertisement\\s*',
+    'sponsored\\s+content\\s*',
+    '\\[\\+\\d+\\s+chars\\]',
+    '<[^>]+>',
+    '&[a-zA-Z]{2,6};',
+    'https?://\\S+',
+].join('|'), 'gi');
+
+const _SMART = {'\u2018':"'",'\ u2019':"'",'\ u201c':'"','\ u201d':'"','\ u2013':'-','\ u2014':'-','\u00a0':' ','\u2026':'...'};
+
+function _cleanText(raw) {
+    if (!raw) return '';
+    let t = raw;
+    // Smart-quotes
+    t = t.replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"')
+         .replace(/[\u2013\u2014]/g, '-').replace(/\u00a0/g, ' ').replace(/\u2026/g, '...');
+    // Boilerplate
+    t = t.replace(_BOILERPLATE_RE, ' ');
+    // Whitespace
+    t = t.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+    return t;
+}
+
+// ── Sentence segmentation ──────────────────────────────────
+function _splitSentences(text, maxSents = 12, minChars = 40) {
+    if (!text) return [];
+    const raw = text.split(/(?<=[.!?])\s+(?=[A-Z])/);
+    return raw
+        .map(s => s.trim())
+        .filter(s => s.length >= minChars)
+        .slice(0, maxSents);
+}
+
+// ── Lightweight NER (rule-based JS heuristics) ─────────────
+// Pattern sets for entity type inference
+const _ORG_INDICATORS   = ['inc','corp','ltd','llc','gmbh','plc','co.','company','group','holdings','industries','manufacturing','semiconductor','technology','technologies','logistics','freight','shipping','airlines','ports'];
+const _GPE_INDICATORS   = ['china','taiwan','japan','korea','india','germany','france','usa','uk','vietnam','malaysia','singapore','indonesia','thailand','mexico','brazil','chile','australia'];
+const _LOC_INDICATORS   = ['strait','sea','ocean','gulf','canal','bay','river','lake','mountain','port','harbor','terminal'];
+const _EVENT_INDICATORS = ['strike','earthquake','flood','typhoon','hurricane','embargo','sanctions','war','conflict','protest','shutdown'];
+const _PROD_INDICATORS  = ['lithium','cobalt','nickel','copper','aluminium','aluminum','silicon','wafer','chip','semiconductor','battery','steel','iron ore','rare earth'];
+
+function _inferLabel(text) {
+    const t = text.toLowerCase();
+    if (_PROD_INDICATORS.some(k => t.includes(k))) return 'PRODUCT';
+    if (_EVENT_INDICATORS.some(k => t.includes(k))) return 'EVENT';
+    if (_LOC_INDICATORS.some(k => t.includes(k)))   return 'LOC';
+    if (_GPE_INDICATORS.some(k => t === k || t.startsWith(k + ' '))) return 'GPE';
+    if (_ORG_INDICATORS.some(k => t.includes(k)))   return 'ORG';
+    return 'ORG';  // default
+}
+
+// Capitalised token sequence extraction (simple chunker)
+function _extractEntities(text, ruleMatched = [], exposure = {}) {
+    const seen = new Set();
+    const result = [];
+
+    // 1. Rule-matched entities (high precision — from server scorer)
+    const supplierSet = new Set((exposure.suppliers || []).map(s => s.toLowerCase()));
+    const materialSet = new Set((exposure.materials || []).map(m => m.toLowerCase()));
+    const portSet     = new Set((exposure.ports     || []).map(p => p.toLowerCase()));
+    const routeSet    = new Set((exposure.routes    || []).map(r => r.toLowerCase()));
+
+    function nodeType(name) {
+        const n = name.toLowerCase();
+        if (supplierSet.has(n)) return 'supplier';
+        if (materialSet.has(n)) return 'material';
+        if (portSet.has(n))     return 'port';
+        if (routeSet.has(n))    return 'route';
+        return null;
+    }
+
+    for (const name of ruleMatched) {
+        const key = name.toLowerCase();
+        if (seen.has(key) || name.length < 2) continue;
+        seen.add(key);
+        result.push({ text: name, label: 'RULE', source: 'rule', node_type: nodeType(name) });
+    }
+
+    // 2. Capitalised-phrase chunker (naive NER fallback)
+    const capPhrase = /\b([A-Z][a-zA-Z&\-\.]{1,}(?:\s+[A-Z][a-zA-Z&\-\.]{1,}){0,4})\b/g;
+    let m;
+    while ((m = capPhrase.exec(text)) !== null) {
+        const phrase = m[1].trim();
+        if (phrase.length < 3) continue;
+        // Skip sentence-start false positives: word at pos 0 or after ". "
+        const key = phrase.toLowerCase();
+        if (seen.has(key)) continue;
+        // Skip very common words
+        if (['The','A','An','In','On','At','As','By','For','To','Of','From','With','And','Or','But','Its','This','That','These','Those','It','Is','Are','Was','Were','Has','Have','Had','Be','Been','Not','No','More','New','All','Also','Both','Their','They','He','She','We','You','I'].includes(phrase)) continue;
+        seen.add(key);
+        const label = _inferLabel(phrase);
+        result.push({ text: phrase, label, source: 'spacy_sim', node_type: nodeType(phrase) });
+    }
+
+    // Deduplicate — prefer longer matches
+    const final = [];
+    const finalKeys = new Set();
+    // Sort by length desc so longer entities consume shorter ones
+    result.sort((a,b) => b.text.length - a.text.length);
+    for (const ent of result) {
+        const k = ent.text.toLowerCase();
+        if (finalKeys.has(k)) continue;
+        // Check if this is a sub-string of an already accepted entity
+        const dominated = [...finalKeys].some(fk => fk.includes(k) && fk !== k);
+        if (!dominated) {
+            finalKeys.add(k);
+            final.push(ent);
+        }
+    }
+    return final.slice(0, 25);  // cap
+}
+
+// ── Token estimate ─────────────────────────────────────────
+function _tokenEst(text) { return Math.round(text.length * 0.75); }
+
+// ── Build SBERT input ──────────────────────────────────────
+function _buildInputText(title, sentences, maxChars = 512) {
+    const body = sentences.join('  ');
+    const truncBody = body.length > maxChars ? body.slice(0, maxChars).replace(/\s\S+$/, '') + '...' : body;
+    return `[TITLE] ${title.trim()}  [BODY] ${truncBody}`;
+}
+
+function _buildEntityString(entities) {
+    if (!entities.length) return '';
+    return '[ENTITIES] ' + entities.slice(0, 10).map(e => `${e.text} (${e.label})`).join(' | ');
+}
+
+// ── Main preprocessing function ────────────────────────────
+function _preprocessArticle(article, exposure) {
+    try {
+        const rawTitle = article.title   || '';
+        const rawBody  = article.summary || article.description || '';
+
+        const cleanTitle = _cleanText(rawTitle);
+        const cleanBody  = _cleanText(rawBody);
+        const sentences  = _splitSentences(cleanBody);
+        const fullText   = `${cleanTitle}. ${cleanBody}`;
+
+        const ruleMatched = article.matched_entities || [];
+        const nerEnts     = _extractEntities(fullText, ruleMatched, exposure);
+
+        const inputText      = _buildInputText(cleanTitle, sentences);
+        const entityString   = _buildEntityString(nerEnts);
+        const inputTextWEnt  = entityString ? `${entityString}  ${inputText}` : inputText;
+        const tokenEstimate  = _tokenEst(inputText);
+
+        return {
+            ...article,
+            clean_title:      cleanTitle,
+            clean_body:       cleanBody,
+            sentences,
+            ner_entities:     nerEnts,
+            entity_string:    entityString,
+            input_text:       inputText,
+            input_text_w_ent: inputTextWEnt,
+            token_estimate:   tokenEstimate,
+            preprocessing_ok: true,
+        };
+    } catch(err) {
+        return {
+            ...article,
+            clean_title:      article.title   || '',
+            clean_body:       article.summary || '',
+            sentences:        [],
+            ner_entities:     [],
+            entity_string:    '',
+            input_text:       article.title || '',
+            input_text_w_ent: article.title || '',
+            token_estimate:   0,
+            preprocessing_ok: false,
+            _err: String(err),
+        };
+    }
+}
+
+// ── Entity label → CSS class ───────────────────────────────
+function _entClass(label) {
+    const map = { ORG:'ORG', GPE:'GPE', LOC:'LOC', FAC:'FAC', PRODUCT:'PRODUCT', EVENT:'EVENT', NORP:'NORP', RULE:'RULE' };
+    return 'nlp-ent-' + (map[label] || 'ORG');
+}
+
+// ── Render NLP card ────────────────────────────────────────
+function _renderNLPCard(art, idx) {
+    const ok     = art.preprocessing_ok;
+    const level  = art.impact_level || 'LOW';
+    const tokens = art.token_estimate || 0;
+    const tokenPct = Math.min(Math.round((tokens / 512) * 100), 100);
+    const tokenColor = tokenPct > 85 ? 'var(--red)' : tokenPct > 60 ? 'var(--amber)' : 'var(--green)';
+
+    const entHTML = (art.ner_entities || []).map(e =>
+        `<span class="nlp-ent-tag ${_entClass(e.label)}" title="source:${e.source}${e.node_type?' node:'+e.node_type:''}">${esc(e.text)} <span style="opacity:.65;font-size:.6rem;">${e.label}</span></span>`
+    ).join('');
+
+    const sentHTML = (art.sentences || []).map((s, i) =>
+        `<div class="nlp-sent"><span style="font-size:.65rem;font-family:'DM Mono',monospace;color:var(--text-3);margin-right:.4rem;">${i+1}</span>${esc(s)}</div>`
+    ).join('');
+
+    const inputPreview = esc((art.input_text || '').slice(0, 260)) + ((art.input_text||'').length > 260 ? '…' : '');
+
+    return `
+    <div class="nlp-card ${ok ? 'nlp-ok' : 'nlp-err'}"
+         data-level="${level}"
+         data-ok="${ok}"
+         data-idx="${idx}">
+        <div class="nlp-card-top" onclick="nlpToggle(${idx})">
+            <span class="nlp-card-idx">${idx+1}</span>
+            <div class="nlp-card-title">${esc(art.clean_title || art.title || '—')}</div>
+            <div class="nlp-card-badges">
+                <span class="impact-pill pill-${level}" style="font-size:.63rem;">${level}</span>
+                <span class="score-badge" style="font-size:.63rem;">${art.relevance_score||0}/100</span>
+                ${ok
+                    ? `<span style="font-size:.65rem;background:var(--green-l);color:var(--green);border:1px solid #A7F3D0;padding:.15rem .45rem;border-radius:1rem;font-family:'DM Mono',monospace;">✓ ${(art.sentences||[]).length}s·${(art.ner_entities||[]).length}e·${tokens}t</span>`
+                    : `<span style="font-size:.65rem;background:var(--red-l);color:var(--red);border:1px solid #FECACA;padding:.15rem .45rem;border-radius:1rem;">⚠ error</span>`
+                }
+                <i class="fas fa-chevron-down" id="nlp-chevron-${idx}" style="color:var(--text-3);font-size:.7rem;transition:transform .2s;"></i>
+            </div>
+        </div>
+        <div class="nlp-card-body" id="nlp-body-${idx}">
+
+            ${!ok ? `<div class="nlp-stage" style="border-color:#FECACA;background:var(--red-l);">
+                <div class="nlp-stage-label" style="color:var(--red);"><i class="fas fa-exclamation-triangle"></i>Preprocessing Error</div>
+                <div class="nlp-clean-text" style="color:var(--red);">${esc(art._err||'Unknown error')}</div>
+            </div>` : ''}
+
+            <div class="nlp-stage">
+                <div class="nlp-stage-label"><i class="fas fa-broom"></i>Stage 1 — Cleaned Text</div>
+                <div class="nlp-clean-text">${esc((art.clean_body||'').slice(0,400))}${(art.clean_body||'').length > 400 ? '…' : ''}</div>
+            </div>
+
+            <div class="nlp-stage">
+                <div class="nlp-stage-label"><i class="fas fa-align-left"></i>Stage 2 — Sentence Segments (${(art.sentences||[]).length})</div>
+                <div class="nlp-sent-list">${sentHTML || '<div class="nlp-sent" style="color:var(--text-3);">No sentences extracted (body too short)</div>'}</div>
+            </div>
+
+            <div class="nlp-stage">
+                <div class="nlp-stage-label"><i class="fas fa-tags"></i>Stage 3 — NER Entities (${(art.ner_entities||[]).length})</div>
+                <div class="nlp-entity-row">${entHTML || '<span style="font-size:.75rem;color:var(--text-3);">No entities extracted</span>'}</div>
+            </div>
+
+            <div class="nlp-stage">
+                <div class="nlp-stage-label"><i class="fas fa-microchip"></i>Stage 4 — SBERT Payload</div>
+                <div class="nlp-sbert-box">${inputPreview}</div>
+                <div class="nlp-token-bar">
+                    <span>${tokens} / 512 tokens est.</span>
+                    <div class="nlp-token-track"><div class="nlp-token-fill" style="width:${tokenPct}%;background:${tokenColor};"></div></div>
+                    <span>${tokenPct}%</span>
+                </div>
+                ${art.entity_string ? `<div class="nlp-sbert-box" style="margin-top:.4rem;font-size:.68rem;color:#6EE7B7;">${esc(art.entity_string)}</div>` : ''}
+            </div>
+
+        </div>
+    </div>`;
+}
+
+// ── Toggle card expand ─────────────────────────────────────
+function nlpToggle(idx) {
+    const body   = document.getElementById(`nlp-body-${idx}`);
+    const chev   = document.getElementById(`nlp-chevron-${idx}`);
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function nlpExpandAll(open) {
+    _nlpResults.forEach((_, idx) => {
+        const body = document.getElementById(`nlp-body-${idx}`);
+        const chev = document.getElementById(`nlp-chevron-${idx}`);
+        if (!body) return;
+        body.classList.toggle('open', open);
+        if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+    });
+}
+
+// ── Filter ─────────────────────────────────────────────────
+function nlpFilter(el, filter) {
+    _nlpFilter = filter;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+
+    const cards = document.querySelectorAll('.nlp-card');
+    cards.forEach(card => {
+        const level = card.dataset.level;
+        const ok    = card.dataset.ok === 'true';
+        let show = false;
+        if (filter === 'all')    show = true;
+        else if (filter === 'ok')  show = ok;
+        else if (filter === 'err') show = !ok;
+        else show = (level === filter);
+        card.style.display = show ? '' : 'none';
+    });
+}
+
+// ── Run preprocessing ──────────────────────────────────────
+function runNLPPreprocessing() {
+    if (!_nlpRawData || !_nlpRawData.news || !_nlpRawData.news.length) {
+        alert('Run an analysis first to fetch articles.');
+        return;
+    }
+
+    const btn = document.getElementById('btnRunNLP');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+
+    const exposure = _nlpRawData.exposure_map || {};
+    const articles = _nlpRawData.news || [];
+
+    // Process in micro-tasks to avoid blocking the UI
+    _nlpResults = [];
+    const grid = document.getElementById('nlpArticleGrid');
+    grid.innerHTML = '<div class="text-center py-3" style="color:var(--text-3);font-size:.82rem;"><i class="fas fa-spinner fa-spin me-2"></i>Preprocessing articles…</div>';
+
+    setTimeout(() => {
+        for (const art of articles) {
+            _nlpResults.push(_preprocessArticle(art, exposure));
+        }
+
+        // Render
+        const html = _nlpResults.map((a, i) => _renderNLPCard(a, i)).join('');
+        grid.innerHTML = html || '<div class="text-center py-4" style="color:var(--text-3);">No articles to display.</div>';
+
+        // Status bar
+        const ok       = _nlpResults.filter(a => a.preprocessing_ok).length;
+        const err      = _nlpResults.length - ok;
+        const totalEnt = _nlpResults.reduce((s,a) => s + (a.ner_entities||[]).length, 0);
+        const avgSent  = ok ? Math.round(_nlpResults.filter(a=>a.preprocessing_ok).reduce((s,a)=>s+(a.sentences||[]).length,0)/ok) : 0;
+        const avgTok   = ok ? Math.round(_nlpResults.filter(a=>a.preprocessing_ok).reduce((s,a)=>s+(a.token_estimate||0),0)/ok) : 0;
+
+        document.getElementById('nlpStatTotal').textContent = _nlpResults.length;
+        document.getElementById('nlpStatOk').textContent    = ok;
+        document.getElementById('nlpStatErr').textContent   = err;
+        document.getElementById('nlpStatEnts').textContent  = totalEnt;
+        document.getElementById('nlpStatSents').textContent = avgSent;
+        document.getElementById('nlpStatTokens').textContent = avgTok;
+        document.getElementById('nlpStatusBar').style.display = '';
+        document.getElementById('nlpExportBar').style.display = '';
+
+        // Enable buttons
+        ['btnExpandAll','btnCollapseAll','btnClearNLP','btnExportSBERT','btnExportCSV'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = false;
+        });
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Re-run';
+
+        // Re-apply active filter
+        const activeChip = document.querySelector('.filter-chip.active');
+        if (activeChip) nlpFilter(activeChip, activeChip.dataset.filter);
+
+        document.getElementById('nlpPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+}
+
+// ── Clear NLP results ──────────────────────────────────────
+function clearNLPResults(silent = false) {
+    _nlpResults = [];
+    const grid = document.getElementById('nlpArticleGrid');
+    grid.innerHTML = `
+        <div class="text-center py-5" style="color:var(--text-3);">
+            <i class="fas fa-brain fa-3x mb-3 opacity-25"></i>
+            <p style="font-size:.85rem;">Click <strong>Run Preprocessing</strong> to clean, segment and NER-tag the fetched articles.</p>
+            <p style="font-size:.78rem;margin-top:.5rem;">Output is a Sentence-BERT–ready corpus with entity annotations.</p>
+        </div>`;
+    document.getElementById('nlpStatusBar').style.display   = 'none';
+    document.getElementById('nlpExportBar').style.display   = 'none';
+    ['btnExpandAll','btnCollapseAll','btnClearNLP','btnExportSBERT','btnExportCSV'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+    });
+    const btn = document.getElementById('btnRunNLP');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-play"></i> Run Preprocessing'; }
+    if (!silent) {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        const allChip = document.querySelector('.filter-chip[data-filter="all"]');
+        if (allChip) allChip.classList.add('active');
+    }
+}
+
+// ── Export helpers ─────────────────────────────────────────
+function _download(filename, content, mime) {
+    const blob = new Blob([content], { type: mime });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+}
+
+function exportSBERT() {
+    if (!_nlpResults.length) return;
+    const payload = _nlpResults.map(a => ({
+        title:          a.clean_title,
+        input_text:     a.input_text,
+        input_text_w_ent: a.input_text_w_ent,
+        entity_string:  a.entity_string,
+        sentences:      a.sentences,
+        ner_entities:   a.ner_entities,
+        token_estimate: a.token_estimate,
+        impact_level:   a.impact_level,
+        relevance_score: a.relevance_score,
+        url:            a.url,
+        source:         a.source,
+        published:      a.published,
+        linked_nodes:   a.linked_nodes,
+        preprocessing_ok: a.preprocessing_ok,
+    }));
+    _download('sbert_corpus.json', JSON.stringify(payload, null, 2), 'application/json');
+}
+
+function exportCleanText() {
+    if (!_nlpResults.length) return;
+    const lines = _nlpResults
+        .filter(a => a.preprocessing_ok)
+        .map(a => `=== ${a.clean_title} ===\n${a.clean_body}\n`)
+        .join('\n---\n\n');
+    _download('clean_articles.txt', lines, 'text/plain');
+}
+
+function exportCSV() {
+    if (!_nlpResults.length) return;
+    const rows = [['article_title','entity_text','entity_label','entity_source','node_type']];
+    _nlpResults.forEach(a => {
+        (a.ner_entities||[]).forEach(e => {
+            rows.push([
+                `"${(a.clean_title||'').replace(/"/g,'""')}"`,
+                `"${(e.text||'').replace(/"/g,'""')}"`,
+                e.label, e.source,
+                e.node_type||''
+            ]);
+        });
+    });
+    _download('entities.csv', rows.map(r=>r.join(',')).join('\n'), 'text/csv');
+}
+
+function exportSentences() {
+    if (!_nlpResults.length) return;
+    const lines = _nlpResults
+        .filter(a => a.preprocessing_ok)
+        .flatMap(a => (a.sentences||[]).map((s,i) => JSON.stringify({
+            text: s,
+            sentence_idx: i,
+            article_title: a.clean_title,
+            impact_level: a.impact_level,
+            relevance_score: a.relevance_score,
+            url: a.url,
+        })));
+    _download('sentences.jsonl', lines.join('\n'), 'application/jsonl');
+}
+
+// Store results after each /analyze for NLP access
+const _origDisplayResults = displayResults;
+function displayResults(data) {
+    _nlpRawData = data;
+    _origDisplayResults(data);
+}
+
+// ══════════════════════════════════════════════════════════
+//  SCROLL TO TOP
+// ══════════════════════════════════════════════════════════
 window.addEventListener('scroll', () => {
     document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 350);
 });
 
-// ── COLLAPSE ICON SYNC ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+//  COLLAPSE ICON SYNC
+// ══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(trigger => {
-        const targetId = trigger.getAttribute('data-bs-target');
-        const target   = document.querySelector(targetId);
+        const target = document.querySelector(trigger.getAttribute('data-bs-target'));
         if (!target) return;
         target.addEventListener('show.bs.collapse', () => trigger.setAttribute('aria-expanded','true'));
         target.addEventListener('hide.bs.collapse', () => trigger.setAttribute('aria-expanded','false'));
     });
-
-    // Pre-populate one row per section
+    // Pre-populate one row each
     addEntity('supplier');
     addEntity('material');
     addEntity('logistics');

@@ -1,0 +1,234 @@
+{
+  "metadata": {
+    "description": "Major global ports with city, country, type, and annual throughput data",
+    "usage": "Used by exposure mapper to resolve port names to geographic anchors and by query generator to build port-specific queries",
+    "version": "1.0"
+  },
+  "ports": {
+    "Port of Shanghai": {
+      "city": "Shanghai",
+      "country": "China",
+      "type": "container",
+      "rank_global": 1,
+      "teu_millions": 47.3,
+      "aliases": ["Shanghai Port", "Yangshan Port"],
+      "strategic_importance": "World's busiest container port; gateway for China exports"
+    },
+    "Port of Singapore": {
+      "city": "Singapore",
+      "country": "Singapore",
+      "type": "container",
+      "rank_global": 2,
+      "teu_millions": 37.5,
+      "aliases": ["Singapore Port", "PSA Singapore"],
+      "strategic_importance": "Transshipment hub for Southeast Asia; controls Malacca Strait exit"
+    },
+    "Port of Ningbo-Zhoushan": {
+      "city": "Ningbo",
+      "country": "China",
+      "type": "container",
+      "rank_global": 3,
+      "teu_millions": 33.4,
+      "aliases": ["Ningbo Port", "Zhoushan Port"],
+      "strategic_importance": "China's second busiest port; key for automotive and bulk cargo"
+    },
+    "Port of Shenzhen": {
+      "city": "Shenzhen",
+      "country": "China",
+      "type": "container",
+      "rank_global": 4,
+      "teu_millions": 28.8,
+      "aliases": ["Yantian Port", "Shekou Port"],
+      "strategic_importance": "Gateway for Guangdong electronics exports; serves Foxconn and Pearl River Delta"
+    },
+    "Port of Guangzhou": {
+      "city": "Guangzhou",
+      "country": "China",
+      "type": "container",
+      "rank_global": 5,
+      "teu_millions": 24.6,
+      "aliases": ["Nansha Port", "Guangzhou Port"],
+      "strategic_importance": "Pearl River Delta export hub; serves automotive and manufacturing"
+    },
+    "Port of Qingdao": {
+      "city": "Qingdao",
+      "country": "China",
+      "type": "container",
+      "rank_global": 6,
+      "teu_millions": 22.0,
+      "aliases": ["Qingdao Port"],
+      "strategic_importance": "Key north China port; major iron ore import terminal"
+    },
+    "Port of Busan": {
+      "city": "Busan",
+      "country": "South Korea",
+      "type": "container",
+      "rank_global": 7,
+      "teu_millions": 21.7,
+      "aliases": ["Busan New Port"],
+      "strategic_importance": "Northeast Asia transshipment hub; gateway for Korean exports"
+    },
+    "Port of Tianjin": {
+      "city": "Tianjin",
+      "country": "China",
+      "type": "container",
+      "rank_global": 9,
+      "teu_millions": 18.4,
+      "aliases": ["Tianjin Port", "Xingang Port"],
+      "strategic_importance": "Gateway for Beijing-Tianjin-Hebei industrial zone"
+    },
+    "Port of Rotterdam": {
+      "city": "Rotterdam",
+      "country": "Netherlands",
+      "type": "container",
+      "rank_global": 11,
+      "teu_millions": 14.5,
+      "aliases": ["Rotterdam Port", "Europoort"],
+      "strategic_importance": "Europe's largest port; primary gateway for European imports/exports"
+    },
+    "Port of Antwerp": {
+      "city": "Antwerp",
+      "country": "Belgium",
+      "type": "container",
+      "rank_global": 13,
+      "teu_millions": 12.0,
+      "aliases": ["Antwerp Port", "Port of Antwerp-Bruges"],
+      "strategic_importance": "Europe's second largest port; major chemicals and automotive hub"
+    },
+    "Port of Kaohsiung": {
+      "city": "Kaohsiung",
+      "country": "Taiwan",
+      "type": "container",
+      "rank_global": 15,
+      "teu_millions": 9.8,
+      "aliases": ["Kaohsiung Port"],
+      "strategic_importance": "Taiwan's primary export port; critical for semiconductor and electronics exports"
+    },
+    "Port of Hamburg": {
+      "city": "Hamburg",
+      "country": "Germany",
+      "type": "container",
+      "rank_global": 18,
+      "teu_millions": 8.3,
+      "aliases": ["Hamburg Port"],
+      "strategic_importance": "Germany's largest port; gateway for Central European trade"
+    },
+    "Port of Los Angeles": {
+      "city": "Los Angeles",
+      "country": "United States",
+      "type": "container",
+      "rank_global": 16,
+      "teu_millions": 9.0,
+      "aliases": ["LA Port", "San Pedro Bay"],
+      "strategic_importance": "US gateway for trans-Pacific trade; key electronics import port"
+    },
+    "Port of Long Beach": {
+      "city": "Long Beach",
+      "country": "United States",
+      "type": "container",
+      "rank_global": 17,
+      "teu_millions": 8.9,
+      "aliases": ["Long Beach Port"],
+      "strategic_importance": "Adjacent to LA Port; combined they handle 40% of US imports"
+    },
+    "Port of Yokohama": {
+      "city": "Yokohama",
+      "country": "Japan",
+      "type": "container",
+      "rank_global": 25,
+      "teu_millions": 3.0,
+      "aliases": ["Yokohama Port"],
+      "strategic_importance": "Tokyo Bay gateway; key for Japanese automotive exports"
+    },
+    "Port of Nagoya": {
+      "city": "Nagoya",
+      "country": "Japan",
+      "type": "container",
+      "rank_global": 20,
+      "teu_millions": 3.2,
+      "aliases": ["Nagoya Port", "Tokai Port"],
+      "strategic_importance": "Japan's busiest port by cargo value; primary automotive export port (Toyota)"
+    },
+    "Port of Chennai": {
+      "city": "Chennai",
+      "country": "India",
+      "type": "container",
+      "rank_global": 35,
+      "teu_millions": 1.8,
+      "aliases": ["Chennai Port", "Madras Port"],
+      "strategic_importance": "India's automotive export hub; gateway for South India manufacturing"
+    },
+    "Port of Mumbai": {
+      "city": "Mumbai",
+      "country": "India",
+      "type": "container",
+      "rank_global": 32,
+      "teu_millions": 2.1,
+      "aliases": ["Nhava Sheva", "JNPT", "Jawaharlal Nehru Port"],
+      "strategic_importance": "India's largest container port; handles 55% of India's container traffic"
+    },
+    "Port of Jebel Ali": {
+      "city": "Jebel Ali",
+      "country": "United Arab Emirates",
+      "type": "container",
+      "rank_global": 8,
+      "teu_millions": 13.7,
+      "aliases": ["Jebel Ali Port", "DP World Jebel Ali"],
+      "strategic_importance": "Middle East's largest port; major transshipment hub between Asia and Europe"
+    },
+    "Port of Klang": {
+      "city": "Klang",
+      "country": "Malaysia",
+      "type": "container",
+      "rank_global": 12,
+      "teu_millions": 13.2,
+      "aliases": ["Port Klang", "Westports", "Northport"],
+      "strategic_importance": "Malaysia's primary port; gateway for Penang electronics exports"
+    },
+    "Port of Laem Chabang": {
+      "city": "Laem Chabang",
+      "country": "Thailand",
+      "type": "container",
+      "rank_global": 22,
+      "teu_millions": 3.1,
+      "aliases": ["Laem Chabang Port"],
+      "strategic_importance": "Thailand's primary deep-sea port; serves Eastern Economic Corridor"
+    },
+    "Port of Colombo": {
+      "city": "Colombo",
+      "country": "Sri Lanka",
+      "type": "container",
+      "rank_global": 24,
+      "teu_millions": 7.2,
+      "aliases": ["Colombo Port"],
+      "strategic_importance": "South Asia transshipment hub; critical for India-Europe trade route"
+    },
+    "Port of Ras Laffan": {
+      "city": "Ras Laffan",
+      "country": "Qatar",
+      "type": "lng",
+      "rank_global": null,
+      "teu_millions": null,
+      "aliases": ["Ras Laffan LNG Terminal"],
+      "strategic_importance": "World's largest LNG export terminal; supplies 30%+ of global LNG"
+    },
+    "Port of Valdez": {
+      "city": "Valdez",
+      "country": "United States",
+      "type": "oil",
+      "rank_global": null,
+      "teu_millions": null,
+      "aliases": ["Trans-Alaska Pipeline Terminal"],
+      "strategic_importance": "Southern terminus of Trans-Alaska Pipeline"
+    },
+    "Port of Felixstowe": {
+      "city": "Felixstowe",
+      "country": "United Kingdom",
+      "type": "container",
+      "rank_global": 30,
+      "teu_millions": 4.0,
+      "aliases": ["Felixstowe Port"],
+      "strategic_importance": "UK's largest container port; handles 48% of UK container trade"
+    }
+  }
+}

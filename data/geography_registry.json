@@ -1,0 +1,613 @@
+{
+  "metadata": {
+    "description": "Per-country RSS and Google News source registry with trust scores",
+    "usage": "Read by rss_fetcher.py to dispatch the right sources for each country in the exposure map",
+    "source_types": ["rss", "google_news_rss"],
+    "trust_score_range": "0.0 to 1.0",
+    "version": "1.0"
+  },
+  "defaults": {
+    "global_wire_sources": [
+      {
+        "name": "Reuters - Supply Chain",
+        "type": "google_news_rss",
+        "url": "https://news.google.com/rss/search?q=supply+chain+disruption&hl=en-US&gl=US&ceid=US:en",
+        "trust_score": 0.95,
+        "category": "global_wire"
+      },
+      {
+        "name": "Reuters - Trade",
+        "type": "google_news_rss",
+        "url": "https://news.google.com/rss/search?q=trade+disruption+shipping&hl=en-US&gl=US&ceid=US:en",
+        "trust_score": 0.95,
+        "category": "global_wire"
+      },
+      {
+        "name": "Bloomberg - Supply Chain",
+        "type": "google_news_rss",
+        "url": "https://news.google.com/rss/search?q=Bloomberg+supply+chain&hl=en-US&gl=US&ceid=US:en",
+        "trust_score": 0.92,
+        "category": "global_wire"
+      },
+      {
+        "name": "Financial Times - Trade",
+        "type": "google_news_rss",
+        "url": "https://news.google.com/rss/search?q=site:ft.com+supply+chain&hl=en-US&gl=US&ceid=US:en",
+        "trust_score": 0.92,
+        "category": "global_wire"
+      },
+      {
+        "name": "Wall Street Journal - Supply Chain",
+        "type": "google_news_rss",
+        "url": "https://news.google.com/rss/search?q=site:wsj.com+supply+chain&hl=en-US&gl=US&ceid=US:en",
+        "trust_score": 0.90,
+        "category": "global_wire"
+      }
+    ],
+    "logistics_sources": [
+      {
+        "name": "Hellenic Shipping News",
+        "type": "rss",
+        "url": "https://www.hellenicshippingnews.com/feed/",
+        "trust_score": 0.82,
+        "category": "logistics"
+      },
+      {
+        "name": "Lloyd's List",
+        "type": "google_news_rss",
+        "url": "https://news.google.com/rss/search?q=site:lloydslist.com+shipping&hl=en-US&gl=US&ceid=US:en",
+        "trust_score": 0.88,
+        "category": "logistics"
+      },
+      {
+        "name": "Journal of Commerce",
+        "type": "google_news_rss",
+        "url": "https://news.google.com/rss/search?q=site:joc.com+shipping+disruption&hl=en-US&gl=US&ceid=US:en",
+        "trust_score": 0.85,
+        "category": "logistics"
+      },
+      {
+        "name": "FreightWaves",
+        "type": "google_news_rss",
+        "url": "https://news.google.com/rss/search?q=site:freightwaves.com&hl=en-US&gl=US&ceid=US:en",
+        "trust_score": 0.80,
+        "category": "logistics"
+      }
+    ]
+  },
+  "countries": {
+    "Taiwan": {
+      "local": [
+        {
+          "name": "Taiwan News",
+          "type": "rss",
+          "url": "https://www.taiwannews.com.tw/rss/index.rss",
+          "trust_score": 0.72,
+          "category": "local"
+        },
+        {
+          "name": "Focus Taiwan (CNA)",
+          "type": "rss",
+          "url": "https://focustaiwan.tw/rss/aall.xml",
+          "trust_score": 0.80,
+          "category": "local"
+        },
+        {
+          "name": "DigiTimes - Semiconductors",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=site:digitimes.com+semiconductor&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.78,
+          "category": "trade"
+        }
+      ],
+      "government": [
+        {
+          "name": "Taiwan MOEA News",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Taiwan+MOEA+export+semiconductor&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.85,
+          "category": "government"
+        }
+      ]
+    },
+    "China": {
+      "local": [
+        {
+          "name": "South China Morning Post",
+          "type": "rss",
+          "url": "https://www.scmp.com/rss/5/feed",
+          "trust_score": 0.75,
+          "category": "local"
+        },
+        {
+          "name": "Caixin Global",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=site:caixinglobal.com+supply+chain&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.78,
+          "category": "local"
+        },
+        {
+          "name": "China Daily - Business",
+          "type": "rss",
+          "url": "https://www.chinadaily.com.cn/rss/bizchina_rss.xml",
+          "trust_score": 0.55,
+          "category": "local",
+          "notes": "State media - apply extra skepticism to positive framing"
+        }
+      ],
+      "government": [
+        {
+          "name": "China MOFCOM Trade News",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=China+MOFCOM+export+ban+trade&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.60,
+          "category": "government"
+        }
+      ]
+    },
+    "South Korea": {
+      "local": [
+        {
+          "name": "Korea JoongAng Daily",
+          "type": "rss",
+          "url": "https://koreajoongangdaily.joins.com/rss/recent.xml",
+          "trust_score": 0.75,
+          "category": "local"
+        },
+        {
+          "name": "Korea Herald - Business",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=site:koreaherald.com+supply+chain&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.75,
+          "category": "local"
+        },
+        {
+          "name": "Electronic Times Korea",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Samsung+TSMC+semiconductor+Korea+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.72,
+          "category": "trade"
+        }
+      ],
+      "government": [
+        {
+          "name": "Korea MOTIE Trade News",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Korea+MOTIE+export+semiconductor+trade&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.82,
+          "category": "government"
+        }
+      ]
+    },
+    "Japan": {
+      "local": [
+        {
+          "name": "Japan Times - Business",
+          "type": "rss",
+          "url": "https://www.japantimes.co.jp/feed/",
+          "trust_score": 0.80,
+          "category": "local"
+        },
+        {
+          "name": "Nikkei Asia",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=site:asia.nikkei.com+supply+chain&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.88,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "JETRO Trade News",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=JETRO+Japan+trade+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.85,
+          "category": "government"
+        }
+      ]
+    },
+    "United States": {
+      "local": [
+        {
+          "name": "Supply Chain Dive",
+          "type": "rss",
+          "url": "https://www.supplychaindive.com/feeds/news/",
+          "trust_score": 0.85,
+          "category": "trade"
+        },
+        {
+          "name": "Supply Chain Brain",
+          "type": "rss",
+          "url": "https://www.supplychainbrain.com/rss/all",
+          "trust_score": 0.80,
+          "category": "trade"
+        },
+        {
+          "name": "Logistics Management",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=site:logisticsmgmt.com+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.80,
+          "category": "trade"
+        }
+      ],
+      "government": [
+        {
+          "name": "US BIS Export Controls",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=BIS+export+control+semiconductor+US&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.90,
+          "category": "government"
+        },
+        {
+          "name": "USTR Trade News",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=USTR+tariff+trade+restriction&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.90,
+          "category": "government"
+        }
+      ]
+    },
+    "Germany": {
+      "local": [
+        {
+          "name": "DW Business",
+          "type": "rss",
+          "url": "https://rss.dw.com/rdf/rss-en-bus",
+          "trust_score": 0.82,
+          "category": "local"
+        },
+        {
+          "name": "Handelsblatt Global",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=site:handelsblatt.com+supply+chain&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.82,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "Germany BAFA Export Controls",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Germany+BAFA+export+control+trade&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.88,
+          "category": "government"
+        }
+      ]
+    },
+    "India": {
+      "local": [
+        {
+          "name": "Economic Times - Industry",
+          "type": "rss",
+          "url": "https://economictimes.indiatimes.com/industry/rssfeeds/13352306.cms",
+          "trust_score": 0.75,
+          "category": "local"
+        },
+        {
+          "name": "Business Standard",
+          "type": "rss",
+          "url": "https://www.business-standard.com/rss/home_page_top_stories.rss",
+          "trust_score": 0.75,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "India DGFT Trade Notices",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=India+DGFT+export+ban+trade&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.85,
+          "category": "government"
+        }
+      ]
+    },
+    "Malaysia": {
+      "local": [
+        {
+          "name": "The Star - Business",
+          "type": "rss",
+          "url": "https://www.thestar.com.my/rss/business",
+          "trust_score": 0.72,
+          "category": "local"
+        },
+        {
+          "name": "Malay Mail - Business",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Malaysia+semiconductor+Penang+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.70,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "Malaysia MITI Trade",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Malaysia+MITI+trade+export&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.82,
+          "category": "government"
+        }
+      ]
+    },
+    "Vietnam": {
+      "local": [
+        {
+          "name": "VnExpress International",
+          "type": "rss",
+          "url": "https://e.vnexpress.net/rss/business.rss",
+          "trust_score": 0.68,
+          "category": "local"
+        },
+        {
+          "name": "Vietnam Briefing",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Vietnam+manufacturing+disruption+factory&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.72,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "Vietnam MOIT",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Vietnam+MOIT+export+trade+policy&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.78,
+          "category": "government"
+        }
+      ]
+    },
+    "Thailand": {
+      "local": [
+        {
+          "name": "Bangkok Post - Business",
+          "type": "rss",
+          "url": "https://www.bangkokpost.com/rss/data/business.xml",
+          "trust_score": 0.75,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "Thailand BOI Industrial News",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Thailand+BOI+industrial+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.80,
+          "category": "government"
+        }
+      ]
+    },
+    "Indonesia": {
+      "local": [
+        {
+          "name": "Jakarta Post - Business",
+          "type": "rss",
+          "url": "https://www.thejakartapost.com/feed",
+          "trust_score": 0.72,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "Indonesia BKPM Investment News",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Indonesia+export+ban+nickel+trade&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.80,
+          "category": "government"
+        }
+      ]
+    },
+    "Singapore": {
+      "local": [
+        {
+          "name": "Straits Times - Business",
+          "type": "rss",
+          "url": "https://www.straitstimes.com/news/business/rss.xml",
+          "trust_score": 0.82,
+          "category": "local"
+        },
+        {
+          "name": "Business Times Singapore",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=site:businesstimes.com.sg+supply+chain&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.80,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "Singapore MTI Trade",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Singapore+MTI+trade+policy&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.88,
+          "category": "government"
+        }
+      ]
+    },
+    "Netherlands": {
+      "local": [
+        {
+          "name": "NL Times - Business",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Netherlands+ASML+semiconductor+Rotterdam+port&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.72,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "Netherlands Export Controls",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Netherlands+export+control+ASML+chip&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.88,
+          "category": "government"
+        }
+      ]
+    },
+    "Chile": {
+      "local": [
+        {
+          "name": "Mining.com - Chile",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Chile+lithium+copper+mining+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.78,
+          "category": "trade"
+        }
+      ],
+      "government": [
+        {
+          "name": "Chile COCHILCO Mining News",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Chile+COCHILCO+lithium+copper+export&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.85,
+          "category": "government"
+        }
+      ]
+    },
+    "Australia": {
+      "local": [
+        {
+          "name": "Australian Mining",
+          "type": "rss",
+          "url": "https://www.australianmining.com.au/feed/",
+          "trust_score": 0.78,
+          "category": "trade"
+        },
+        {
+          "name": "Australian Financial Review",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=site:afr.com+supply+chain+mining&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.85,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "Australia DFAT Trade",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Australia+DFAT+critical+minerals+export&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.88,
+          "category": "government"
+        }
+      ]
+    },
+    "DR Congo": {
+      "local": [
+        {
+          "name": "Mining.com - DRC Cobalt",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=DRC+Congo+cobalt+mining+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.72,
+          "category": "trade"
+        }
+      ],
+      "government": [
+        {
+          "name": "DRC Mining Ministry",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=DRC+Congo+mining+ministry+cobalt+export+ban&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.70,
+          "category": "government"
+        }
+      ]
+    },
+    "Saudi Arabia": {
+      "local": [
+        {
+          "name": "Arab News - Business",
+          "type": "rss",
+          "url": "https://www.arabnews.com/taxonomy/term/284/feed",
+          "trust_score": 0.70,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "Saudi Aramco / OPEC News",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Saudi+Aramco+OPEC+oil+supply+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.80,
+          "category": "government"
+        }
+      ]
+    },
+    "United Arab Emirates": {
+      "local": [
+        {
+          "name": "The National - Business",
+          "type": "rss",
+          "url": "https://www.thenationalnews.com/business/rss",
+          "trust_score": 0.72,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "UAE Trade Ministry",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=UAE+Jebel+Ali+port+disruption+trade&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.82,
+          "category": "government"
+        }
+      ]
+    },
+    "Qatar": {
+      "local": [
+        {
+          "name": "Qatar Tribune - Business",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Qatar+LNG+Ras+Laffan+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.70,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "QatarEnergy LNG News",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=QatarEnergy+LNG+export+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.80,
+          "category": "government"
+        }
+      ]
+    },
+    "Mexico": {
+      "local": [
+        {
+          "name": "El Financiero - Industry",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Mexico+manufacturing+automotive+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.72,
+          "category": "local"
+        }
+      ],
+      "government": [
+        {
+          "name": "Mexico SE Trade",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Mexico+nearshoring+trade+tariff&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.80,
+          "category": "government"
+        }
+      ]
+    },
+    "Brazil": {
+      "local": [
+        {
+          "name": "Brazil Mining - Iron Ore",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Brazil+Vale+iron+ore+mining+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.75,
+          "category": "trade"
+        }
+      ],
+      "government": [
+        {
+          "name": "Brazil MDIC Trade",
+          "type": "google_news_rss",
+          "url": "https://news.google.com/rss/search?q=Brazil+MDIC+export+trade+disruption&hl=en-US&gl=US&ceid=US:en",
+          "trust_score": 0.80,
+          "category": "government"
+        }
+      ]
+    }
+  }
+}

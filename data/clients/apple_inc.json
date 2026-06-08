@@ -1,0 +1,60 @@
+{
+    "client_name": "Apple Inc",
+    "tier1_suppliers": [
+        {
+            "name": "TSMC",
+            "country": "Taiwan",
+            "city": ""
+        },
+        {
+            "name": "Foxconn",
+            "country": "China",
+            "city": ""
+        },
+        {
+            "name": "Samsung SDI",
+            "country": "South Korea",
+            "city": ""
+        }
+    ],
+    "raw_materials": [
+        {
+            "commodity": "rare earth elements",
+            "region": "China"
+        },
+        {
+            "commodity": "cobalt",
+            "region": "DR Congo"
+        },
+        {
+            "commodity": "lithium",
+            "region": "Chile"
+        }
+    ],
+    "logistics_nodes": [
+        {
+            "name": "Port of Kaohsiung",
+            "type": "port",
+            "carrier": "Evergreen"
+        },
+        {
+            "name": "Taiwan Strait",
+            "type": "route"
+        },
+        {
+            "name": "Port of Shanghai",
+            "type": "port",
+            "carrier": "COSCO"
+        },
+        {
+            "name": "Trans-Pacific",
+            "type": "route"
+        }
+    ],
+    "own_facilities": [
+        {
+            "name": "Apple Cupertino HQ",
+            "location": "Cupertino"
+        }
+    ]
+}

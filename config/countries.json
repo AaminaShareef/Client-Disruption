@@ -1,0 +1,139 @@
+{
+  "metadata": {
+    "description": "Country to major industrial, manufacturing, and logistics cities mapping",
+    "usage": "Used by exposure mapper to resolve supplier locations to city-level geographic anchors for query generation",
+    "version": "1.0"
+  },
+  "countries": {
+    "Taiwan": {
+      "major_cities": ["Taipei", "Hsinchu", "Taichung", "Tainan", "Kaohsiung"],
+      "industrial_hubs": ["Hsinchu Science Park", "Tainan Science Park", "Central Taiwan Science Park"],
+      "notes": "Hsinchu is primary semiconductor manufacturing hub (TSMC, UMC)"
+    },
+    "China": {
+      "major_cities": ["Beijing", "Shanghai", "Shenzhen", "Guangzhou", "Chengdu", "Wuhan", "Tianjin", "Hangzhou", "Suzhou", "Dongguan"],
+      "industrial_hubs": ["Pearl River Delta", "Yangtze River Delta", "Beijing-Tianjin-Hebei"],
+      "notes": "Shenzhen and Dongguan are primary electronics assembly hubs"
+    },
+    "Japan": {
+      "major_cities": ["Tokyo", "Osaka", "Nagoya", "Kyoto", "Yokohama", "Kobe", "Hiroshima", "Fukuoka"],
+      "industrial_hubs": ["Aichi Prefecture", "Keihin Industrial Zone", "Hanshin Industrial Zone"],
+      "notes": "Nagoya and Aichi are automotive manufacturing centres; Kyoto is electronics components hub"
+    },
+    "South Korea": {
+      "major_cities": ["Seoul", "Busan", "Incheon", "Daegu", "Ulsan", "Suwon", "Hwaseong"],
+      "industrial_hubs": ["Ulsan Industrial Complex", "Gumi Electronics Industrial Complex"],
+      "notes": "Ulsan is automotive and petrochemical hub; Samsung HQ in Suwon/Hwaseong"
+    },
+    "United States": {
+      "major_cities": ["New York", "Los Angeles", "Chicago", "Houston", "Dallas", "Seattle", "San Jose", "Detroit", "Atlanta", "Boston"],
+      "industrial_hubs": ["Silicon Valley", "Detroit Metro", "Houston Energy Corridor", "Research Triangle"],
+      "notes": "US requires 3-5 sources due to geographic scale and economic diversity"
+    },
+    "Germany": {
+      "major_cities": ["Berlin", "Munich", "Hamburg", "Frankfurt", "Stuttgart", "Cologne", "Dusseldorf", "Leipzig"],
+      "industrial_hubs": ["Rhine-Ruhr", "Munich-Augsburg", "Stuttgart Region", "Hamburg Port Area"],
+      "notes": "Stuttgart is automotive hub (Mercedes, Porsche); Hamburg is primary European port"
+    },
+    "India": {
+      "major_cities": ["Mumbai", "Delhi", "Bangalore", "Chennai", "Hyderabad", "Pune", "Ahmedabad", "Kolkata", "Surat"],
+      "industrial_hubs": ["Mumbai Metropolitan Region", "Pune-Nashik Corridor", "Chennai Automotive Corridor"],
+      "notes": "Chennai is automotive manufacturing hub; Bangalore is IT and aerospace hub"
+    },
+    "Malaysia": {
+      "major_cities": ["Kuala Lumpur", "Penang", "Johor Bahru", "Ipoh", "Shah Alam", "Petaling Jaya"],
+      "industrial_hubs": ["Penang Silicon Island", "Iskandar Malaysia", "Kulim Hi-Tech Park"],
+      "notes": "Penang is primary semiconductor assembly and test hub in Southeast Asia"
+    },
+    "Vietnam": {
+      "major_cities": ["Ho Chi Minh City", "Hanoi", "Hai Phong", "Da Nang", "Binh Duong", "Dong Nai"],
+      "industrial_hubs": ["VSIP Binh Duong", "Hanoi Industrial Zone", "Samsung Vietnam Complex"],
+      "notes": "Growing electronics manufacturing hub; Samsung produces 50%+ of phones here"
+    },
+    "Thailand": {
+      "major_cities": ["Bangkok", "Chonburi", "Rayong", "Ayutthaya", "Chiang Mai", "Laem Chabang"],
+      "industrial_hubs": ["Eastern Economic Corridor", "Amata City Industrial Estate"],
+      "notes": "Eastern seaboard is automotive and electronics manufacturing zone"
+    },
+    "Indonesia": {
+      "major_cities": ["Jakarta", "Surabaya", "Bandung", "Medan", "Makassar", "Batam"],
+      "industrial_hubs": ["Batam Free Trade Zone", "Karawang Industrial City", "MM2100 Industrial Town"],
+      "notes": "Batam is manufacturing hub near Singapore; Karawang for automotive"
+    },
+    "Singapore": {
+      "major_cities": ["Singapore"],
+      "industrial_hubs": ["Jurong Island", "Sembawang", "Woodlands Industrial Estate"],
+      "notes": "Global logistics and financial hub; Jurong is petrochemical cluster"
+    },
+    "Qatar": {
+      "major_cities": ["Doha", "Ras Laffan", "Al Wakrah", "Al Khor"],
+      "industrial_hubs": ["Ras Laffan Industrial City", "Mesaieed Industrial City"],
+      "notes": "Ras Laffan is world's largest LNG export facility"
+    },
+    "Saudi Arabia": {
+      "major_cities": ["Riyadh", "Jeddah", "Dammam", "Al Khobar", "Jubail", "Yanbu"],
+      "industrial_hubs": ["Jubail Industrial City", "Yanbu Industrial City", "NEOM"],
+      "notes": "Jubail is largest industrial city in the world; key petrochemical hub"
+    },
+    "United Arab Emirates": {
+      "major_cities": ["Dubai", "Abu Dhabi", "Sharjah", "Jebel Ali", "Fujairah"],
+      "industrial_hubs": ["Jebel Ali Free Zone", "KIZAD Abu Dhabi", "Dubai Industrial City"],
+      "notes": "Jebel Ali is largest port in Middle East and one of top 10 globally"
+    },
+    "Netherlands": {
+      "major_cities": ["Amsterdam", "Rotterdam", "The Hague", "Eindhoven", "Utrecht"],
+      "industrial_hubs": ["Port of Rotterdam", "Eindhoven High Tech Campus", "Amsterdam Port Area"],
+      "notes": "Rotterdam is Europe's largest port; ASML in Eindhoven (semiconductor lithography)"
+    },
+    "Belgium": {
+      "major_cities": ["Brussels", "Antwerp", "Ghent", "Liege", "Bruges"],
+      "industrial_hubs": ["Port of Antwerp", "Ghent Industrial Zone", "Liege Logistics Platform"],
+      "notes": "Antwerp is second largest European port; major chemicals hub"
+    },
+    "Chile": {
+      "major_cities": ["Santiago", "Antofagasta", "Valparaiso", "Calama", "Iquique"],
+      "industrial_hubs": ["Atacama Mining Region", "Antofagasta Mining Hub"],
+      "notes": "World's largest lithium and copper producer; Atacama is primary mining region"
+    },
+    "Australia": {
+      "major_cities": ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Darwin"],
+      "industrial_hubs": ["Pilbara Mining Region", "Hunter Valley Coal", "Queensland Gas Fields"],
+      "notes": "Major lithium, iron ore, coal, and LNG exporter; Pilbara is primary iron ore region"
+    },
+    "DR Congo": {
+      "major_cities": ["Kinshasa", "Lubumbashi", "Kolwezi", "Likasi", "Goma"],
+      "industrial_hubs": ["Katanga Mining Province", "Lualaba Province"],
+      "notes": "World's largest cobalt producer; Katanga province is mining centre"
+    },
+    "Zambia": {
+      "major_cities": ["Lusaka", "Kitwe", "Ndola", "Livingstone", "Chingola"],
+      "industrial_hubs": ["Copperbelt Province"],
+      "notes": "Major copper and cobalt producer; Copperbelt is mining heartland"
+    },
+    "Brazil": {
+      "major_cities": ["Sao Paulo", "Rio de Janeiro", "Belo Horizonte", "Manaus", "Curitiba", "Porto Alegre"],
+      "industrial_hubs": ["ABC Paulista", "Manaus Free Trade Zone", "Vale do Paraiba"],
+      "notes": "Major iron ore, nickel, and rare earth producer; Manaus is electronics manufacturing zone"
+    },
+    "Mexico": {
+      "major_cities": ["Mexico City", "Monterrey", "Guadalajara", "Tijuana", "Ciudad Juarez", "Saltillo"],
+      "industrial_hubs": ["Bajio Corridor", "Monterrey Industrial Zone", "Tijuana-Tecate Border Zone"],
+      "notes": "Major nearshoring destination; Bajio corridor is automotive hub"
+    },
+    "Turkey": {
+      "major_cities": ["Istanbul", "Ankara", "Izmir", "Bursa", "Kocaeli", "Gaziantep"],
+      "industrial_hubs": ["Kocaeli Automotive Hub", "Bursa Industrial Zone", "Istanbul Leather District"],
+      "notes": "Kocaeli is automotive manufacturing hub (Ford, Toyota, Hyundai)"
+    },
+    "Poland": {
+      "major_cities": ["Warsaw", "Krakow", "Wroclaw", "Poznan", "Gdansk", "Katowice"],
+      "industrial_hubs": ["Silesian Industrial Region", "Wroclaw Special Economic Zone"],
+      "notes": "Growing automotive and electronics manufacturing hub in Central Europe"
+    },
+    "France": {
+      "major_cities": ["Paris", "Lyon", "Marseille", "Toulouse", "Bordeaux", "Nantes"],
+      "industrial_hubs": ["Seine-Saint-Denis", "Lyon Industrial Zone", "Toulouse Aerospace Valley"],
+      "notes": "Toulouse is European aerospace hub (Airbus HQ)"
+    }
+  }
+}

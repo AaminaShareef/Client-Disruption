@@ -1,0 +1,137 @@
+{
+  "metadata": {
+    "description": "Major global shipping routes, straits, canals, and trade corridors",
+    "usage": "Used to generate route-specific disruption queries and to link disruption events to client supply chains that depend on specific routes",
+    "version": "1.0"
+  },
+  "strategic_chokepoints": {
+    "Strait of Malacca": {
+      "connects": ["Indian Ocean", "South China Sea"],
+      "countries_bordering": ["Malaysia", "Singapore", "Indonesia"],
+      "daily_ships": 80000,
+      "annual_trade_usd_trillion": 5.4,
+      "risk_factors": ["piracy", "congestion", "collision", "political tension"],
+      "query_terms": ["Malacca Strait", "Strait of Malacca", "Malacca shipping"],
+      "notes": "40% of global trade passes through; most critical single chokepoint"
+    },
+    "Strait of Hormuz": {
+      "connects": ["Persian Gulf", "Gulf of Oman"],
+      "countries_bordering": ["Iran", "Oman", "UAE"],
+      "daily_ships": 21,
+      "annual_trade_usd_trillion": 1.2,
+      "risk_factors": ["Iran-US tension", "naval incidents", "piracy", "sanctions"],
+      "query_terms": ["Hormuz", "Strait of Hormuz", "Persian Gulf shipping"],
+      "notes": "21% of global petroleum and 20% of LNG passes through"
+    },
+    "Suez Canal": {
+      "connects": ["Red Sea", "Mediterranean Sea"],
+      "countries_bordering": ["Egypt"],
+      "daily_ships": 51,
+      "annual_trade_usd_trillion": 1.0,
+      "risk_factors": ["vessel grounding", "Houthi attacks", "political instability"],
+      "query_terms": ["Suez Canal", "Red Sea shipping", "Bab al-Mandab"],
+      "notes": "12% of global trade; Ever Given grounding caused $10B/day losses in 2021"
+    },
+    "Panama Canal": {
+      "connects": ["Pacific Ocean", "Atlantic Ocean"],
+      "countries_bordering": ["Panama"],
+      "daily_ships": 36,
+      "annual_trade_usd_trillion": 0.27,
+      "risk_factors": ["drought", "water level", "congestion", "capacity limits"],
+      "query_terms": ["Panama Canal", "Panama Canal drought", "Canal congestion"],
+      "notes": "2023 drought forced 36% reduction in daily crossings"
+    },
+    "Taiwan Strait": {
+      "connects": ["South China Sea", "East China Sea"],
+      "countries_bordering": ["Taiwan", "China"],
+      "daily_ships": 300,
+      "annual_trade_usd_trillion": 2.45,
+      "risk_factors": ["China-Taiwan tension", "military exercises", "blockade risk"],
+      "query_terms": ["Taiwan Strait", "Taiwan tension", "PLA exercises Taiwan"],
+      "notes": "50% of global container fleet transits; critical for semiconductor exports"
+    },
+    "Bab el-Mandeb": {
+      "connects": ["Red Sea", "Gulf of Aden"],
+      "countries_bordering": ["Yemen", "Djibouti", "Eritrea"],
+      "daily_ships": 50,
+      "annual_trade_usd_trillion": 1.0,
+      "risk_factors": ["Houthi attacks", "piracy", "Yemen conflict"],
+      "query_terms": ["Bab el-Mandeb", "Red Sea attacks", "Houthi shipping", "Yemen shipping"],
+      "notes": "Houthi attacks from 2023 rerouted 90% of container ships around Africa"
+    },
+    "Cape of Good Hope": {
+      "connects": ["Atlantic Ocean", "Indian Ocean"],
+      "countries_bordering": ["South Africa"],
+      "daily_ships": 35,
+      "annual_trade_usd_trillion": 0.8,
+      "risk_factors": ["storms", "piracy", "longer transit times"],
+      "query_terms": ["Cape of Good Hope", "Cape route shipping", "Africa route diversion"],
+      "notes": "Alternative to Suez; 10-14 extra days vs Suez route"
+    },
+    "Lombok Strait": {
+      "connects": ["Java Sea", "Indian Ocean"],
+      "countries_bordering": ["Indonesia"],
+      "daily_ships": 150,
+      "annual_trade_usd_trillion": 0.5,
+      "risk_factors": ["piracy", "congestion", "depth limits"],
+      "query_terms": ["Lombok Strait", "Indonesia shipping lane"],
+      "notes": "Alternative to Malacca for larger vessels"
+    }
+  },
+  "major_trade_corridors": {
+    "Trans-Pacific": {
+      "route": "Asia → US West Coast",
+      "key_ports": ["Port of Shanghai", "Port of Shenzhen", "Port of Los Angeles", "Port of Long Beach"],
+      "annual_trade_usd_trillion": 0.55,
+      "query_terms": ["trans-Pacific shipping", "Asia US trade route", "Pacific container"]
+    },
+    "Asia-Europe": {
+      "route": "Asia → Suez Canal → Europe",
+      "key_ports": ["Port of Singapore", "Port of Shanghai", "Port of Rotterdam", "Port of Hamburg"],
+      "annual_trade_usd_trillion": 0.6,
+      "query_terms": ["Asia Europe shipping", "AEX trade lane", "Europe Far East route"]
+    },
+    "Transatlantic": {
+      "route": "Europe → US East Coast",
+      "key_ports": ["Port of Rotterdam", "Port of Antwerp", "Port of New York"],
+      "annual_trade_usd_trillion": 0.4,
+      "query_terms": ["transatlantic shipping", "Europe US trade lane"]
+    },
+    "Intra-Asia": {
+      "route": "Northeast Asia ↔ Southeast Asia",
+      "key_ports": ["Port of Singapore", "Port of Busan", "Port of Shanghai"],
+      "annual_trade_usd_trillion": 0.9,
+      "query_terms": ["intra-Asia shipping", "Asia regional trade"]
+    }
+  },
+  "air_freight_hubs": {
+    "Hong Kong International Airport": {
+      "city": "Hong Kong",
+      "country": "China",
+      "rank_global": 1,
+      "cargo_million_tonnes": 4.8,
+      "query_terms": ["Hong Kong air cargo", "HKIA freight"]
+    },
+    "Memphis International Airport": {
+      "city": "Memphis",
+      "country": "United States",
+      "rank_global": 2,
+      "cargo_million_tonnes": 4.3,
+      "query_terms": ["Memphis air freight", "FedEx hub"]
+    },
+    "Shanghai Pudong International Airport": {
+      "city": "Shanghai",
+      "country": "China",
+      "rank_global": 3,
+      "cargo_million_tonnes": 4.1,
+      "query_terms": ["Shanghai air cargo", "Pudong air freight"]
+    },
+    "Incheon International Airport": {
+      "city": "Incheon",
+      "country": "South Korea",
+      "rank_global": 4,
+      "cargo_million_tonnes": 3.3,
+      "query_terms": ["Incheon air cargo", "Seoul air freight"]
+    }
+  }
+}

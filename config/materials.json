@@ -1,0 +1,135 @@
+{
+  "metadata": {
+    "description": "Raw materials and commodities with supply chain roles, key origin regions, and query synonyms",
+    "usage": "Used by query generator to build commodity prong queries; matched against client profile raw_materials field",
+    "version": "1.0"
+  },
+  "materials": {
+    "lithium": {
+      "category": "battery_materials",
+      "synonyms": ["lithium carbonate", "lithium hydroxide", "Li", "battery-grade lithium"],
+      "top_producers": ["Chile", "Australia", "China", "Argentina"],
+      "top_producer_cities": ["Antofagasta", "Pilbara", "Sichuan", "Atacama"],
+      "supply_chain_role": "Critical input for EV batteries, consumer electronics",
+      "disruption_sensitivity": "HIGH",
+      "query_terms": ["lithium shortage", "lithium mine", "lithium supply", "battery material"]
+    },
+    "cobalt": {
+      "category": "battery_materials",
+      "synonyms": ["cobalt sulfate", "cobalt hydroxide", "Co"],
+      "top_producers": ["DR Congo", "Russia", "Australia", "Philippines"],
+      "top_producer_cities": ["Kolwezi", "Lubumbashi", "Norilsk"],
+      "supply_chain_role": "EV battery cathodes, superalloys for aerospace",
+      "disruption_sensitivity": "CRITICAL",
+      "query_terms": ["cobalt shortage", "cobalt mine", "cobalt supply", "DRC mining"]
+    },
+    "semiconductors": {
+      "category": "electronics_components",
+      "synonyms": ["chips", "integrated circuits", "wafers", "silicon chips", "microchips", "IC"],
+      "top_producers": ["Taiwan", "South Korea", "United States", "Netherlands"],
+      "top_producer_cities": ["Hsinchu", "Suwon", "San Jose", "Eindhoven"],
+      "supply_chain_role": "Core component for all electronics, automotive, industrial",
+      "disruption_sensitivity": "CRITICAL",
+      "query_terms": ["chip shortage", "semiconductor shortage", "wafer supply", "foundry capacity"]
+    },
+    "rare_earth_elements": {
+      "category": "critical_minerals",
+      "synonyms": ["REE", "rare earths", "neodymium", "praseodymium", "dysprosium", "terbium"],
+      "top_producers": ["China", "United States", "Australia", "Myanmar"],
+      "top_producer_cities": ["Baotou", "Mountain Pass", "Mount Weld"],
+      "supply_chain_role": "Permanent magnets for EV motors, wind turbines, electronics",
+      "disruption_sensitivity": "CRITICAL",
+      "query_terms": ["rare earth shortage", "REE supply", "neodymium shortage", "China rare earth ban"]
+    },
+    "copper": {
+      "category": "metals",
+      "synonyms": ["Cu", "copper cathode", "copper wire", "copper ore"],
+      "top_producers": ["Chile", "Peru", "China", "DR Congo", "United States"],
+      "top_producer_cities": ["Antofagasta", "Arequipa", "Copperbelt"],
+      "supply_chain_role": "Electrical wiring, EVs, construction, electronics",
+      "disruption_sensitivity": "HIGH",
+      "query_terms": ["copper shortage", "copper mine strike", "copper supply disruption"]
+    },
+    "steel": {
+      "category": "metals",
+      "synonyms": ["iron", "flat steel", "steel coil", "HRC", "CRC", "rebar", "iron ore"],
+      "top_producers": ["China", "India", "Japan", "United States", "Russia"],
+      "top_producer_cities": ["Tangshan", "Wuhan", "Osaka", "Gary"],
+      "supply_chain_role": "Automotive, construction, machinery, shipbuilding",
+      "disruption_sensitivity": "MEDIUM",
+      "query_terms": ["steel shortage", "steel price surge", "iron ore disruption", "steel tariff"]
+    },
+    "aluminum": {
+      "category": "metals",
+      "synonyms": ["aluminium", "Al", "bauxite", "alumina"],
+      "top_producers": ["China", "Russia", "Canada", "India", "UAE"],
+      "top_producer_cities": ["Xinjiang", "Krasnoyarsk", "Kitimat"],
+      "supply_chain_role": "Automotive, aerospace, packaging, construction",
+      "disruption_sensitivity": "MEDIUM",
+      "query_terms": ["aluminum shortage", "aluminium shortage", "bauxite supply", "aluminum smelter"]
+    },
+    "nickel": {
+      "category": "battery_materials",
+      "synonyms": ["Ni", "nickel sulfate", "nickel hydroxide"],
+      "top_producers": ["Indonesia", "Philippines", "Russia", "New Caledonia"],
+      "top_producer_cities": ["Sulawesi", "Norilsk", "Noumea"],
+      "supply_chain_role": "Stainless steel, EV battery cathodes (NMC)",
+      "disruption_sensitivity": "HIGH",
+      "query_terms": ["nickel shortage", "nickel supply", "nickel mine", "LME nickel"]
+    },
+    "natural_gas": {
+      "category": "energy",
+      "synonyms": ["LNG", "liquefied natural gas", "gas", "methane", "pipeline gas"],
+      "top_producers": ["United States", "Russia", "Qatar", "Australia", "Iran"],
+      "top_producer_cities": ["Ras Laffan", "Karratha", "Yamal"],
+      "supply_chain_role": "Industrial energy, chemical feedstock, heating",
+      "disruption_sensitivity": "HIGH",
+      "query_terms": ["LNG shortage", "gas supply disruption", "natural gas price", "pipeline disruption"]
+    },
+    "oil": {
+      "category": "energy",
+      "synonyms": ["crude oil", "petroleum", "crude", "Brent", "WTI"],
+      "top_producers": ["United States", "Saudi Arabia", "Russia", "Canada", "Iraq"],
+      "top_producer_cities": ["Houston", "Dhahran", "Surgut"],
+      "supply_chain_role": "Transport fuel, plastics feedstock, chemicals",
+      "disruption_sensitivity": "HIGH",
+      "query_terms": ["oil shortage", "crude oil disruption", "OPEC cut", "oil supply"]
+    },
+    "neon": {
+      "category": "specialty_gases",
+      "synonyms": ["neon gas", "Ne"],
+      "top_producers": ["Ukraine", "Russia", "China"],
+      "top_producer_cities": ["Odessa", "Mariupol"],
+      "supply_chain_role": "Semiconductor lithography (excimer lasers)",
+      "disruption_sensitivity": "CRITICAL",
+      "query_terms": ["neon shortage", "neon gas supply", "Ukraine neon", "semiconductor gas shortage"]
+    },
+    "palladium": {
+      "category": "precious_metals",
+      "synonyms": ["Pd", "PGM", "platinum group metals"],
+      "top_producers": ["Russia", "South Africa", "Canada"],
+      "top_producer_cities": ["Norilsk", "Rustenburg", "Sudbury"],
+      "supply_chain_role": "Catalytic converters, electronics, hydrogen technology",
+      "disruption_sensitivity": "HIGH",
+      "query_terms": ["palladium shortage", "PGM supply", "palladium price spike", "Norilsk disruption"]
+    },
+    "cotton": {
+      "category": "agricultural",
+      "synonyms": ["raw cotton", "cotton fiber", "cotton lint"],
+      "top_producers": ["China", "India", "United States", "Brazil", "Pakistan"],
+      "top_producer_cities": ["Xinjiang", "Punjab", "Texas"],
+      "supply_chain_role": "Textiles, apparel, medical supplies",
+      "disruption_sensitivity": "MEDIUM",
+      "query_terms": ["cotton shortage", "cotton supply disruption", "textile raw material"]
+    },
+    "polysilicon": {
+      "category": "electronics_materials",
+      "synonyms": ["silicon", "silicon wafer material", "poly-Si"],
+      "top_producers": ["China", "Germany", "United States", "Norway"],
+      "top_producer_cities": ["Xinjiang", "Sichuan", "Hemlock"],
+      "supply_chain_role": "Solar panels, semiconductor wafers",
+      "disruption_sensitivity": "HIGH",
+      "query_terms": ["polysilicon shortage", "solar panel supply", "silicon supply disruption"]
+    }
+  }
+}

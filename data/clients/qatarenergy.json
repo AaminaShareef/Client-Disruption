@@ -1,0 +1,83 @@
+{
+    "client_name": "QatarEnergy",
+    "tier1_suppliers": [
+        {
+            "name": "Technip Energies",
+            "material": "LNG Plant Equipment",
+            "location": "France"
+        },
+        {
+            "name": "Baker Hughes",
+            "material": "Gas Turbines & Compressors",
+            "location": "USA"
+        },
+        {
+            "name": "Vallourec",
+            "material": "Steel Pipes",
+            "location": "France"
+        },
+        {
+            "name": "Sumitomo Corporation",
+            "material": "Industrial Components",
+            "location": "Japan"
+        }
+    ],
+    "raw_materials": [
+        {
+            "commodity": "Natural Gas Feedstock",
+            "region": "Qatar"
+        },
+        {
+            "commodity": "Carbon Steel",
+            "region": "China"
+        },
+        {
+            "commodity": "Nickel Alloys",
+            "region": "Indonesia"
+        },
+        {
+            "commodity": "Copper",
+            "region": "Chile"
+        }
+    ],
+    "logistics_nodes": [
+        {
+            "port": "Ras Laffan Port",
+            "carrier": "Nakilat",
+            "route": "Strait of Hormuz"
+        },
+        {
+            "port": "Hamad Port",
+            "carrier": "Maersk",
+            "route": "Red Sea - Suez Canal"
+        },
+        {
+            "port": "Jebel Ali Por",
+            "carrier": "DP World Logistics",
+            "route": "Arabian Gulf"
+        },
+        {
+            "port": "Port of Rotterdam",
+            "carrier": "MSC",
+            "route": "Europe LNG Route"
+        }
+    ],
+    "own_facilities": [
+        {
+            "name": "North Field East LNG Plant",
+            "location": "Ras Laffan, Qatar"
+        },
+        {
+            "name": "North Field South LNG Plant",
+            "location": "Ras Laffan, Qatar"
+        },
+        {
+            "name": "Mesaieed Industrial City",
+            "location": "Mesaieed, Qatar"
+        },
+        {
+            "name": "Dukhan Oil Field",
+            "location": "Dukhan, Qatar"
+        }
+    ]
+}

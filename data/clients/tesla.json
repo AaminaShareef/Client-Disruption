@@ -1,0 +1,74 @@
+{
+    "client_name": "Tesla",
+    "tier1_suppliers": [
+        {
+            "name": "Panasonic",
+            "material": "Battery Cells",
+            "location": "Japan"
+        },
+        {
+            "name": "CATL",
+            "material": "Lithium Batteries",
+            "location": "China"
+        },
+        {
+            "name": "LG Energy Solution",
+            "material": "Battery Modules",
+            "location": "South Korea"
+        },
+        {
+            "name": "Bosch",
+            "material": "Electronics",
+            "location": "Germany"
+        }
+    ],
+    "raw_materials": [
+        {
+            "commodity": "Lithium",
+            "region": "Australia"
+        },
+        {
+            "commodity": "Nickel",
+            "region": "Indonesia"
+        },
+        {
+            "commodity": "Cobalt",
+            "region": "DRC"
+        },
+        {
+            "commodity": "Copper",
+            "region": "Chile"
+        }
+    ],
+    "logistics_nodes": [
+        {
+            "port": "Shanghai Port",
+            "carrier": "COSCO",
+            "route": "South China Sea"
+        },
+        {
+            "port": "Port of Long Beach",
+            "carrier": "Maersk",
+            "route": "Pacific Route"
+        },
+        {
+            "port": "Singapore Port",
+            "carrier": "MSC",
+            "route": "Malacca Strait"
+        }
+    ],
+    "own_facilities": [
+        {
+            "name": "Gigafactory Texas",
+            "location": "USA"
+        },
+        {
+            "name": "Gigafactory Berlin",
+            "location": "Germany"
+        },
+        {
+            "name": "Gigafactory Shanghai",
+            "location": "China"
+        }
+    ]
+}

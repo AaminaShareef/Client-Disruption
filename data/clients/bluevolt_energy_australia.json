@@ -1,0 +1,61 @@
+{
+    "client_name": "BlueVolt Energy Australia",
+    "tier1_suppliers": [
+        {
+            "name": "CATL",
+            "material": "Battery Cells",
+            "location": "China"
+        },
+        {
+            "name": "Pilbara Minerals",
+            "material": "Lithium Concentrate",
+            "location": "Western Australia"
+        },
+        {
+            "name": "Sumitomo",
+            "material": "Copper Foil",
+            "location": "Japan"
+        }
+    ],
+    "raw_materials": [
+        {
+            "commodity": "Lithium",
+            "region": "Western Australia"
+        },
+        {
+            "commodity": "Nickel",
+            "region": "Indonesia"
+        },
+        {
+            "commodity": "Copper",
+            "region": "Chile"
+        }
+    ],
+    "logistics_nodes": [
+        {
+            "port": "Port of Shanghai",
+            "carrier": "Maersk",
+            "route": "China \u2192 Australia"
+        },
+        {
+            "port": "Port of Singapore",
+            "carrier": "",
+            "route": "Transshipment Hub"
+        },
+        {
+            "port": "Port of Melbourne",
+            "carrier": "",
+            "route": "Australia"
+        }
+    ],
+    "own_facilities": [
+        {
+            "name": "Battery Assembly Plant",
+            "location": "Melbourne"
+        },
+        {
+            "name": "Distribution Centre",
+            "location": "Sydney"
+        }
+    ]
+}
