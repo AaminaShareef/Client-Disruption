@@ -4,17 +4,23 @@
         {
             "name": "CATL",
             "material": "Battery Cells",
-            "location": "China"
+            "location": "China",
+            "country": "China",
+            "city": ""
         },
         {
             "name": "Pilbara Minerals",
             "material": "Lithium Concentrate",
-            "location": "Western Australia"
+            "location": "Western Australia",
+            "country": "Western Australia",
+            "city": ""
         },
         {
             "name": "Sumitomo",
             "material": "Copper Foil",
-            "location": "Japan"
+            "location": "Japan",
+            "country": "Japan",
+            "city": ""
         }
     ],
     "raw_materials": [
@@ -33,19 +39,31 @@
     ],
     "logistics_nodes": [
         {
-            "port": "Port of Shanghai",
-            "carrier": "Maersk",
-            "route": "China \u2192 Australia"
+            "name": "Port of Shanghai",
+            "type": "port",
+            "carrier": "Maersk"
         },
         {
-            "port": "Port of Singapore",
-            "carrier": "",
-            "route": "Transshipment Hub"
+            "name": "China → Australia",
+            "type": "route"
         },
         {
-            "port": "Port of Melbourne",
-            "carrier": "",
-            "route": "Australia"
+            "name": "Port of Singapore",
+            "type": "port",
+            "carrier": ""
+        },
+        {
+            "name": "Transshipment Hub",
+            "type": "route"
+        },
+        {
+            "name": "Port of Melbourne",
+            "type": "port",
+            "carrier": ""
+        },
+        {
+            "name": "Australia",
+            "type": "route"
         }
     ],
     "own_facilities": [

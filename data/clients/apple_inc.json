@@ -3,16 +3,22 @@
     "tier1_suppliers": [
         {
             "name": "TSMC",
+            "material": "",
+            "location": "Taiwan",
             "country": "Taiwan",
             "city": ""
         },
         {
             "name": "Foxconn",
+            "material": "",
+            "location": "China",
             "country": "China",
             "city": ""
         },
         {
             "name": "Samsung SDI",
+            "material": "",
+            "location": "South Korea",
             "country": "South Korea",
             "city": ""
         }

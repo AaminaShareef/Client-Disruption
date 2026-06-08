@@ -180,11 +180,13 @@ async function analyzeProfile() {
     stepDone(3);
     stepActivate(4);  // fetching — this is the slow part
 
-    // Map suppliers UI shape {name, material, location} → backend {name, country, city}
+    // FIX: Include material field so it round-trips through save_client_profile
+    // Maps UI shape {name, material, location} → backend {name, material, country, city}
     const tier1_suppliers = suppliers.map(s => ({
-        name:    s.name,
-        country: s.location,
-        city:    '',
+        name:     s.name,
+        material: s.material,   // ← preserved so saved profiles reload correctly
+        country:  s.location,
+        city:     '',
     }));
 
     // Map logistics UI shape {port, carrier, route} → backend [{name, type}, ...]
@@ -309,6 +311,10 @@ function displayResults(data) {
         document.getElementById('stLogistics').textContent = data.stats.logistics_nodes_count;
         document.getElementById('stAlerts').textContent    =
             (data.stats.critical_alerts||0) + (data.stats.high_alerts||0);
+        const clusterEl = document.getElementById('stClusters');
+        if (clusterEl) {
+            clusterEl.textContent = data.stats.event_clusters != null ? data.stats.event_clusters : '—';
+        }
     }
 
     // ── Query breakdown ──────────────────────────────────
@@ -400,6 +406,250 @@ function displayResults(data) {
     document.getElementById('nlpPanel').style.display = 'block';
     // Reset NLP state for new results
     clearNLPResults(true);
+
+    // ── Render event clusters ────────────────────────────
+    renderClusters(data.clusters || []);
+}
+
+// ══════════════════════════════════════════════════════════
+//  EVENT CLUSTERS (DBSCAN + LexRank summaries)
+// ══════════════════════════════════════════════════════════
+
+let _clusterData      = [];   // rendered cluster list (real clusters only)
+let _clusterSingletons = [];  // noise/singleton articles collapsed into one row
+
+// Build a URL→article lookup from the news array so cluster cards can show titles
+let _urlToArticle = {};
+
+function renderClusters(clusters) {
+    const panel = document.getElementById('clustersPanel');
+    const list  = document.getElementById('clustersList');
+    const badge = document.getElementById('clusterCountBadge');
+
+    // Build URL lookup from the news data already stored
+    _urlToArticle = {};
+    if (_nlpRawData && _nlpRawData.news) {
+        for (const a of _nlpRawData.news) {
+            if (a.url) _urlToArticle[a.url] = a;
+        }
+    }
+
+    if (!clusters || !clusters.length) {
+        panel.style.display = 'none';
+        return;
+    }
+
+    panel.style.display = 'block';
+
+    // Separate real clusters from singletons
+    _clusterData       = clusters.filter(c => !c.is_noise && c.article_count > 1);
+    _clusterSingletons = clusters.filter(c =>  c.is_noise || c.article_count <= 1);
+
+    const allSingletons = _clusterData.length === 0;
+    const totalArticles = clusters.reduce((s, c) => s + (c.article_count || 1), 0);
+
+    badge.textContent = allSingletons
+        ? `No multi-article clusters · ${totalArticles} articles`
+        : `${_clusterData.length} event cluster${_clusterData.length !== 1 ? 's' : ''} · ${_clusterSingletons.length} unclustered`;
+
+    // ── No real clusters: embeddings likely not computed yet ──────────────
+    if (allSingletons) {
+        list.innerHTML = `
+        <div class="cluster-empty-notice">
+            <div class="cluster-empty-icon"><i class="fas fa-brain"></i></div>
+            <div>
+                <div class="cluster-empty-title">No event clusters detected</div>
+                <div class="cluster-empty-sub">
+                    DBSCAN requires SBERT embeddings to group articles. Embeddings are computed
+                    server-side on the next full run after <code>sentence-transformers</code>
+                    is installed and <code>sbert_encoder.py</code> runs.
+                    All ${totalArticles} articles were processed individually as singletons.
+                </div>
+                <div class="cluster-empty-tip">
+                    <i class="fas fa-lightbulb me-1"></i>
+                    Run <code>pip install sentence-transformers scikit-learn</code> then re-analyse.
+                </div>
+            </div>
+        </div>
+        <div class="cluster-singletons-summary" onclick="clusterToggle('singletons')">
+            <span class="cluster-id-badge noise"><i class="fas fa-list me-1"></i>${totalArticles} articles (unclustered)</span>
+            <span style="font-size:.75rem;color:var(--text-3);">Click to expand</span>
+            <i class="fas fa-chevron-down" id="cluster-chevron-singletons" style="color:var(--text-3);font-size:.75rem;transition:transform .2s;margin-left:auto;"></i>
+        </div>
+        <div class="cluster-card-body" id="cluster-body-singletons" style="border:1px solid var(--border);border-radius:var(--radius-sm);background:#FAFBFD;padding:.625rem 1rem;">
+            ${_renderSingletonList(_clusterSingletons)}
+        </div>`;
+        return;
+    }
+
+    // ── Render real clusters ──────────────────────────────────────────────
+    let html = _clusterData.map((c, i) => _renderClusterCard(c, i)).join('');
+
+    // Append collapsed singleton row at the bottom
+    if (_clusterSingletons.length) {
+        const sCount = _clusterSingletons.length;
+        html += `
+        <div class="cluster-singletons-summary" onclick="clusterToggle('singletons')">
+            <span class="cluster-id-badge noise"><i class="fas fa-list me-1"></i>${sCount} unclustered article${sCount !== 1 ? 's' : ''}</span>
+            <span style="font-size:.73rem;color:var(--text-3);">Not enough similarity to form an event group</span>
+            <i class="fas fa-chevron-down" id="cluster-chevron-singletons" style="color:var(--text-3);font-size:.75rem;transition:transform .2s;margin-left:auto;"></i>
+        </div>
+        <div class="cluster-card-body" id="cluster-body-singletons" style="border:1px solid var(--border);border-radius:var(--radius-sm);background:#FAFBFD;padding:.625rem 1rem;">
+            ${_renderSingletonList(_clusterSingletons)}
+        </div>`;
+    }
+
+    list.innerHTML = html;
+}
+
+function _renderSingletonList(singletons) {
+    if (!singletons.length) return '';
+    // Show article titles from URL lookup, fallback to article_urls
+    return singletons.map(c => {
+        const urls = (c.article_urls || []).filter(Boolean);
+        const art  = urls.length ? (_urlToArticle[urls[0]] || {}) : {};
+        const title = art.title || art.clean_title || urls[0] || 'Untitled article';
+        const level = art.impact_level || c.impact_level || 'LOW';
+        const score = art.relevance_score || c.risk_score || 0;
+        const url   = urls[0] || '#';
+        const isReal = url !== '#';
+        return `
+        <div class="singleton-row">
+            <span class="impact-pill pill-${level}" style="font-size:.6rem;">${level}</span>
+            <span class="score-badge" style="font-size:.6rem;">${score}/100</span>
+            <span class="singleton-title">${esc(title)}</span>
+            ${isReal ? `<a href="${esc(url)}" target="_blank" rel="noopener" class="read-link ms-auto" style="font-size:.68rem;white-space:nowrap;">Read <i class="fas fa-arrow-right"></i></a>` : ''}
+        </div>`;
+    }).join('');
+}
+
+function _renderClusterCard(c, idx) {
+    const level   = c.impact_level || 'LOW';
+    const n       = c.article_count || 1;
+    const score   = c.risk_score || 0;
+    const summary = c.summary || '';
+    const nodes   = (c.linked_nodes || []).slice(0, 8);
+    const sources = (c.sources || []).slice(0, 4);
+    const urls    = (c.article_urls || []).filter(Boolean).slice(0, 10);
+
+    // Derive a headline: title of the highest-scoring article in the cluster
+    let headline = '';
+    for (const url of urls) {
+        const art = _urlToArticle[url];
+        if (art && (art.title || art.clean_title)) {
+            headline = art.title || art.clean_title;
+            break;
+        }
+    }
+
+    // Node chips
+    const nodeChips = nodes.map(node => {
+        const colonIdx = node.indexOf(':');
+        const type = colonIdx > -1 ? node.slice(0, colonIdx) : '';
+        const name = colonIdx > -1 ? node.slice(colonIdx + 1) : node;
+        const cls = { material:'chip-material', route:'chip-route', port:'chip-port', supplier:'chip-supplier' }[type] || 'chip-country';
+        return `<span class="chip ${cls}" style="font-size:.63rem;padding:.12rem .45rem;">${esc(name)}</span>`;
+    }).join('');
+
+    // Source chips
+    const srcChips = sources.map(s =>
+        `<span class="api-source-tag" style="font-size:.62rem;">${esc(s)}</span>`
+    ).join('');
+
+    // Article rows with titles
+    const articleRows = urls.map(url => {
+        const art   = _urlToArticle[url] || {};
+        const title = art.title || art.clean_title || url;
+        const alevel = art.impact_level || level;
+        const ascore = art.relevance_score || 0;
+        const isReal = url && url !== '#';
+        return `
+        <div class="singleton-row">
+            <span class="impact-pill pill-${alevel}" style="font-size:.6rem;">${alevel}</span>
+            <span class="score-badge" style="font-size:.6rem;">${ascore}/100</span>
+            <span class="singleton-title">${esc(title)}</span>
+            ${isReal ? `<a href="${esc(url)}" target="_blank" rel="noopener" class="read-link ms-auto" style="font-size:.68rem;white-space:nowrap;">Read <i class="fas fa-arrow-right"></i></a>` : ''}
+        </div>`;
+    }).join('');
+
+    return `
+    <div class="cluster-card impact-${level}" data-cidx="${idx}" data-clevel="${level}" data-cnoise="false" data-csize="${n}">
+        <div class="cluster-card-top" onclick="clusterToggle(${idx})">
+            <div style="flex:1;min-width:0;">
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                    <span class="cluster-id-badge">Event #${idx + 1}</span>
+                    <span class="impact-pill pill-${level}" style="font-size:.63rem;">${level}</span>
+                    <span class="cluster-size-chip">${n} article${n !== 1 ? 's' : ''}</span>
+                    <span class="score-badge" style="font-size:.63rem;">${score}/100</span>
+                </div>
+                ${headline ? `<div class="cluster-headline">${esc(headline)}</div>` : ''}
+            </div>
+            <i class="fas fa-chevron-down cluster-chevron" id="cluster-chevron-${idx}"
+               style="color:var(--text-3);font-size:.75rem;transition:transform .2s;flex-shrink:0;margin-left:.75rem;"></i>
+        </div>
+        ${summary ? `
+        <div class="cluster-summary-bar">
+            <i class="fas fa-align-left" style="color:var(--purple);flex-shrink:0;margin-top:.15rem;font-size:.75rem;"></i>
+            <span>${esc(summary)}</span>
+        </div>` : ''}
+        <div class="cluster-card-body" id="cluster-body-${idx}">
+            ${nodeChips ? `
+            <div class="cluster-detail-row">
+                <span class="cluster-detail-label"><i class="fas fa-link me-1"></i>Linked Nodes</span>
+                <div class="d-flex flex-wrap gap-1">${nodeChips}</div>
+            </div>` : ''}
+            ${srcChips ? `
+            <div class="cluster-detail-row">
+                <span class="cluster-detail-label"><i class="fas fa-rss me-1"></i>Sources</span>
+                <div class="d-flex flex-wrap gap-1">${srcChips}</div>
+            </div>` : ''}
+            ${articleRows ? `
+            <div class="cluster-detail-row" style="flex-direction:column;gap:.35rem;align-items:stretch;">
+                <span class="cluster-detail-label"><i class="fas fa-newspaper me-1"></i>Articles in this event</span>
+                <div style="display:flex;flex-direction:column;gap:.25rem;">${articleRows}</div>
+            </div>` : ''}
+        </div>
+    </div>`;
+}
+
+function clusterToggle(idx) {
+    const body = document.getElementById(`cluster-body-${idx}`);
+    const chev = document.getElementById(`cluster-chevron-${idx}`);
+    if (!body) return;
+    const open = body.classList.contains('open');
+    body.classList.toggle('open', !open);
+    if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+function clustersExpandAll(open) {
+    // Expand/collapse real cluster cards
+    _clusterData.forEach((_, idx) => {
+        const body = document.getElementById(`cluster-body-${idx}`);
+        const chev = document.getElementById(`cluster-chevron-${idx}`);
+        if (!body) return;
+        body.classList.toggle('open', open);
+        if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+    });
+    // Also handle singletons drawer
+    const sb = document.getElementById('cluster-body-singletons');
+    const sc = document.getElementById('cluster-chevron-singletons');
+    if (sb) { sb.classList.toggle('open', open); }
+    if (sc) { sc.style.transform = open ? 'rotate(180deg)' : ''; }
+}
+
+function clusterFilter(el, filter) {
+    document.querySelectorAll('[data-cfilter]').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.cluster-card').forEach(card => {
+        const level  = card.dataset.clevel;
+        const size   = parseInt(card.dataset.csize) || 1;
+        let show = true;
+        if      (filter === 'HIGH')   show = (level === 'HIGH');
+        else if (filter === 'MEDIUM') show = (level === 'MEDIUM');
+        else if (filter === 'LOW')    show = (level === 'LOW');
+        else if (filter === 'multi')  show = (size > 1);
+        card.style.display = show ? '' : 'none';
+    });
 }
 
 // ══════════════════════════════════════════════════════════
@@ -428,8 +678,6 @@ const _BOILERPLATE_RE = new RegExp([
     'https?://\\S+',
 ].join('|'), 'gi');
 
-const _SMART = {'\u2018':"'",'\ u2019':"'",'\ u201c':'"','\ u201d':'"','\ u2013':'-','\ u2014':'-','\u00a0':' ','\u2026':'...'};
-
 function _cleanText(raw) {
     if (!raw) return '';
     let t = raw;
@@ -454,7 +702,6 @@ function _splitSentences(text, maxSents = 12, minChars = 40) {
 }
 
 // ── Lightweight NER (rule-based JS heuristics) ─────────────
-// Pattern sets for entity type inference
 const _ORG_INDICATORS   = ['inc','corp','ltd','llc','gmbh','plc','co.','company','group','holdings','industries','manufacturing','semiconductor','technology','technologies','logistics','freight','shipping','airlines','ports'];
 const _GPE_INDICATORS   = ['china','taiwan','japan','korea','india','germany','france','usa','uk','vietnam','malaysia','singapore','indonesia','thailand','mexico','brazil','chile','australia'];
 const _LOC_INDICATORS   = ['strait','sea','ocean','gulf','canal','bay','river','lake','mountain','port','harbor','terminal'];
@@ -468,15 +715,13 @@ function _inferLabel(text) {
     if (_LOC_INDICATORS.some(k => t.includes(k)))   return 'LOC';
     if (_GPE_INDICATORS.some(k => t === k || t.startsWith(k + ' '))) return 'GPE';
     if (_ORG_INDICATORS.some(k => t.includes(k)))   return 'ORG';
-    return 'ORG';  // default
+    return 'ORG';
 }
 
-// Capitalised token sequence extraction (simple chunker)
 function _extractEntities(text, ruleMatched = [], exposure = {}) {
     const seen = new Set();
     const result = [];
 
-    // 1. Rule-matched entities (high precision — from server scorer)
     const supplierSet = new Set((exposure.suppliers || []).map(s => s.toLowerCase()));
     const materialSet = new Set((exposure.materials || []).map(m => m.toLowerCase()));
     const portSet     = new Set((exposure.ports     || []).map(p => p.toLowerCase()));
@@ -498,38 +743,32 @@ function _extractEntities(text, ruleMatched = [], exposure = {}) {
         result.push({ text: name, label: 'RULE', source: 'rule', node_type: nodeType(name) });
     }
 
-    // 2. Capitalised-phrase chunker (naive NER fallback)
     const capPhrase = /\b([A-Z][a-zA-Z&\-\.]{1,}(?:\s+[A-Z][a-zA-Z&\-\.]{1,}){0,4})\b/g;
     let m;
     while ((m = capPhrase.exec(text)) !== null) {
         const phrase = m[1].trim();
         if (phrase.length < 3) continue;
-        // Skip sentence-start false positives: word at pos 0 or after ". "
         const key = phrase.toLowerCase();
         if (seen.has(key)) continue;
-        // Skip very common words
         if (['The','A','An','In','On','At','As','By','For','To','Of','From','With','And','Or','But','Its','This','That','These','Those','It','Is','Are','Was','Were','Has','Have','Had','Be','Been','Not','No','More','New','All','Also','Both','Their','They','He','She','We','You','I'].includes(phrase)) continue;
         seen.add(key);
         const label = _inferLabel(phrase);
         result.push({ text: phrase, label, source: 'spacy_sim', node_type: nodeType(phrase) });
     }
 
-    // Deduplicate — prefer longer matches
     const final = [];
     const finalKeys = new Set();
-    // Sort by length desc so longer entities consume shorter ones
     result.sort((a,b) => b.text.length - a.text.length);
     for (const ent of result) {
         const k = ent.text.toLowerCase();
         if (finalKeys.has(k)) continue;
-        // Check if this is a sub-string of an already accepted entity
         const dominated = [...finalKeys].some(fk => fk.includes(k) && fk !== k);
         if (!dominated) {
             finalKeys.add(k);
             final.push(ent);
         }
     }
-    return final.slice(0, 25);  // cap
+    return final.slice(0, 25);
 }
 
 // ── Token estimate ─────────────────────────────────────────
@@ -726,7 +965,6 @@ function runNLPPreprocessing() {
     const exposure = _nlpRawData.exposure_map || {};
     const articles = _nlpRawData.news || [];
 
-    // Process in micro-tasks to avoid blocking the UI
     _nlpResults = [];
     const grid = document.getElementById('nlpArticleGrid');
     grid.innerHTML = '<div class="text-center py-3" style="color:var(--text-3);font-size:.82rem;"><i class="fas fa-spinner fa-spin me-2"></i>Preprocessing articles…</div>';
@@ -736,11 +974,9 @@ function runNLPPreprocessing() {
             _nlpResults.push(_preprocessArticle(art, exposure));
         }
 
-        // Render
         const html = _nlpResults.map((a, i) => _renderNLPCard(a, i)).join('');
         grid.innerHTML = html || '<div class="text-center py-4" style="color:var(--text-3);">No articles to display.</div>';
 
-        // Status bar
         const ok       = _nlpResults.filter(a => a.preprocessing_ok).length;
         const err      = _nlpResults.length - ok;
         const totalEnt = _nlpResults.reduce((s,a) => s + (a.ner_entities||[]).length, 0);
@@ -756,7 +992,6 @@ function runNLPPreprocessing() {
         document.getElementById('nlpStatusBar').style.display = '';
         document.getElementById('nlpExportBar').style.display = '';
 
-        // Enable buttons
         ['btnExpandAll','btnCollapseAll','btnClearNLP','btnExportSBERT','btnExportCSV'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = false;
@@ -765,7 +1000,6 @@ function runNLPPreprocessing() {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-sync-alt"></i> Re-run';
 
-        // Re-apply active filter
         const activeChip = document.querySelector('.filter-chip.active');
         if (activeChip) nlpFilter(activeChip, activeChip.dataset.filter);
 
@@ -810,19 +1044,19 @@ function _download(filename, content, mime) {
 function exportSBERT() {
     if (!_nlpResults.length) return;
     const payload = _nlpResults.map(a => ({
-        title:          a.clean_title,
-        input_text:     a.input_text,
+        title:            a.clean_title,
+        input_text:       a.input_text,
         input_text_w_ent: a.input_text_w_ent,
-        entity_string:  a.entity_string,
-        sentences:      a.sentences,
-        ner_entities:   a.ner_entities,
-        token_estimate: a.token_estimate,
-        impact_level:   a.impact_level,
-        relevance_score: a.relevance_score,
-        url:            a.url,
-        source:         a.source,
-        published:      a.published,
-        linked_nodes:   a.linked_nodes,
+        entity_string:    a.entity_string,
+        sentences:        a.sentences,
+        ner_entities:     a.ner_entities,
+        token_estimate:   a.token_estimate,
+        impact_level:     a.impact_level,
+        relevance_score:  a.relevance_score,
+        url:              a.url,
+        source:           a.source,
+        published:        a.published,
+        linked_nodes:     a.linked_nodes,
         preprocessing_ok: a.preprocessing_ok,
     }));
     _download('sbert_corpus.json', JSON.stringify(payload, null, 2), 'application/json');
@@ -858,17 +1092,15 @@ function exportSentences() {
     const lines = _nlpResults
         .filter(a => a.preprocessing_ok)
         .flatMap(a => (a.sentences||[]).map((s,i) => JSON.stringify({
-            text: s,
-            sentence_idx: i,
-            article_title: a.clean_title,
-            impact_level: a.impact_level,
+            text:            s,
+            sentence_idx:    i,
+            article_title:   a.clean_title,
+            impact_level:    a.impact_level,
             relevance_score: a.relevance_score,
-            url: a.url,
+            url:             a.url,
         })));
     _download('sentences.jsonl', lines.join('\n'), 'application/jsonl');
 }
-
-// _nlpRawData is now set directly in analyzeProfile() above
 
 // ══════════════════════════════════════════════════════════
 //  SCROLL TO TOP
@@ -913,16 +1145,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ══════════════════════════════════════════════════════════
 //  CLIENT PROFILE — SAVE / LOAD / DELETE  (server-backed)
-//  Profiles live in data/clients/*.json on the Flask server.
-//  Profiles are stored server-side in data/clients/*.json
 // ══════════════════════════════════════════════════════════
 
-/** Convert a client name to the server-side file ID (mirrors app.py logic) */
 function _nameToId(name) {
     return name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_\-]/g, '');
 }
 
-/** Collect current form state into a profile object (matches JSON schema) */
+/** Collect current form state into a profile object */
 function _collectCurrentProfile() {
     return {
         client_name:     document.getElementById('clientName').value.trim(),
@@ -937,7 +1166,7 @@ function _collectCurrentProfile() {
         })),
         logistics_nodes: logistics.flatMap(l => {
             const nodes = [];
-            if (l.port)  nodes.push({ port: l.port,  carrier: l.carrier || '', route: l.route || '' });
+            if (l.port)  nodes.push({ port: l.port, carrier: l.carrier || '', route: l.route || '' });
             return nodes;
         }).filter(n => n.port.trim()),
         own_facilities:  facilities.map(f => ({
@@ -947,26 +1176,78 @@ function _collectCurrentProfile() {
     };
 }
 
-/** Populate form from a full profile object */
+// ══════════════════════════════════════════════════════════
+//  FIX: _applyProfile — handles ALL saved schema variants
+//
+//  Variant A  (UI / save_profile):
+//    tier1_suppliers: [ { name, material, location } ]
+//    logistics_nodes: [ { port, carrier, route } ]
+//
+//  Variant B  (backend /analyze auto-save):
+//    tier1_suppliers: [ { name, material, country, city } ]
+//    logistics_nodes: [ { name, type, carrier? } ]   ← type = 'port' | 'route'
+// ══════════════════════════════════════════════════════════
 function _applyProfile(profile) {
     document.getElementById('clientName').value = profile.client_name || '';
 
-    // Map server schema → UI state
-    suppliers  = (profile.tier1_suppliers || []).map(s => ({
+    // ── Suppliers ───────────────────────────────────────────
+    // Variant A has `location`, Variant B has `country` (and optionally `city`).
+    // Both variants may or may not have `material`.
+    suppliers = (profile.tier1_suppliers || []).map(s => ({
         name:     s.name     || '',
-        material: s.material || '',
-        location: s.location || '',
+        material: s.material || '',                          // present in both variants after fix
+        location: s.location || s.country || s.city || '',  // fallback chain covers both variants
     }));
-    materials  = (profile.raw_materials || []).map(m => ({
+
+    // ── Materials ───────────────────────────────────────────
+    // Schema is identical in both variants: { commodity, region }
+    materials = (profile.raw_materials || []).map(m => ({
         commodity: m.commodity || '',
         region:    m.region    || '',
     }));
-    // logistics_nodes in JSON has {port, carrier, route} — same as UI
-    logistics  = (profile.logistics_nodes || []).map(l => ({
-        port:    l.port    || '',
-        carrier: l.carrier || '',
-        route:   l.route   || '',
-    }));
+
+    // ── Logistics ───────────────────────────────────────────
+    // Detect which variant is in use by checking the first node's shape.
+    const rawNodes = profile.logistics_nodes || [];
+
+    if (!rawNodes.length) {
+        logistics = [];
+    } else if (rawNodes[0].port !== undefined) {
+        // ── Variant A: UI schema { port, carrier, route } ──
+        logistics = rawNodes.map(l => ({
+            port:    l.port    || '',
+            carrier: l.carrier || '',
+            route:   l.route   || '',
+        }));
+    } else {
+        // ── Variant B: backend schema { name, type, carrier? } ──
+        // Pair up port nodes and route nodes into single UI rows so each
+        // row shows one port + its matching route (e.g. Kaohsiung + Taiwan Strait).
+        const ports  = rawNodes.filter(n => n.type === 'port');
+        const routes = rawNodes.filter(n => n.type === 'route');
+        const maxLen = Math.max(ports.length, routes.length);
+
+        logistics = [];
+        for (let i = 0; i < maxLen; i++) {
+            logistics.push({
+                port:    ports[i]  ? (ports[i].name    || '') : '',
+                carrier: ports[i]  ? (ports[i].carrier || '') : '',
+                route:   routes[i] ? (routes[i].name   || '') : '',
+            });
+        }
+
+        // Fallback: unknown type nodes — show name in port field
+        if (logistics.length === 0 && rawNodes.length) {
+            logistics = rawNodes.map(n => ({
+                port:    n.name    || '',
+                carrier: n.carrier || '',
+                route:   '',
+            }));
+        }
+    }
+
+    // ── Facilities ──────────────────────────────────────────
+    // Schema is identical in both variants: { name, location }
     facilities = (profile.own_facilities || []).map(f => ({
         name:     f.name     || '',
         location: f.location || '',
@@ -986,9 +1267,6 @@ async function saveCurrentProfile() {
 
     const profile = _collectCurrentProfile();
     try {
-        // Re-use the /analyze save path — just POST with a flag, or
-        // write directly via a dedicated lightweight endpoint.
-        // We POST to /save_profile (see below) so we don't trigger analysis.
         const res  = await fetch('/save_profile', {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1057,7 +1335,7 @@ function openExistingProfiles() {
 // ── Render the saved-profiles list (fetches from server) ──
 async function _renderProfileList() {
     const container = document.getElementById('profileListItems');
-    container.innerHTML = '<div style="text-align:center;padding:.75rem;color:var(--text-3);font-size:.78rem;"><i class="fas fa-spinner fa-spin me-1"></i>Loading profiles\u2026</div>';
+    container.innerHTML = '<div style="text-align:center;padding:.75rem;color:var(--text-3);font-size:.78rem;"><i class="fas fa-spinner fa-spin me-1"></i>Loading profiles…</div>';
 
     try {
         const res  = await fetch('/clients');
@@ -1072,14 +1350,6 @@ async function _renderProfileList() {
         data.profiles.forEach(function(p) {
             const item = document.createElement('div');
             item.className = 'profile-list-item';
-
-            // Risk badge colour based on last known risk (if stored) or neutral
-            const riskColor  = p.overall_risk === 'HIGH'   ? 'var(--orange)' :
-                               p.overall_risk === 'MEDIUM' ? 'var(--amber)'  :
-                               p.overall_risk === 'LOW'    ? 'var(--green)'  : 'var(--blue)';
-            const riskBg     = p.overall_risk === 'HIGH'   ? 'var(--orange-l)' :
-                               p.overall_risk === 'MEDIUM' ? 'var(--amber-l)'  :
-                               p.overall_risk === 'LOW'    ? 'var(--green-l)'  : 'var(--blue-l)';
 
             item.innerHTML =
                 '<div class="pli-icon"><i class="fas fa-building"></i></div>' +
@@ -1149,14 +1419,3 @@ async function deleteProfile(e, clientId, clientName) {
         alert('Server unreachable — could not delete profile.');
     }
 }
-
-// ══════════════════════════════════════════════════════════
-//  SCROLL TO TOP
-// ══════════════════════════════════════════════════════════
-window.addEventListener('scroll', () => {
-    document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 350);
-});
-
-// ══════════════════════════════════════════════════════════
-//  COLLAPSE ICON SYNC
-// ══════════════════════════════════════════════════════════

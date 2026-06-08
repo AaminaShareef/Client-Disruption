@@ -4,22 +4,30 @@
         {
             "name": "Technip Energies",
             "material": "LNG Plant Equipment",
-            "location": "France"
+            "location": "France",
+            "country": "France",
+            "city": ""
         },
         {
             "name": "Baker Hughes",
             "material": "Gas Turbines & Compressors",
-            "location": "USA"
+            "location": "USA",
+            "country": "USA",
+            "city": ""
         },
         {
             "name": "Vallourec",
             "material": "Steel Pipes",
-            "location": "France"
+            "location": "France",
+            "country": "France",
+            "city": ""
         },
         {
             "name": "Sumitomo Corporation",
             "material": "Industrial Components",
-            "location": "Japan"
+            "location": "Japan",
+            "country": "Japan",
+            "city": ""
         }
     ],
     "raw_materials": [
@@ -42,24 +50,40 @@
     ],
     "logistics_nodes": [
         {
-            "port": "Ras Laffan Port",
-            "carrier": "Nakilat",
-            "route": "Strait of Hormuz"
+            "name": "Ras Laffan Port",
+            "type": "port",
+            "carrier": "Nakilat"
         },
         {
-            "port": "Hamad Port",
-            "carrier": "Maersk",
-            "route": "Red Sea - Suez Canal"
+            "name": "Strait of Hormuz",
+            "type": "route"
         },
         {
-            "port": "Jebel Ali Por",
-            "carrier": "DP World Logistics",
-            "route": "Arabian Gulf"
+            "name": "Hamad Port",
+            "type": "port",
+            "carrier": "Maersk"
         },
         {
-            "port": "Port of Rotterdam",
-            "carrier": "MSC",
-            "route": "Europe LNG Route"
+            "name": "Red Sea - Suez Canal",
+            "type": "route"
+        },
+        {
+            "name": "Jebel Ali Por",
+            "type": "port",
+            "carrier": "DP World Logistics"
+        },
+        {
+            "name": "Arabian Gulf",
+            "type": "route"
+        },
+        {
+            "name": "Port of Rotterdam",
+            "type": "port",
+            "carrier": "MSC"
+        },
+        {
+            "name": "Europe LNG Route",
+            "type": "route"
         }
     ],
     "own_facilities": [

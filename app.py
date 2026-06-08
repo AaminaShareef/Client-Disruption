@@ -43,6 +43,15 @@ from utils.rss_sources import (
     get_sources_for_country
 )
 
+from utils.article_preprocessor import (
+    preprocess_articles,
+    preprocess_for_sbert,
+    _get_nlp,           # imported so we can warm-load at startup
+)
+
+from utils.event_clusterer import cluster_articles, flatten_clusters
+from utils.summariser import attach_summaries, summarise_article
+
 app = Flask(__name__)
 
 # ==========================================
@@ -50,7 +59,10 @@ app = Flask(__name__)
 # ==========================================
 
 CLIENT_DIR = "data/clients"
+RUNS_DIR   = "data/runs"
+
 os.makedirs(CLIENT_DIR, exist_ok=True)
+os.makedirs(RUNS_DIR,   exist_ok=True)
 
 # Max queries fired against Google News RSS per analysis run.
 MAX_QUERY_FETCHES = 15
@@ -59,16 +71,130 @@ MAX_QUERY_FETCHES = 15
 MAX_NEWSAPI_QUERIES = 5
 
 # ==========================================
+# WARM-LOAD spaCy AT STARTUP
+# ─────────────────────────────────────────
+# Loading spaCy lazily (inside the first /analyze request) causes
+# Werkzeug's file-change watcher to detect thinc/spaCy internal
+# files being imported and restart the server mid-request, which
+# kills the in-flight fetch → "Failed to fetch" in the browser.
+#
+# Loading the model once here, before the server starts accepting
+# requests, completely avoids that race condition.
+# ==========================================
+
+logger.info("Pre-loading spaCy model at startup…")
+_get_nlp()
+logger.info("spaCy model ready.")
+
+# ==========================================
 # SAVE CLIENT PROFILE
 # ==========================================
 
 def save_client_profile(profile):
     client_name = profile.get("client_name", "unknown_client")
     filename = client_name.lower().replace(" ", "_")
+    filename = "".join(c for c in filename if c.isalnum() or c in ("_", "-"))
     filepath = os.path.join(CLIENT_DIR, f"{filename}.json")
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(profile, f, indent=4, ensure_ascii=False)
     return filepath
+
+# ==========================================
+# SAVE PREPROCESSED RUN DATA
+# ==========================================
+
+def _run_filename_base(client_name: str, timestamp: str) -> str:
+    """
+    Build a safe base filename for a run:
+        apple_inc_20240403_143022
+    """
+    safe_name = client_name.lower().replace(" ", "_")
+    safe_name = "".join(c for c in safe_name if c.isalnum() or c in ("_", "-"))
+    safe_ts   = timestamp.replace(" ", "_").replace(":", "").replace("-", "")
+    return f"{safe_name}_{safe_ts}"
+
+
+def save_preprocessed_run(
+    client_name:  str,
+    timestamp:    str,
+    preprocessed: list,
+    exposure:     dict,
+    overall_risk: str,
+    risk_score:   int,
+) -> dict:
+    """
+    Persist two artefacts for every analysis run:
+
+    1.  data/runs/<base>_preprocessed.json
+        Full preprocessed article objects (all four pipeline stages).
+        Used for debugging, offline inspection and retraining.
+
+    2.  data/runs/<base>_sbert_corpus.jsonl
+        One JSON line per article — only the fields needed by
+        SentenceTransformer.encode() and downstream ML.
+
+    Returns a dict with the two saved paths (or error messages).
+    """
+    base   = _run_filename_base(client_name, timestamp)
+    result = {}
+
+    # ── 1. Full preprocessed JSON ──────────────────────────────────
+    full_path = os.path.join(RUNS_DIR, f"{base}_preprocessed.json")
+    try:
+        payload = {
+            "client_name":   client_name,
+            "run_timestamp": timestamp,
+            "overall_risk":  overall_risk,
+            "risk_score":    risk_score,
+            "exposure_map":  {
+                k: v for k, v in exposure.items()
+                if k not in ("material_records", "port_records", "route_records")
+            },
+            "article_count": len(preprocessed),
+            "articles":      preprocessed,
+        }
+        with open(full_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+        logger.info(f"Saved full preprocessed run → {full_path}")
+        result["preprocessed_path"] = full_path
+    except Exception as e:
+        logger.error(f"Failed to save full preprocessed run: {e}")
+        result["preprocessed_path"] = f"ERROR: {e}"
+
+    # ── 2. SBERT corpus JSONL ──────────────────────────────────────
+    sbert_path = os.path.join(RUNS_DIR, f"{base}_sbert_corpus.jsonl")
+    try:
+        with open(sbert_path, "w", encoding="utf-8") as f:
+            for art in preprocessed:
+                line = {
+                    # Core SBERT fields
+                    "input_text":       art.get("input_text",        ""),
+                    "input_text_w_ent": art.get("input_text_w_ent",  ""),
+                    "entity_string":    art.get("entity_string",     ""),
+                    "token_estimate":   art.get("token_estimate",    0),
+                    # NER output
+                    "sentences":        art.get("sentences",         []),
+                    "ner_entities":     art.get("ner_entities",      []),
+                    # Scoring labels (useful for supervised fine-tuning)
+                    "impact_level":     art.get("impact_level",      "LOW"),
+                    "relevance_score":  art.get("relevance_score",   0),
+                    # Provenance
+                    "clean_title":      art.get("clean_title",       ""),
+                    "url":              art.get("url",               ""),
+                    "source":           art.get("source",            ""),
+                    "published":        art.get("published",         ""),
+                    "linked_nodes":     art.get("linked_nodes",      []),
+                    "preprocessing_ok": art.get("preprocessing_ok",  False),
+                }
+                f.write(json.dumps(line, ensure_ascii=False) + "\n")
+        logger.info(f"Saved SBERT corpus JSONL → {sbert_path}")
+        result["sbert_corpus_path"] = sbert_path
+    except Exception as e:
+        logger.error(f"Failed to save SBERT corpus JSONL: {e}")
+        result["sbert_corpus_path"] = f"ERROR: {e}"
+
+    return result
+
 
 # ==========================================
 # GEOGRAPHIC SOURCE VIEW
@@ -131,7 +257,6 @@ def home():
 # ==========================================
 # LIST SAVED CLIENT PROFILES
 # GET /clients
-# Returns: [{ id, client_name, saved_at, supplier_count, material_count }, ...]
 # ==========================================
 
 @app.route("/clients", methods=["GET"])
@@ -147,7 +272,7 @@ def list_clients():
                     data = json.load(f)
                 mtime = os.path.getmtime(fpath)
                 profiles.append({
-                    "id":              fname[:-5],           # filename without .json
+                    "id":              fname[:-5],
                     "client_name":     data.get("client_name", fname[:-5]),
                     "saved_at":        datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M"),
                     "supplier_count":  len(data.get("tier1_suppliers", [])),
@@ -165,13 +290,11 @@ def list_clients():
 # ==========================================
 # LOAD A SINGLE CLIENT PROFILE
 # GET /clients/<client_id>
-# Returns the full profile JSON
 # ==========================================
 
 @app.route("/clients/<client_id>", methods=["GET"])
 def get_client(client_id):
     try:
-        # Sanitise — only allow safe filename characters
         safe_id = "".join(c for c in client_id if c.isalnum() or c in ("_", "-"))
         fpath = os.path.join(CLIENT_DIR, f"{safe_id}.json")
         if not os.path.exists(fpath):
@@ -205,7 +328,6 @@ def delete_client(client_id):
 # ==========================================
 # SAVE PROFILE (without running analysis)
 # POST /save_profile
-# Body: same JSON schema as /analyze payload
 # ==========================================
 
 @app.route("/save_profile", methods=["POST"])
@@ -222,6 +344,50 @@ def save_profile_route():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # ==========================================
+# LIST SAVED RUNS
+# GET /runs?client=<name>
+# ==========================================
+
+@app.route("/runs", methods=["GET"])
+def list_runs():
+    """
+    Return a summary of all saved analysis runs.
+    Optionally filter by ?client=apple_inc
+    """
+    try:
+        client_filter = request.args.get("client", "").lower().strip()
+        runs = []
+        for fname in sorted(os.listdir(RUNS_DIR), reverse=True):
+            if not fname.endswith("_preprocessed.json"):
+                continue
+            if client_filter and not fname.startswith(client_filter):
+                continue
+            fpath = os.path.join(RUNS_DIR, fname)
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                base         = fname.replace("_preprocessed.json", "")
+                sbert_fname  = f"{base}_sbert_corpus.jsonl"
+                sbert_exists = os.path.exists(os.path.join(RUNS_DIR, sbert_fname))
+                runs.append({
+                    "run_id":            base,
+                    "client_name":       data.get("client_name", ""),
+                    "run_timestamp":     data.get("run_timestamp", ""),
+                    "overall_risk":      data.get("overall_risk", ""),
+                    "risk_score":        data.get("risk_score", 0),
+                    "article_count":     data.get("article_count", 0),
+                    "preprocessed_file": fname,
+                    "sbert_file":        sbert_fname if sbert_exists else None,
+                    "file_size_kb":      round(os.path.getsize(fpath) / 1024, 1),
+                })
+            except Exception as e:
+                logger.warning(f"Could not read run file {fname}: {e}")
+        return jsonify({"status": "success", "runs": runs, "total": len(runs)})
+    except Exception as e:
+        logger.exception("Error in GET /runs")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==========================================
 # ANALYZE
 # ==========================================
 
@@ -232,16 +398,30 @@ def analyze():
 
         profile = request.json
 
+        # ─────────────────────────────────────────────────────────
+        # Normalise tier1_suppliers so the saved profile always
+        # contains both `material` AND `location` fields regardless
+        # of which schema variant the frontend sent.
+        # ─────────────────────────────────────────────────────────
+        normalised_suppliers = []
+        for s in profile.get("tier1_suppliers", []):
+            normalised_suppliers.append({
+                "name":     s.get("name",     ""),
+                "material": s.get("material", ""),
+                "location": s.get("location") or s.get("country") or s.get("city") or "",
+                "country":  s.get("country")  or s.get("location") or "",
+                "city":     s.get("city",     ""),
+            })
+        profile["tier1_suppliers"] = normalised_suppliers
+
         # ------------------------------
         # Save Client Profile
         # ------------------------------
-
         save_client_profile(profile)
 
         # ------------------------------
         # Exposure Mapping
         # ------------------------------
-
         exposure = build_exposure_map(profile)
 
         logger.info(
@@ -255,21 +435,17 @@ def analyze():
         # ------------------------------
         # Query Generation
         # ------------------------------
-
         queries = generate_queries(exposure)
-
         logger.info(f"Generated {len(queries)} queries")
 
         # ------------------------------
         # Geographic Source View
         # ------------------------------
-
         geographic_sources = build_geographic_sources(exposure)
 
         # ------------------------------
         # Fetch Articles
         # ------------------------------
-
         clear_seen_urls()
         newsapi_clear_seen_urls()
         all_articles = []
@@ -326,21 +502,65 @@ def analyze():
         # ------------------------------
         # Score Articles
         # ------------------------------
-
         scored_articles = score_articles(all_articles, exposure)
+
+        # ------------------------------
+        # NLP Preprocessing (server-side)
+        # spaCy is already loaded (warm-loaded at startup), so this
+        # call will NOT trigger a Werkzeug reload.
+        # ------------------------------
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        try:
+            preprocessed_articles = preprocess_articles(scored_articles, exposure)
+        except Exception as e:
+            logger.warning(f"Preprocessing pipeline error: {e} — falling back to scored articles")
+            preprocessed_articles = scored_articles
+
+        # ------------------------------
+        # Event Clustering (DBSCAN on SBERT embeddings)
+        # Groups articles into real-world supply chain events.
+        # Falls back to per-article singletons if embeddings are absent
+        # or scikit-learn is not installed.
+        # ------------------------------
+        try:
+            clusters = cluster_articles(preprocessed_articles)
+            attach_summaries(clusters, per_article=True)
+            # Write cluster_id + cluster_size back onto each article dict
+            # so the frontend can group cards by event.
+            for cluster in clusters:
+                for art in cluster["articles"]:
+                    art["cluster_id"]      = cluster["cluster_id"]
+                    art["cluster_size"]    = cluster["article_count"]
+                    art["cluster_summary"] = cluster.get("summary", "")
+            logger.info(
+                f"Clustering: {len(clusters)} cluster(s) from "
+                f"{len(preprocessed_articles)} article(s)"
+            )
+        except Exception as e:
+            logger.warning(f"Event clustering failed (non-fatal): {e} — skipping.")
+            clusters = []
+
+        # ------------------------------
+        # Per-article summaries (fallback for articles that skipped clustering)
+        # ------------------------------
+        for art in preprocessed_articles:
+            if "summary" not in art:
+                try:
+                    art["summary"] = summarise_article(art)
+                except Exception:
+                    art["summary"] = art.get("clean_title", "")
 
         # ------------------------------
         # Per-Node Risk Summary
         # ------------------------------
-
-        node_risk = build_node_risk_summary(scored_articles, exposure)
+        node_risk = build_node_risk_summary(preprocessed_articles, exposure)
 
         # ------------------------------
         # Overall Risk Calculation
         # ------------------------------
-
-        high_count   = sum(1 for a in scored_articles if a.get("impact_level") == "HIGH")
-        medium_count = sum(1 for a in scored_articles if a.get("impact_level") == "MEDIUM")
+        high_count   = sum(1 for a in preprocessed_articles if a.get("impact_level") == "HIGH")
+        medium_count = sum(1 for a in preprocessed_articles if a.get("impact_level") == "MEDIUM")
 
         risk_score = min(high_count * 20 + medium_count * 10, 100)
 
@@ -368,9 +588,26 @@ def analyze():
             risk_message = "No significant disruption signals detected currently."
 
         # ------------------------------
+        # Save Preprocessed Run to Disk
+        # Errors here are non-fatal — logged but never abort the response.
+        # ------------------------------
+        run_save_result = {}
+        try:
+            run_save_result = save_preprocessed_run(
+                client_name  = profile.get("client_name", "unknown"),
+                timestamp    = timestamp,
+                preprocessed = preprocessed_articles,
+                exposure     = exposure,
+                overall_risk = overall_risk,
+                risk_score   = risk_score,
+            )
+        except Exception as e:
+            logger.error(f"Run save failed (non-fatal): {e}")
+            run_save_result = {"error": str(e)}
+
+        # ------------------------------
         # Response
         # ------------------------------
-
         exposure_for_response = {
             k: v for k, v in exposure.items()
             if k not in ("material_records", "port_records", "route_records")
@@ -379,7 +616,7 @@ def analyze():
         response = {
             "status":             "success",
             "client_name":        profile.get("client_name", "Unknown Client"),
-            "analysis_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "analysis_timestamp": timestamp,
             "overall_risk":       overall_risk,
             "risk_message":       risk_message,
             "risk_score":         risk_score,
@@ -391,6 +628,8 @@ def analyze():
                 "logistics_nodes_count": len(profile.get("logistics_nodes",  [])),
                 "total_articles":        len(all_articles),
                 "scored_articles":       len(scored_articles),
+                "preprocessed_articles": len(preprocessed_articles),
+                "event_clusters":        len([c for c in clusters if not c.get("is_noise")]),
                 "critical_alerts":       0,
                 "high_alerts":           high_count,
                 "medium_alerts":         medium_count,
@@ -405,7 +644,22 @@ def analyze():
             },
             "queries":            queries[:50],
             "geographic_sources": geographic_sources,
-            "news":               scored_articles[:30],
+            "news":               preprocessed_articles[:30],
+            "clusters":           [
+                {
+                    "cluster_id":    c["cluster_id"],
+                    "is_noise":      c["is_noise"],
+                    "article_count": c["article_count"],
+                    "impact_level":  c["impact_level"],
+                    "risk_score":    c["risk_score"],
+                    "linked_nodes":  c["linked_nodes"],
+                    "sources":       c["sources"],
+                    "summary":       c.get("summary", ""),
+                    "article_urls":  [a.get("url", "") for a in c["articles"]],
+                }
+                for c in clusters
+            ],
+            "run_saved":          run_save_result,
         }
 
         return jsonify(response)
@@ -416,7 +670,24 @@ def analyze():
 
 # ==========================================
 # RUN
+# ─────────────────────────────────────────
+# use_reloader=False  — CRITICAL on Windows with spaCy/thinc.
+#
+# Werkzeug's reloader watches all imported Python files for changes.
+# When spaCy loads its model it imports thinc internals; on Windows
+# the watchdog backend detects these as "changed" and immediately
+# restarts the server, killing any in-flight request mid-execution
+# and producing "Failed to fetch" in the browser.
+#
+# use_reloader=False disables that watcher entirely. You can still
+# use debug=True for the interactive debugger / detailed tracebacks.
+# Simply restart the server manually (Ctrl+C → python app.py) when
+# you make code changes during development.
 # ==========================================
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(
+        debug=True,
+        port=5000,
+        use_reloader=False,   # ← prevents thinc/spaCy from triggering a mid-request restart
+    )

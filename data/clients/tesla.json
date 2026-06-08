@@ -4,22 +4,30 @@
         {
             "name": "Panasonic",
             "material": "Battery Cells",
-            "location": "Japan"
+            "location": "Japan",
+            "country": "Japan",
+            "city": ""
         },
         {
             "name": "CATL",
             "material": "Lithium Batteries",
-            "location": "China"
+            "location": "China",
+            "country": "China",
+            "city": ""
         },
         {
             "name": "LG Energy Solution",
             "material": "Battery Modules",
-            "location": "South Korea"
+            "location": "South Korea",
+            "country": "South Korea",
+            "city": ""
         },
         {
             "name": "Bosch",
             "material": "Electronics",
-            "location": "Germany"
+            "location": "Germany",
+            "country": "Germany",
+            "city": ""
         }
     ],
     "raw_materials": [
@@ -42,19 +50,31 @@
     ],
     "logistics_nodes": [
         {
-            "port": "Shanghai Port",
-            "carrier": "COSCO",
-            "route": "South China Sea"
+            "name": "Shanghai Port",
+            "type": "port",
+            "carrier": "COSCO"
         },
         {
-            "port": "Port of Long Beach",
-            "carrier": "Maersk",
-            "route": "Pacific Route"
+            "name": "South China Sea",
+            "type": "route"
         },
         {
-            "port": "Singapore Port",
-            "carrier": "MSC",
-            "route": "Malacca Strait"
+            "name": "Port of Long Beach",
+            "type": "port",
+            "carrier": "Maersk"
+        },
+        {
+            "name": "Pacific Route",
+            "type": "route"
+        },
+        {
+            "name": "Singapore Port",
+            "type": "port",
+            "carrier": "MSC"
+        },
+        {
+            "name": "Malacca Strait",
+            "type": "route"
         }
     ],
     "own_facilities": [
