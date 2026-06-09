@@ -59,6 +59,10 @@ from utils.sbert_encoder import (
     find_similar,
 )
 
+from utils.topic_modeller import attach_topics
+from utils.risk_engine import enrich_clusters_with_risk, compute_overall_risk
+from utils.cross_cluster_dedup import deduplicate_clusters_within_run
+
 app = Flask(__name__)
 
 # ── Numpy-safe JSON encoder ───────────────────────────────────────────────────
@@ -606,6 +610,37 @@ def analyze():
             clusters = []
 
         # ------------------------------
+        # Topic Modelling (BERTopic / cosine / keyword)
+        # Assigns disruption domain and industry labels to clusters + articles.
+        # ------------------------------
+        try:
+            attach_topics(clusters, deduped_articles)
+            logger.info("Topic modelling complete.")
+        except Exception as e:
+            logger.warning(f"Topic modelling failed (non-fatal): {e}")
+
+        # ------------------------------
+        # Enhanced Risk Scoring
+        # Five-dimension composite score: severity, propagation,
+        # concentration, velocity, verification multiplier.
+        # ------------------------------
+        try:
+            enrich_clusters_with_risk(clusters, deduped_articles)
+            logger.info("Enhanced risk scoring complete.")
+        except Exception as e:
+            logger.warning(f"Enhanced risk scoring failed (non-fatal): {e}")
+
+        # ------------------------------
+        # Within-Run Cluster Deduplication
+        # Merge near-identical clusters describing the same event.
+        # ------------------------------
+        try:
+            clusters = deduplicate_clusters_within_run(clusters)
+            logger.info(f"Post-dedup cluster count: {len(clusters)}")
+        except Exception as e:
+            logger.warning(f"Within-run cluster dedup failed (non-fatal): {e}")
+
+        # ------------------------------
         # Per-article summaries (fallback for articles that skipped clustering)
         # ------------------------------
         for art in deduped_articles:
@@ -621,35 +656,31 @@ def analyze():
         node_risk = build_node_risk_summary(deduped_articles, exposure)
 
         # ------------------------------
-        # Overall Risk Calculation
+        # Overall Risk Calculation (enhanced risk engine)
         # ------------------------------
+        try:
+            overall_risk, risk_message, risk_score = compute_overall_risk(
+                clusters, deduped_articles
+            )
+        except Exception as e:
+            logger.warning(f"compute_overall_risk failed (non-fatal): {e}")
+            # Legacy fallback
+            high_count   = sum(1 for a in deduped_articles if a.get("impact_level") == "HIGH")
+            medium_count = sum(1 for a in deduped_articles if a.get("impact_level") == "MEDIUM")
+            risk_score   = min(high_count * 20 + medium_count * 10, 100)
+            if high_count >= 5:
+                overall_risk = "HIGH"
+                risk_message = "Multiple high-impact disruptions detected. Immediate review recommended."
+            elif high_count >= 1:
+                overall_risk = "MEDIUM"
+                risk_message = "Potentially disruptive events detected. Monitor closely."
+            else:
+                overall_risk = "LOW"
+                risk_message = "No significant disruption signals detected currently."
+
+        # Recompute high/medium counts from updated impact_level (post risk engine)
         high_count   = sum(1 for a in deduped_articles if a.get("impact_level") == "HIGH")
         medium_count = sum(1 for a in deduped_articles if a.get("impact_level") == "MEDIUM")
-
-        risk_score = min(high_count * 20 + medium_count * 10, 100)
-
-        nodes_at_high_risk = sum(
-            1
-            for node_type in node_risk.values()
-            for node_data in node_type.values()
-            if node_data["high"] >= 1
-        )
-
-        if high_count >= 5 or nodes_at_high_risk >= 3:
-            overall_risk = "HIGH"
-            risk_message = (
-                "Multiple high-impact disruptions detected "
-                "across supply chain exposure. Immediate review recommended."
-            )
-        elif high_count >= 1 or nodes_at_high_risk >= 1:
-            overall_risk = "MEDIUM"
-            risk_message = (
-                "Potentially disruptive events detected affecting "
-                "one or more supply chain nodes. Monitor closely."
-            )
-        else:
-            overall_risk = "LOW"
-            risk_message = "No significant disruption signals detected currently."
 
         # ------------------------------
         # Save Preprocessed Run to Disk
@@ -695,7 +726,7 @@ def analyze():
                 "preprocessed_articles": len(preprocessed_articles),
                 "deduplicated_articles": len(deduped_articles),
                 "event_clusters":        len([c for c in clusters if not c.get("is_noise")]),
-                "critical_alerts":       0,
+                "critical_alerts":       sum(1 for c in clusters if c.get("risk_level") == "CRITICAL"),
                 "high_alerts":           high_count,
                 "medium_alerts":         medium_count,
             },
@@ -712,17 +743,24 @@ def analyze():
             "news":               deduped_articles[:30],
             "clusters":           [
                 {
-                    "cluster_id":    c["cluster_id"],
-                    "is_noise":      c["is_noise"],
-                    "article_count": c["article_count"],
-                    "impact_level":  c["impact_level"],
-                    "risk_score":    c["risk_score"],
-                    "linked_nodes":  c["linked_nodes"],
-                    "sources":       c["sources"],
-                    "summary":       c.get("summary", ""),
-                    "brief":         c.get("brief"),
-                    "mmr_sentences": c.get("mmr_sentences", []),
-                    "article_urls":  [a.get("url", "") for a in c["articles"]],
+                    "cluster_id":           c["cluster_id"],
+                    "is_noise":             c["is_noise"],
+                    "article_count":        c["article_count"],
+                    "impact_level":         c["impact_level"],
+                    "risk_score":           c["risk_score"],
+                    "composite_risk_score": c.get("composite_risk_score"),
+                    "risk_level":           c.get("risk_level", c["impact_level"]),
+                    "risk_breakdown":       c.get("risk_breakdown"),
+                    "linked_nodes":         c["linked_nodes"],
+                    "sources":              c["sources"],
+                    "summary":              c.get("summary", ""),
+                    "brief":                c.get("brief"),
+                    "mmr_sentences":        c.get("mmr_sentences", []),
+                    "topic_domain":         c.get("topic_domain", "unknown"),
+                    "topic_domain_label":   c.get("topic_domain_label", ""),
+                    "topic_confidence":     c.get("topic_confidence", 0.0),
+                    "topic_industries":     c.get("topic_industries", []),
+                    "article_urls":         [a.get("url", "") for a in c["articles"]],
                     "articles": [
                         {
                             "title":             a.get("title", ""),
@@ -732,6 +770,9 @@ def analyze():
                             "impact_level":      a.get("impact_level", "LOW"),
                             "relevance_score":   a.get("relevance_score", 0),
                             "semantic_category": a.get("semantic_category", ""),
+                            "topic_domain":      a.get("topic_domain", ""),
+                            "verified":          a.get("verified", False),
+                            "rejected":          a.get("rejected", False),
                         }
                         for a in c["articles"]
                     ],
@@ -763,6 +804,227 @@ def analyze():
 # Simply restart the server manually (Ctrl+C → python app.py) when
 # you make code changes during development.
 # ==========================================
+
+# ==========================================
+# SEMANTIC SEARCH
+# POST /search
+# ==========================================
+
+@app.route("/search", methods=["POST"])
+def semantic_search():
+    """
+    Semantic search over a saved analysis run.
+
+    POST body: { "query": "port closure China", "run_id": "tesla_20260608_155130" }
+    Loads the run's preprocessed JSON, encodes the query with SBERT,
+    and returns the top-10 semantically similar articles.
+    """
+    try:
+        body   = request.json or {}
+        query  = body.get("query", "").strip()
+        run_id = body.get("run_id", "").strip()
+
+        if not query:
+            return jsonify({"status": "error", "message": "query is required"}), 400
+
+        if not run_id:
+            return jsonify({"status": "error", "message": "run_id is required"}), 400
+
+        # Sanitise run_id to prevent path traversal
+        safe_run_id = "".join(c for c in run_id if c.isalnum() or c in ("_", "-"))
+        fpath = os.path.join(RUNS_DIR, f"{safe_run_id}_preprocessed.json")
+
+        if not os.path.exists(fpath):
+            return jsonify({"status": "error", "message": f"Run '{safe_run_id}' not found"}), 404
+
+        with open(fpath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        articles = data.get("articles", [])
+        if not articles:
+            return jsonify({"status": "success", "query": query, "results": []})
+
+        enc_result = encode_articles(articles)
+        hits       = find_similar(query, enc_result, top_k=10)
+
+        return jsonify({
+            "status":  "success",
+            "query":   query,
+            "run_id":  safe_run_id,
+            "results": [
+                {
+                    "title":             h.get("clean_title") or h.get("title", ""),
+                    "url":               h.get("url", ""),
+                    "published":         h.get("published", ""),
+                    "source":            h.get("source", ""),
+                    "impact_level":      h.get("impact_level", "LOW"),
+                    "relevance_score":   h.get("relevance_score", 0),
+                    "similarity_score":  h.get("similarity_score", 0.0),
+                    "semantic_category": h.get("semantic_category", ""),
+                    "topic_domain":      h.get("topic_domain", ""),
+                    "verified":          h.get("verified", False),
+                }
+                for h in hits
+            ],
+        })
+
+    except Exception as e:
+        logger.exception("Error in /search")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ==========================================
+# ARTICLE VERIFICATION
+# POST /verify
+# ==========================================
+
+@app.route("/verify", methods=["POST"])
+def verify_article():
+    """
+    Analyst verification endpoint.  Patches a run's preprocessed JSON
+    to mark an article as verified or rejected.
+
+    POST body:
+    {
+        "run_id":           "tesla_20260608_155130",
+        "article_url":      "https://reuters.com/...",
+        "verified":         true,          // false to un-verify
+        "rejected":         false,
+        "verification_type": "full",       // "content" | "relevance" | "risk" | "full"
+        "verification_note": "Confirmed with supplier in Shanghai.",
+        "analyst_id":       "analyst_007"  // optional
+    }
+
+    Returns the updated article record.
+    """
+    try:
+        body = request.json or {}
+        run_id           = body.get("run_id", "").strip()
+        article_url      = body.get("article_url", "").strip()
+        verified         = bool(body.get("verified", False))
+        rejected         = bool(body.get("rejected", False))
+        verification_type = body.get("verification_type", "content")
+        verification_note = body.get("verification_note", "")
+        analyst_id       = body.get("analyst_id", "analyst")
+
+        if not run_id or not article_url:
+            return jsonify({"status": "error", "message": "run_id and article_url are required"}), 400
+
+        safe_run_id = "".join(c for c in run_id if c.isalnum() or c in ("_", "-"))
+        fpath = os.path.join(RUNS_DIR, f"{safe_run_id}_preprocessed.json")
+
+        if not os.path.exists(fpath):
+            return jsonify({"status": "error", "message": f"Run '{safe_run_id}' not found"}), 404
+
+        with open(fpath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        articles    = data.get("articles", [])
+        found       = False
+        updated_art = None
+
+        for art in articles:
+            if art.get("url", "") == article_url:
+                art["verified"]          = verified
+                art["rejected"]          = rejected
+                art["verified_by"]       = analyst_id if (verified or rejected) else None
+                art["verified_at"]       = datetime.now().isoformat() if (verified or rejected) else None
+                art["verification_type"] = verification_type if verified else None
+                art["verification_note"] = verification_note
+                found       = True
+                updated_art = art
+                break
+
+        if not found:
+            return jsonify({"status": "error", "message": "Article not found in run"}), 404
+
+        # Persist the updated run file
+        with open(fpath, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+        action = "verified" if verified else ("rejected" if rejected else "unverified")
+        logger.info(
+            f"Article {action} by {analyst_id}: {article_url[:80]} "
+            f"[run={safe_run_id}]"
+        )
+
+        return jsonify({
+            "status":      "success",
+            "action":      action,
+            "article_url": article_url,
+            "run_id":      safe_run_id,
+            "article":     {
+                "url":               updated_art.get("url", ""),
+                "title":             updated_art.get("title", ""),
+                "verified":          updated_art.get("verified", False),
+                "rejected":          updated_art.get("rejected", False),
+                "verified_by":       updated_art.get("verified_by"),
+                "verified_at":       updated_art.get("verified_at"),
+                "verification_type": updated_art.get("verification_type"),
+                "verification_note": updated_art.get("verification_note", ""),
+            },
+        })
+
+    except Exception as e:
+        logger.exception("Error in /verify")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# ==========================================
+# TOPIC SUMMARY
+# GET /topics?run_id=<id>
+# ==========================================
+
+@app.route("/topics", methods=["GET"])
+def get_topics():
+    """
+    Return the topic distribution and cross-industry map for a saved run.
+    GET /topics?run_id=tesla_20260608_155130
+    """
+    try:
+        run_id = request.args.get("run_id", "").strip()
+        if not run_id:
+            return jsonify({"status": "error", "message": "run_id is required"}), 400
+
+        safe_run_id = "".join(c for c in run_id if c.isalnum() or c in ("_", "-"))
+        fpath = os.path.join(RUNS_DIR, f"{safe_run_id}_preprocessed.json")
+
+        if not os.path.exists(fpath):
+            return jsonify({"status": "error", "message": f"Run '{safe_run_id}' not found"}), 404
+
+        with open(fpath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        articles = data.get("articles", [])
+        if not articles:
+            return jsonify({"status": "success", "topics": {}, "cross_industry_map": {}})
+
+        from utils.topic_modeller import model_topics
+        result = model_topics([], articles)
+
+        # Serialise cross-industry map (tuples → lists for JSON)
+        cross_map_serialisable = {
+            src: [(tgt, conf, cnt) for tgt, conf, cnt in links]
+            for src, links in result.cross_industry_map.items()
+        }
+
+        return jsonify({
+            "status":             "success",
+            "run_id":             safe_run_id,
+            "method":             result.method,
+            "topic_counts":       result.topic_counts,
+            "cross_industry_map": cross_map_serialisable,
+            "domain_labels": {
+                k: v["label"] for k, v in
+                __import__("utils.topic_modeller", fromlist=["DISRUPTION_DOMAINS"])
+                .DISRUPTION_DOMAINS.items()
+            },
+        })
+
+    except Exception as e:
+        logger.exception("Error in /topics")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 if __name__ == "__main__":
     app.run(
