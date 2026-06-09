@@ -94,12 +94,12 @@ _GEO_NOISE = [
 # Per-domain point values — conflict and commodity get slight boosts
 # because they correlate most directly with supply chain impact
 _DOMAIN_POINTS = {
-    "conflict":  8,
-    "commodity": 8,
-    "labour":    7,
-    "weather":   6,
-    "political": 6,
-    "pandemic":  5,
+    "conflict":   8,
+    "commodity":  8,
+    "labour":     7,
+    "weather":    6,
+    "infrastructure": 7,   # add if missing — covers power grid, pipeline disruptions
+    "regulatory": 6,       # sanctions, export controls hit energy hard
 }
 
 # Bonus for multiple distinct domains triggered simultaneously

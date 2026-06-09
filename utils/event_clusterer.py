@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 # ──────────────────────────────────────────────────────────────────────────────
 # DEFAULTS  (can be overridden per-call)
 # ──────────────────────────────────────────────────────────────────────────────
-DEFAULT_EPS         = 0.18   # cosine distance  (0 = identical, 1 = orthogonal)
+DEFAULT_EPS = 0.25      # cosine distance  (0 = identical, 1 = orthogonal)
 DEFAULT_MIN_SAMPLES = 2
 
 

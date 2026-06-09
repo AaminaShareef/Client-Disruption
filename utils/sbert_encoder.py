@@ -588,6 +588,12 @@ def encode_articles(
                 enc.doc_embedding.tolist()
                 if enc.doc_embedding is not None else None
             ),
+            # Sentence-level embeddings — stored as list-of-lists for JSON
+            # serialisation.  Consumed by briefer.py (MMR sentence selection).
+            "sentence_embeddings": (
+                enc.sentence_embeddings.tolist()
+                if enc.sentence_embeddings is not None else None
+            ),
             "sbert_encoded": enc.doc_embedding is not None,
         })
         enriched_articles.append(enriched)

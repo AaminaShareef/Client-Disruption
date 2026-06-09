@@ -51,6 +51,7 @@ from utils.article_preprocessor import (
 
 from utils.event_clusterer import cluster_articles, flatten_clusters
 from utils.summariser import attach_summaries, summarise_article
+from utils.briefer import attach_briefs
 
 from utils.sbert_encoder import (
     encode_articles,
@@ -584,6 +585,13 @@ def analyze():
         try:
             clusters = cluster_articles(deduped_articles)
             attach_summaries(clusters, per_article=True)
+
+            # -- LLM Intelligence Briefs (MMR + LLM per real cluster) --
+            try:
+                attach_briefs(clusters)
+            except Exception as e:
+                logger.warning(f"Brief generation failed (non-fatal): {e}")
+
             for cluster in clusters:
                 for art in cluster["articles"]:
                     art["cluster_id"]      = cluster["cluster_id"]
@@ -712,7 +720,21 @@ def analyze():
                     "linked_nodes":  c["linked_nodes"],
                     "sources":       c["sources"],
                     "summary":       c.get("summary", ""),
+                    "brief":         c.get("brief"),
+                    "mmr_sentences": c.get("mmr_sentences", []),
                     "article_urls":  [a.get("url", "") for a in c["articles"]],
+                    "articles": [
+                        {
+                            "title":             a.get("title", ""),
+                            "url":               a.get("url", ""),
+                            "source":            a.get("source", ""),
+                            "published":         a.get("published", ""),
+                            "impact_level":      a.get("impact_level", "LOW"),
+                            "relevance_score":   a.get("relevance_score", 0),
+                            "semantic_category": a.get("semantic_category", ""),
+                        }
+                        for a in c["articles"]
+                    ],
                 }
                 for c in clusters
             ],

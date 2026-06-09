@@ -438,11 +438,17 @@ function renderClusters(clusters) {
 }
 
 function _renderClusterCard(c, idx) {
-    const level   = c.impact_level || 'LOW';
-    const n       = c.article_count || 1;
-    const score   = c.risk_score || 0;
-    const summary = c.summary || '';
+    const level = c.impact_level || 'LOW';
+    const n     = c.article_count || 1;
+    const score = c.risk_score || 0;
+    const brief = c.brief || null;
 
+    // Headline: prefer LLM brief headline, fall back to lead article title
+    const headline = (brief && brief.headline)
+        ? brief.headline
+        : (c.articles && c.articles[0] ? (c.articles[0].title || '') : '');
+
+    // Node chips
     const nodeChips = (c.linked_nodes || []).slice(0, 6).map(node => {
         const ci   = node.indexOf(':');
         const type = ci > -1 ? node.slice(0, ci) : '';
@@ -451,15 +457,16 @@ function _renderClusterCard(c, idx) {
         return `<span class="chip ${cls}" style="font-size:.63rem;padding:.12rem .45rem;">${esc(name)}</span>`;
     }).join('');
 
+    // Source chips
     const srcChips = (c.sources || []).slice(0, 4).map(s =>
         `<span class="api-source-tag" style="font-size:.62rem;">${esc(s)}</span>`
     ).join('');
 
-    // Use the rich articles array now sent from backend
+    // Article rows
     const artItems = (c.articles || []).map(a => {
         const alevel = a.impact_level || level;
         const ascore = a.relevance_score || 0;
-        const title  = a.title || '—';
+        const title  = a.title || '\u2014';
         const url    = a.url   || '#';
         const isReal = url !== '#';
         const sem    = a.semantic_category && a.semantic_category !== 'unknown'
@@ -475,8 +482,42 @@ function _renderClusterCard(c, idx) {
         </div>`;
     }).join('');
 
-    // Headline from first article
-    const headline = c.articles && c.articles[0] ? (c.articles[0].title || '') : '';
+    // Intelligence brief block (LLM) or LexRank fallback
+    let briefHtml = '';
+    if (brief && brief.source === 'llm') {
+        const affectedChips = (brief.affected_nodes || []).slice(0, 6)
+            .map(n => `<span class="chip chip-supplier" style="font-size:.6rem;padding:.1rem .4rem;">${esc(n)}</span>`)
+            .join('');
+        const outlookHtml = brief.outlook
+            ? `<div class="brief-section">
+                <span class="brief-section-label"><i class="fas fa-binoculars me-1"></i>Outlook</span>
+                <p class="brief-text">${esc(brief.outlook)}</p>
+               </div>`
+            : '';
+        briefHtml = `
+        <div class="cluster-brief">
+            <div class="brief-header">
+                <i class="fas fa-robot brief-icon"></i>
+                <span class="brief-label">Intelligence Brief</span>
+                <span class="brief-model-tag">${esc((brief.model || '').split('/').pop())}</span>
+            </div>
+            <div class="brief-section">
+                <span class="brief-section-label"><i class="fas fa-file-lines me-1"></i>What Happened</span>
+                <p class="brief-text">${esc(brief.what_happened)}</p>
+            </div>
+            ${affectedChips ? `<div class="brief-section">
+                <span class="brief-section-label"><i class="fas fa-triangle-exclamation me-1"></i>Affected Nodes</span>
+                <div class="d-flex flex-wrap gap-1 mt-1">${affectedChips}</div>
+            </div>` : ''}
+            ${outlookHtml}
+        </div>`;
+    } else if (c.summary) {
+        briefHtml = `
+        <div class="cluster-summary-bar">
+            <i class="fas fa-align-left" style="color:var(--purple);flex-shrink:0;margin-top:.15rem;font-size:.75rem;"></i>
+            <span>${esc(c.summary)}</span>
+        </div>`;
+    }
 
     return `
     <div class="cluster-card impact-${level}" data-cidx="${idx}" data-clevel="${level}" data-csize="${n}">
@@ -487,17 +528,14 @@ function _renderClusterCard(c, idx) {
                     <span class="impact-pill pill-${level}" style="font-size:.63rem;">${level}</span>
                     <span class="cluster-size-chip">${n} article${n !== 1 ? 's' : ''}</span>
                     <span class="score-badge" style="font-size:.63rem;">${score}/100</span>
+                    ${brief && brief.source === 'llm' ? '<span class="brief-badge"><i class="fas fa-robot me-1"></i>Brief</span>' : ''}
                 </div>
                 ${headline ? `<div class="cluster-headline">${esc(headline)}</div>` : ''}
             </div>
             <i class="fas fa-chevron-down cluster-chevron" id="cluster-chevron-${idx}"
                style="color:var(--text-3);font-size:.75rem;transition:transform .2s;flex-shrink:0;margin-left:.75rem;"></i>
         </div>
-        ${summary ? `
-        <div class="cluster-summary-bar">
-            <i class="fas fa-align-left" style="color:var(--purple);flex-shrink:0;margin-top:.15rem;font-size:.75rem;"></i>
-            <span>${esc(summary)}</span>
-        </div>` : ''}
+        ${briefHtml}
         <div class="cluster-card-body" id="cluster-body-${idx}">
             ${nodeChips ? `
             <div class="cluster-detail-row">
