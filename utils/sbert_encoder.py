@@ -578,8 +578,13 @@ def encode_articles(
             "archetype_matches": enc.archetype_matches,
             "core_paragraph_idx": enc.core_paragraph_idx,
             # Store embedding as plain Python list for JSON serialisation.
-            # Downstream clustering re-loads from doc_embeddings matrix.
+            # "doc_embedding" is the canonical name; "embedding" is the alias
+            # consumed by event_clusterer.py (DBSCAN).
             "doc_embedding": (
+                enc.doc_embedding.tolist()
+                if enc.doc_embedding is not None else None
+            ),
+            "embedding": (
                 enc.doc_embedding.tolist()
                 if enc.doc_embedding is not None else None
             ),

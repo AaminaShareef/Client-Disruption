@@ -203,12 +203,12 @@ def _make_cluster(cluster_id: int, art_list: list[dict], is_noise: bool) -> dict
     sources = list({a.get("source", "") for a in art_list if a.get("source")})
 
     return {
-        "cluster_id":    cluster_id,
-        "is_noise":      is_noise,
-        "article_count": len(art_list),
+        "cluster_id":    int(cluster_id),
+        "is_noise":      bool(is_noise),
+        "article_count": int(len(art_list)),
         "articles":      art_list,
-        "impact_level":  best_impact,
-        "risk_score":    max_score,
+        "impact_level":  str(best_impact),
+        "risk_score":    int(max_score),
         "linked_nodes":  linked_nodes,
         "sources":       sources,
     }

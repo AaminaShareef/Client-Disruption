@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supply Chain Risk Intelligence | Disruption Monitoring Platform</title>
+    <title>Supply Chain Risk Intelligence</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,9 +11,7 @@
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════════
-     PROFILE CHOOSER MODAL (shown on page load)
-══════════════════════════════════════════════════════════ -->
+<!-- PROFILE CHOOSER MODAL -->
 <div id="profileModal" class="profile-modal-overlay">
     <div class="profile-modal">
         <div class="profile-modal-header">
@@ -21,25 +19,17 @@
             <span>Supply Chain <strong style="color:var(--blue);">Risk Intelligence</strong></span>
         </div>
         <p class="profile-modal-sub">How would you like to start today's analysis?</p>
-
         <div class="profile-modal-choices">
-            <!-- Use existing -->
             <button class="profile-choice-btn" id="btnUseExisting">
-                <div class="profile-choice-icon" style="background:var(--blue-l);color:var(--blue);border-color:#BFDBFE;">
-                    <i class="fas fa-folder-open"></i>
-                </div>
+                <div class="profile-choice-icon" style="background:var(--blue-l);color:var(--blue);border-color:#BFDBFE;"><i class="fas fa-folder-open"></i></div>
                 <div class="profile-choice-text">
                     <div class="profile-choice-title">Use Existing Profile</div>
                     <div class="profile-choice-desc">Load a previously saved client profile</div>
                 </div>
                 <i class="fas fa-chevron-right" style="color:var(--text-3);font-size:.8rem;margin-left:auto;"></i>
             </button>
-
-            <!-- New profile -->
             <button class="profile-choice-btn" id="btnNewProfile">
-                <div class="profile-choice-icon" style="background:var(--green-l);color:var(--green);border-color:#A7F3D0;">
-                    <i class="fas fa-plus-circle"></i>
-                </div>
+                <div class="profile-choice-icon" style="background:var(--green-l);color:var(--green);border-color:#A7F3D0;"><i class="fas fa-plus-circle"></i></div>
                 <div class="profile-choice-text">
                     <div class="profile-choice-title">Add New Profile</div>
                     <div class="profile-choice-desc">Build a fresh client supply chain profile</div>
@@ -47,21 +37,17 @@
                 <i class="fas fa-chevron-right" style="color:var(--text-3);font-size:.8rem;margin-left:auto;"></i>
             </button>
         </div>
-
-        <!-- Saved profiles list (hidden until "Use Existing" clicked) -->
         <div id="savedProfilesList" style="display:none;margin-top:1rem;">
             <div style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;">
                 <i class="fas fa-list me-1"></i>Saved Profiles
             </div>
             <div id="profileListItems"></div>
-            <button class="profile-back-btn" id="btnProfileBack">
-                <i class="fas fa-arrow-left me-1"></i>Back
-            </button>
+            <button class="profile-back-btn" id="btnProfileBack"><i class="fas fa-arrow-left me-1"></i>Back</button>
         </div>
     </div>
 </div>
 
-<!-- ── NAVBAR ──────────────────────────────────────────── -->
+<!-- NAVBAR -->
 <nav class="navbar">
     <div class="container">
         <a class="brand" href="#">
@@ -77,51 +63,34 @@
 
 <div class="container py-4">
 
-    <!-- ── HERO ──────────────────────────────────────────── -->
+    <!-- HERO -->
     <div class="hero mb-4 fade-up">
         <div class="row align-items-center">
-            <div class="col-md-7">
-                <div class="hero-eyebrow"><i class="fas fa-chart-network me-1"></i> Disruption Intelligence Platform — Phase 3</div>
+            <div class="col-md-8">
+                <div class="hero-eyebrow"><i class="fas fa-chart-network me-1"></i>Disruption Intelligence Platform</div>
                 <h1 class="hero-title">Supply Chain <span>Risk</span> Analysis</h1>
-                <p class="hero-sub mb-3">Client-centric, geography-aware disruption monitoring. News fetched and filtered against your exact supplier, material, port, and route footprint.</p>
+                <p class="hero-sub mb-3">Client-centric, geography-aware disruption monitoring. Build your profile, click Analyse — results appear automatically.</p>
                 <div class="hero-badges">
                     <span class="hero-badge"><i class="fas fa-map-marker-alt me-1"></i>Geopolitical</span>
                     <span class="hero-badge"><i class="fas fa-cloud-rain me-1"></i>Climate</span>
                     <span class="hero-badge"><i class="fas fa-anchor me-1"></i>Logistics</span>
                     <span class="hero-badge"><i class="fas fa-industry me-1"></i>Supplier</span>
                     <span class="hero-badge"><i class="fas fa-cube me-1"></i>Materials</span>
-                </div>
-            </div>
-            <div class="col-md-5 mt-3 mt-md-0 text-md-end">
-                <div style="display:inline-flex;flex-direction:column;gap:.5rem;align-items:flex-end;">
-                    <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:.75rem;padding:.75rem 1.25rem;color:#CBD5E1;font-size:.8rem;">
-                        <i class="fas fa-rss me-2" style="color:#93C5FD;"></i>RSS · NewsAPI · GDELT — all three sources
-                    </div>
-                    <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:.75rem;padding:.75rem 1.25rem;color:#CBD5E1;font-size:.8rem;">
-                        <i class="fas fa-balance-scale me-2" style="color:#93C5FD;"></i>Rule-based scoring — no ML required
-                    </div>
-                    <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:.75rem;padding:.75rem 1.25rem;color:#CBD5E1;font-size:.8rem;">
-                        <i class="fas fa-globe me-2" style="color:#93C5FD;"></i>Auto geographic source selection
-                    </div>
-                    <div style="background:rgba(124,58,237,.18);border:1px solid rgba(167,139,250,.3);border-radius:.75rem;padding:.75rem 1.25rem;color:#DDD6FE;font-size:.8rem;">
-                        <i class="fas fa-project-diagram me-2" style="color:#A78BFA;"></i>DBSCAN event clustering · LexRank summaries
-                    </div>
+                    <span class="hero-badge" style="background:rgba(124,58,237,.18);border-color:rgba(167,139,250,.3);color:#DDD6FE;">
+                        <i class="fas fa-project-diagram me-1"></i>DBSCAN · LexRank · SBERT
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ── CLIENT NAME ────────────────────────────────────── -->
+    <!-- CLIENT NAME -->
     <div class="client-card fade-up delay-1">
         <div class="d-flex justify-content-between align-items-center mb-2" style="flex-wrap:wrap;gap:.5rem;">
             <label style="margin-bottom:0;"><i class="fas fa-building me-1"></i> Company / Client Name</label>
             <div class="d-flex gap-2">
-                <button class="btn-save-profile" id="btnSaveProfile" title="Save this profile">
-                    <i class="fas fa-save me-1"></i>Save Profile
-                </button>
-                <button class="btn-save-profile btn-save-profile-ghost" id="btnSwitchProfile" title="Switch profile">
-                    <i class="fas fa-exchange-alt me-1"></i>Switch
-                </button>
+                <button class="btn-save-profile" id="btnSaveProfile"><i class="fas fa-save me-1"></i>Save Profile</button>
+                <button class="btn-save-profile btn-save-profile-ghost" id="btnSwitchProfile"><i class="fas fa-exchange-alt me-1"></i>Switch</button>
             </div>
         </div>
         <input type="text" id="clientName" placeholder="e.g., Acme Global Manufacturing">
@@ -130,10 +99,8 @@
         </div>
     </div>
 
-    <!-- ── ENTITY CARDS ───────────────────────────────────── -->
+    <!-- ENTITY CARDS -->
     <div class="row g-3 mb-3 fade-up delay-2">
-
-        <!-- Suppliers -->
         <div class="col-lg-6 d-flex">
             <div class="entity-card w-100">
                 <div class="entity-card-header" data-bs-toggle="collapse" data-bs-target="#suppliersCollapse" aria-expanded="true">
@@ -151,8 +118,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Materials -->
         <div class="col-lg-6 d-flex">
             <div class="entity-card w-100">
                 <div class="entity-card-header" data-bs-toggle="collapse" data-bs-target="#materialsCollapse" aria-expanded="true">
@@ -170,8 +135,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Logistics -->
         <div class="col-lg-6 d-flex">
             <div class="entity-card w-100">
                 <div class="entity-card-header" data-bs-toggle="collapse" data-bs-target="#logisticsCollapse" aria-expanded="true">
@@ -189,8 +152,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Facilities -->
         <div class="col-lg-6 d-flex">
             <div class="entity-card w-100">
                 <div class="entity-card-header" data-bs-toggle="collapse" data-bs-target="#facilitiesCollapse" aria-expanded="true">
@@ -210,59 +171,71 @@
         </div>
     </div>
 
-    <!-- ── ANALYZE BUTTON ──────────────────────────────────── -->
+    <!-- ANALYZE BUTTON -->
     <div class="d-flex justify-content-center mb-4 fade-up delay-3">
         <button class="btn-analyze" id="analyzeBtn" onclick="analyzeProfile()">
-            <i class="fas fa-satellite-dish me-2"></i>Analyze Disruption Risks
+            <i class="fas fa-satellite-dish me-2"></i>Analyse Disruption Risks
         </button>
     </div>
 
-    <!-- ── ERROR BOX ───────────────────────────────────────── -->
+    <!-- ERROR BOX -->
     <div id="errorBox" class="error-box mb-3">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        <span id="errorMsg"></span>
+        <i class="fas fa-exclamation-triangle me-2"></i><span id="errorMsg"></span>
     </div>
 
-    <!-- ── PIPELINE PROGRESS ───────────────────────────────── -->
-    <div id="pipelineBox" class="pipeline-box mb-4">
-        <div class="pipeline-title">
-            <i class="fas fa-cog fa-spin" style="color:var(--blue);"></i>
-            Running Analysis Pipeline…
+    <!-- LOADING OVERLAY (shown while analysis runs) -->
+    <div id="loadingOverlay" style="display:none;" class="loading-overlay">
+    <div class="loading-card">
+        <div class="loading-spinner"></div>
+        <div class="loading-title">Analysing Supply Chain…</div>
+        <div class="loading-subtitle" id="loadingSubtitle">This typically takes 15–30 seconds</div>
+        <div class="loading-progress-track">
+            <div class="loading-progress-bar" id="loadingProgressBar"></div>
         </div>
-        <div id="step1"  class="pipeline-step waiting">
-            <div class="step-icon wait" id="icon1"><i class="fas fa-circle-dot"></i></div>
-            <div><div class="step-label">Building Exposure Map</div><div class="step-sub">Extracting countries, materials, ports, routes</div></div>
-        </div>
-        <div id="step2" class="pipeline-step waiting">
-            <div class="step-icon wait" id="icon2"><i class="fas fa-circle-dot"></i></div>
-            <div><div class="step-label">Selecting Geographic Sources</div><div class="step-sub">Local · Global · Government · Industry per country</div></div>
-        </div>
-        <div id="step3" class="pipeline-step waiting">
-            <div class="step-icon wait" id="icon3"><i class="fas fa-circle-dot"></i></div>
-            <div><div class="step-label">Generating Search Targets</div><div class="step-sub">Material × Region · Port · Route · Supplier combinations</div></div>
-        </div>
-        <div id="step4" class="pipeline-step waiting">
-            <div class="step-icon wait" id="icon4"><i class="fas fa-circle-dot"></i></div>
-            <div><div class="step-label">Fetching Articles</div><div class="step-sub">RSS feeds · NewsAPI · GDELT</div></div>
-        </div>
-        <div id="step5" class="pipeline-step waiting">
-            <div class="step-icon wait" id="icon5"><i class="fas fa-circle-dot"></i></div>
-            <div><div class="step-label">Scoring & Filtering</div><div class="step-sub">Material · Country · Port · Route · Disruption · Source</div></div>
-        </div>
-        <div id="step6" class="pipeline-step waiting">
-            <div class="step-icon wait" id="icon6"><i class="fas fa-circle-dot"></i></div>
-            <div><div class="step-label">NER · Clustering · Summarisation</div><div class="step-sub">Entity extraction · DBSCAN event grouping · LexRank briefs</div></div>
-        </div>
-        <div id="step7" class="pipeline-step waiting">
-            <div class="step-icon wait" id="icon7"><i class="fas fa-circle-dot"></i></div>
-            <div><div class="step-label">Ready</div><div class="step-sub">Results compiled and ready for review</div></div>
+        <div class="loading-steps" id="loadingSteps">
+            <div class="lstep" id="ls1">
+                <div class="lstep-dot"><i class="fas fa-map-marker-alt"></i></div>
+                <div>
+                    <div class="lstep-label">Building exposure map</div>
+                    <div class="lstep-sub">Countries · materials · ports · routes</div>
+                </div>
+            </div>
+            <div class="lstep" id="ls2">
+                <div class="lstep-dot"><i class="fas fa-rss"></i></div>
+                <div>
+                    <div class="lstep-label">Fetching news</div>
+                    <div class="lstep-sub">RSS · NewsAPI · GDELT in parallel</div>
+                </div>
+            </div>
+            <div class="lstep" id="ls3">
+                <div class="lstep-dot"><i class="fas fa-filter"></i></div>
+                <div>
+                    <div class="lstep-label">Scoring &amp; filtering</div>
+                    <div class="lstep-sub">Relevance · impact · deduplication</div>
+                </div>
+            </div>
+            <div class="lstep" id="ls4">
+                <div class="lstep-dot"><i class="fas fa-brain"></i></div>
+                <div>
+                    <div class="lstep-label">NER · SBERT · clustering</div>
+                    <div class="lstep-sub">spaCy entities · semantic grouping</div>
+                </div>
+            </div>
+            <div class="lstep" id="ls5">
+                <div class="lstep-dot"><i class="fas fa-check-circle"></i></div>
+                <div>
+                    <div class="lstep-label">Compiling results</div>
+                    <div class="lstep-sub">Risk score · clusters · feed</div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    <!-- ── RESULTS ─────────────────────────────────────────── -->
-    <div id="resultsSection" class="results-section">
+    <!-- RESULTS -->
+    <div id="resultsSection" style="display:none;">
 
-        <!-- Risk summary -->
+        <!-- Risk header -->
         <div class="risk-card fade-up" id="riskCard">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                 <div>
@@ -281,157 +254,52 @@
             </div>
         </div>
 
-        <!-- Exposure map chips -->
+        <!-- Exposure chips -->
         <div id="exposureSection" class="exposure-section fade-up" style="display:none;">
-            <div class="risk-label mb-2"><i class="fas fa-map me-1"></i>Exposure Map — Detected Entities</div>
+            <div class="risk-label mb-2"><i class="fas fa-map me-1"></i>Exposure Map</div>
             <div id="exposureChips"></div>
         </div>
 
         <!-- Stats row -->
         <div class="row g-3 mb-3 fade-up" id="statsRow" style="display:none;">
-            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stSuppliers">0</div><div class="stat-lbl">Suppliers</div></div></div>
-            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stMaterials">0</div><div class="stat-lbl">Materials</div></div></div>
-            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stLogistics">0</div><div class="stat-lbl">Logistics</div></div></div>
-            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stAlerts">0</div><div class="stat-lbl">Active Alerts</div></div></div>
+            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stTotal">0</div><div class="stat-lbl">Articles</div></div></div>
+            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stDeduped">0</div><div class="stat-lbl">Deduplicated</div></div></div>
+            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stAlerts" style="color:var(--orange);">0</div><div class="stat-lbl">High Alerts</div></div></div>
             <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stClusters" style="color:var(--purple);">—</div><div class="stat-lbl">Event Clusters</div></div></div>
         </div>
 
-        <!-- Query breakdown -->
-        <div class="breakdown-card fade-up" id="breakdownCard" style="display:none;">
-            <div class="card-header-bar">
-                <span><i class="fas fa-layer-group me-2" style="color:var(--blue);"></i>News Coverage Breakdown</span>
-                <span class="nav-pill" style="font-size:.7rem;">Entity categories</span>
-            </div>
-            <div id="breakdownRows"></div>
-        </div>
-
-        <!-- News feed -->
-        <div id="newsFeedSection">
-        <div class="breakdown-card fade-up">
-            <div class="card-header-bar">
-                <span><i class="fas fa-newspaper me-2" style="color:var(--blue);"></i>Real-Time Supply Chain Intelligence</span>
-                <span id="articleCountBadge" class="nav-pill" style="font-size:.7rem;">0 articles</span>
-            </div>
-            <div id="newsFeed" class="p-3" style="max-height:680px;overflow-y:auto;">
-                <div class="text-center py-5" style="color:var(--text-3);">
-                    <i class="fas fa-satellite-dish fa-3x mb-3 opacity-50"></i>
-                    <p>News will appear here after analysis</p>
-                </div>
-            </div>
-        </div>
-        </div>
-
-        <!-- Event Clusters panel -->
+        <!-- Event clusters -->
         <div class="breakdown-card fade-up" id="clustersPanel" style="display:none;">
             <div class="card-header-bar">
-                <span><i class="fas fa-project-diagram me-2" style="color:var(--purple);"></i>Event Clusters — DBSCAN Grouping</span>
+                <span><i class="fas fa-project-diagram me-2" style="color:var(--purple);"></i>Event Clusters</span>
                 <div class="d-flex align-items-center gap-2">
                     <span id="clusterCountBadge" class="nav-pill" style="font-size:.7rem;background:#F5F3FF;color:var(--purple);border-color:#DDD6FE;">0 clusters</span>
-                    <button class="btn-nlp btn-nlp-outline" id="btnClustersExpandAll" onclick="clustersExpandAll(true)" style="font-size:.7rem;padding:.25rem .65rem;">
-                        <i class="fas fa-expand-alt"></i> Expand All
-                    </button>
-                    <button class="btn-nlp btn-nlp-outline" id="btnClustersCollapseAll" onclick="clustersExpandAll(false)" style="font-size:.7rem;padding:.25rem .65rem;">
-                        <i class="fas fa-compress-alt"></i> Collapse
-                    </button>
+                    <span class="filter-chip" data-cfilter="all" onclick="clusterFilter(this,'all')">All</span>
+                    <span class="filter-chip chip-HIGH" data-cfilter="HIGH" onclick="clusterFilter(this,'HIGH')">HIGH</span>
+                    <span class="filter-chip chip-MEDIUM" data-cfilter="MEDIUM" onclick="clusterFilter(this,'MEDIUM')">MEDIUM</span>
+                    <span class="filter-chip chip-LOW" data-cfilter="LOW" onclick="clusterFilter(this,'LOW')">LOW</span>
                 </div>
             </div>
-            <!-- Filter bar -->
-            <div class="nlp-action-bar" style="padding:.625rem 1.25rem;gap:.35rem;">
-                <span class="filter-chip active" data-cfilter="all"   onclick="clusterFilter(this,'all')">All</span>
-                <span class="filter-chip chip-HIGH"   data-cfilter="HIGH"   onclick="clusterFilter(this,'HIGH')">HIGH</span>
-                <span class="filter-chip chip-MEDIUM" data-cfilter="MEDIUM" onclick="clusterFilter(this,'MEDIUM')">MEDIUM</span>
-                <span class="filter-chip chip-LOW"    data-cfilter="LOW"    onclick="clusterFilter(this,'LOW')">LOW</span>
-                <span class="filter-chip" data-cfilter="multi" onclick="clusterFilter(this,'multi')"
-                      style="border-color:#DDD6FE;color:var(--purple);background:#F5F3FF;">
-                    <i class="fas fa-layer-group me-1"></i>Multi-article
-                </span>
-            </div>
-            <!-- Cluster list -->
-            <div id="clustersList" style="padding:.875rem;display:flex;flex-direction:column;gap:.625rem;max-height:700px;overflow-y:auto;">
-                <div class="text-center py-5" style="color:var(--text-3);">
-                    <i class="fas fa-project-diagram fa-3x mb-3 opacity-30"></i>
-                    <p>Event clusters will appear here after analysis</p>
-                </div>
-            </div>
+            <div id="clustersList" style="padding:.875rem;display:flex;flex-direction:column;gap:.625rem;max-height:700px;overflow-y:auto;"></div>
         </div>
 
-        <!-- NLP Preprocessing Panel -->
-        <div class="nlp-panel fade-up" id="nlpPanel" style="display:none;">
-            <div class="nlp-panel-header">
-                <div class="nlp-panel-title">
-                    <i class="fas fa-brain" style="color:var(--purple);"></i>
-                    NLP Preprocessing — SBERT-Ready Corpus
-                    <span class="nav-pill" style="font-size:.68rem;background:#F5F3FF;color:var(--purple);border-color:#DDD6FE;">
-                        <i class="fas fa-microchip me-1"></i>Stage 2
-                    </span>
-                </div>
-                <div class="filter-chip-bar" id="nlpFilterBar">
-                    <span class="filter-chip active" data-filter="all" onclick="nlpFilter(this,'all')">All</span>
-                    <span class="filter-chip chip-HIGH" data-filter="HIGH" onclick="nlpFilter(this,'HIGH')">HIGH</span>
-                    <span class="filter-chip chip-MEDIUM" data-filter="MEDIUM" onclick="nlpFilter(this,'MEDIUM')">MEDIUM</span>
-                    <span class="filter-chip chip-LOW" data-filter="LOW" onclick="nlpFilter(this,'LOW')">LOW</span>
-                    <span class="filter-chip chip-ok" data-filter="ok" onclick="nlpFilter(this,'ok')">✓ Preprocessed</span>
-                    <span class="filter-chip chip-err" data-filter="err" onclick="nlpFilter(this,'err')">⚠ Errors</span>
+        <!-- News feed — final filtered articles -->
+        <div class="breakdown-card fade-up" id="newsFeedCard">
+            <div class="card-header-bar">
+                <span><i class="fas fa-newspaper me-2" style="color:var(--blue);"></i>Filtered Intelligence Feed</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span id="articleCountBadge" class="nav-pill" style="font-size:.7rem;">0 articles</span>
+                    <span class="filter-chip active" data-nfilter="all" onclick="newsFilter(this,'all')">All</span>
+                    <span class="filter-chip chip-HIGH" data-nfilter="HIGH" onclick="newsFilter(this,'HIGH')">HIGH</span>
+                    <span class="filter-chip chip-MEDIUM" data-nfilter="MEDIUM" onclick="newsFilter(this,'MEDIUM')">MEDIUM</span>
+                    <span class="filter-chip chip-LOW" data-nfilter="LOW" onclick="newsFilter(this,'LOW')">LOW</span>
                 </div>
             </div>
-
-            <!-- Action bar -->
-            <div class="nlp-action-bar">
-                <button class="btn-nlp btn-nlp-primary" id="btnRunNLP" onclick="runNLPPreprocessing()">
-                    <i class="fas fa-sync-alt"></i> Re-run Preprocessing
-                </button>
-                <button class="btn-nlp btn-nlp-outline" id="btnExpandAll" onclick="nlpExpandAll(true)" disabled>
-                    <i class="fas fa-expand-alt"></i> Expand All
-                </button>
-                <button class="btn-nlp btn-nlp-outline" id="btnCollapseAll" onclick="nlpExpandAll(false)" disabled>
-                    <i class="fas fa-compress-alt"></i> Collapse All
-                </button>
-                <button class="btn-nlp btn-nlp-danger" id="btnClearNLP" onclick="clearNLPResults()" disabled>
-                    <i class="fas fa-trash-alt"></i> Clear
-                </button>
-                <div style="flex:1;"></div>
-                <button class="btn-nlp btn-nlp-success" id="btnExportSBERT" onclick="exportSBERT()" disabled>
-                    <i class="fas fa-download"></i> Export SBERT JSON
-                </button>
-                <button class="btn-nlp btn-nlp-purple" id="btnExportCSV" onclick="exportCSV()" disabled>
-                    <i class="fas fa-file-csv"></i> Export CSV
-                </button>
-            </div>
-
-            <!-- Article grid -->
-            <div class="nlp-article-grid" id="nlpArticleGrid">
+            <div id="newsFeed" class="p-3" style="max-height:720px;overflow-y:auto;">
                 <div class="text-center py-5" style="color:var(--text-3);">
-                    <i class="fas fa-brain fa-3x mb-3 opacity-25"></i>
-                    <p style="font-size:.85rem;">Preprocessing will run automatically after analysis completes.</p>
-                    <p style="font-size:.78rem;margin-top:.5rem;">Output is a Sentence-BERT–ready corpus with entity annotations.</p>
+                    <i class="fas fa-satellite-dish fa-3x mb-3 opacity-50"></i>
+                    <p>Results will appear here after analysis</p>
                 </div>
-            </div>
-
-            <!-- Status / summary bar -->
-            <div class="nlp-status-bar" id="nlpStatusBar" style="display:none;">
-                <span class="nlp-stat-chip"><i class="fas fa-file-alt"></i><span id="nlpStatTotal">0</span> articles</span>
-                <span class="nlp-stat-chip"><i class="fas fa-check-circle" style="color:var(--green);"></i><span id="nlpStatOk">0</span> ok</span>
-                <span class="nlp-stat-chip"><i class="fas fa-exclamation-circle" style="color:var(--red);"></i><span id="nlpStatErr">0</span> errors</span>
-                <span class="nlp-stat-chip"><i class="fas fa-tags"></i><span id="nlpStatEnts">0</span> total entities</span>
-                <span class="nlp-stat-chip"><i class="fas fa-align-left"></i>avg <span id="nlpStatSents">0</span> sentences</span>
-                <span class="nlp-stat-chip"><i class="fas fa-microchip"></i>avg <span id="nlpStatTokens">0</span> tokens</span>
-            </div>
-
-            <!-- Export bar (shown after preprocessing) -->
-            <div class="export-bar" id="nlpExportBar" style="display:none;">
-                <span class="export-bar-label"><i class="fas fa-code-branch me-1"></i>Pipeline output</span>
-                <button class="btn-nlp btn-nlp-primary" onclick="exportSBERT()">
-                    <i class="fas fa-download"></i> SBERT JSON
-                </button>
-                <button class="btn-nlp btn-nlp-outline" onclick="exportCleanText()">
-                    <i class="fas fa-file-alt"></i> Clean Text (.txt)
-                </button>
-                <button class="btn-nlp btn-nlp-purple" onclick="exportCSV()">
-                    <i class="fas fa-table"></i> Entities CSV
-                </button>
-                <button class="btn-nlp btn-nlp-outline" onclick="exportSentences()">
-                    <i class="fas fa-list-ul"></i> Sentences JSONL
-                </button>
             </div>
         </div>
 
@@ -440,8 +308,8 @@
 </div><!-- /container -->
 
 <footer>
-    <p><i class="fas fa-rss me-1"></i> Sources: Curated RSS Feeds · NewsAPI · GDELT &nbsp;|&nbsp; <i class="fas fa-map-marker-alt me-1"></i> Geography-aware source selection &nbsp;|&nbsp; <i class="fas fa-balance-scale me-1"></i> Rule-based relevance scoring &nbsp;|&nbsp; <i class="fas fa-brain me-1"></i> NER preprocessing · SBERT-ready output &nbsp;|&nbsp; <i class="fas fa-project-diagram me-1"></i> DBSCAN event clustering · LexRank summaries</p>
-    <p class="mt-1">© 2024 Supply Chain Risk Intelligence — Phase 3</p>
+    <p><i class="fas fa-rss me-1"></i> RSS · NewsAPI · Google News &nbsp;|&nbsp; <i class="fas fa-brain me-1"></i> spaCy NER · SBERT · DBSCAN · LexRank &nbsp;|&nbsp; <i class="fas fa-bolt me-1"></i> Parallel fetch</p>
+    <p class="mt-1">© 2025 Supply Chain Risk Intelligence</p>
 </footer>
 
 <div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">

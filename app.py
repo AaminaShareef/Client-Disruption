@@ -52,7 +52,31 @@ from utils.article_preprocessor import (
 from utils.event_clusterer import cluster_articles, flatten_clusters
 from utils.summariser import attach_summaries, summarise_article
 
+from utils.sbert_encoder import (
+    encode_articles,
+    deduplicate_semantic,
+    find_similar,
+)
+
 app = Flask(__name__)
+
+# ── Numpy-safe JSON encoder ───────────────────────────────────────────────────
+# Flask's default encoder can't handle numpy scalar types (np.int64, np.float32,
+# np.bool_, np.ndarray) that leak out of DBSCAN / SBERT / scoring pipelines.
+# This encoder coerces them transparently so jsonify() never raises TypeError.
+import numpy as _np
+
+class _NumpySafeEncoder(app.json_provider_class):
+    def default(self, obj):
+        if isinstance(obj, _np.integer):  return int(obj)
+        if isinstance(obj, _np.floating): return float(obj)
+        if isinstance(obj, _np.bool_):    return bool(obj)
+        if isinstance(obj, _np.ndarray):  return obj.tolist()
+        return super().default(obj)
+
+app.json_provider_class = _NumpySafeEncoder
+app.json = _NumpySafeEncoder(app)
+# ─────────────────────────────────────────────────────────────────────────────
 
 # ==========================================
 # CONFIG
@@ -85,6 +109,12 @@ MAX_NEWSAPI_QUERIES = 5
 logger.info("Pre-loading spaCy model at startup…")
 _get_nlp()
 logger.info("spaCy model ready.")
+
+logger.info("Pre-loading SBERT model at startup…")
+from utils.sbert_encoder import _get_model as _get_sbert_model, _get_archetype_embeddings
+_get_sbert_model()
+_get_archetype_embeddings()
+logger.info("SBERT model ready.")
 
 # ==========================================
 # SAVE CLIENT PROFILE
@@ -518,16 +548,42 @@ def analyze():
             preprocessed_articles = scored_articles
 
         # ------------------------------
+        # Semantic Encoding (SBERT)
+        # Runs after NLP preprocessing; produces doc_embedding on every
+        # article and removes near-duplicate stories before clustering.
+        # Falls back gracefully if sentence-transformers is not installed.
+        # ------------------------------
+        try:
+            encoding_result  = encode_articles(preprocessed_articles)
+            sbert_articles   = encoding_result.articles   # dicts now have doc_embedding
+
+            # Semantic deduplication — remove near-identical news stories
+            deduped_articles = deduplicate_semantic(encoding_result, threshold=0.88)
+            logger.info(
+                f"SBERT dedup: {len(sbert_articles)} → {len(deduped_articles)} articles"
+            )
+
+            # event_clusterer expects the embedding under the key "embedding";
+            # sbert_encoder stores it as "doc_embedding" → copy the key.
+            for art in deduped_articles:
+                art["embedding"] = art.get("doc_embedding")
+
+        except Exception as e:
+            logger.warning(f"SBERT encoding failed (non-fatal): {e} — skipping.")
+            deduped_articles = preprocessed_articles
+            # Ensure the key exists so clusterer doesn't crash
+            for art in deduped_articles:
+                art.setdefault("embedding", None)
+
+        # ------------------------------
         # Event Clustering (DBSCAN on SBERT embeddings)
-        # Groups articles into real-world supply chain events.
+        # Groups semantically similar articles into real-world events.
         # Falls back to per-article singletons if embeddings are absent
         # or scikit-learn is not installed.
         # ------------------------------
         try:
-            clusters = cluster_articles(preprocessed_articles)
+            clusters = cluster_articles(deduped_articles)
             attach_summaries(clusters, per_article=True)
-            # Write cluster_id + cluster_size back onto each article dict
-            # so the frontend can group cards by event.
             for cluster in clusters:
                 for art in cluster["articles"]:
                     art["cluster_id"]      = cluster["cluster_id"]
@@ -535,7 +591,7 @@ def analyze():
                     art["cluster_summary"] = cluster.get("summary", "")
             logger.info(
                 f"Clustering: {len(clusters)} cluster(s) from "
-                f"{len(preprocessed_articles)} article(s)"
+                f"{len(deduped_articles)} article(s)"
             )
         except Exception as e:
             logger.warning(f"Event clustering failed (non-fatal): {e} — skipping.")
@@ -544,7 +600,7 @@ def analyze():
         # ------------------------------
         # Per-article summaries (fallback for articles that skipped clustering)
         # ------------------------------
-        for art in preprocessed_articles:
+        for art in deduped_articles:
             if "summary" not in art:
                 try:
                     art["summary"] = summarise_article(art)
@@ -554,13 +610,13 @@ def analyze():
         # ------------------------------
         # Per-Node Risk Summary
         # ------------------------------
-        node_risk = build_node_risk_summary(preprocessed_articles, exposure)
+        node_risk = build_node_risk_summary(deduped_articles, exposure)
 
         # ------------------------------
         # Overall Risk Calculation
         # ------------------------------
-        high_count   = sum(1 for a in preprocessed_articles if a.get("impact_level") == "HIGH")
-        medium_count = sum(1 for a in preprocessed_articles if a.get("impact_level") == "MEDIUM")
+        high_count   = sum(1 for a in deduped_articles if a.get("impact_level") == "HIGH")
+        medium_count = sum(1 for a in deduped_articles if a.get("impact_level") == "MEDIUM")
 
         risk_score = min(high_count * 20 + medium_count * 10, 100)
 
@@ -596,7 +652,7 @@ def analyze():
             run_save_result = save_preprocessed_run(
                 client_name  = profile.get("client_name", "unknown"),
                 timestamp    = timestamp,
-                preprocessed = preprocessed_articles,
+                preprocessed = deduped_articles,
                 exposure     = exposure,
                 overall_risk = overall_risk,
                 risk_score   = risk_score,
@@ -629,6 +685,7 @@ def analyze():
                 "total_articles":        len(all_articles),
                 "scored_articles":       len(scored_articles),
                 "preprocessed_articles": len(preprocessed_articles),
+                "deduplicated_articles": len(deduped_articles),
                 "event_clusters":        len([c for c in clusters if not c.get("is_noise")]),
                 "critical_alerts":       0,
                 "high_alerts":           high_count,
@@ -644,7 +701,7 @@ def analyze():
             },
             "queries":            queries[:50],
             "geographic_sources": geographic_sources,
-            "news":               preprocessed_articles[:30],
+            "news":               deduped_articles[:30],
             "clusters":           [
                 {
                     "cluster_id":    c["cluster_id"],
