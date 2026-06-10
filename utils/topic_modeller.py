@@ -1,548 +1,337 @@
 """
 utils/topic_modeller.py
 ─────────────────────────────────────────────────────────────────────────────
-Lightweight BERTopic-inspired topic modelling for the Supply Chain
-Disruption Intelligence System.
+BERTopic-based thematic topic modelling for supply chain event clusters.
+
+Purpose
+───────
+DBSCAN clusters articles into events (same incident, multiple sources).
+BERTopic operates one level higher — it groups those events into themes
+(e.g. "Lithium supply shortage", "Port congestion Asia", "Labour disputes").
+
+This gives the dashboard a second view: instead of 30 individual event
+cards, the analyst sees 5–8 named themes with the events underneath.
 
 Architecture
 ────────────
-This module approximates the BERTopic pipeline described in the system
-documentation using only dependencies already present in the stack
-(numpy, scikit-learn) plus the optional bertopic package when available.
+• Uses SBERT doc_embeddings already computed by sbert_encoder.py.
+  No second encoding pass needed.
+• BERTopic runs c-TF-IDF over article titles/summaries to name topics.
+• Falls back to keyword-based TF-IDF clustering if bertopic is not
+  installed (zero extra dependencies for the fallback path).
 
-Two-level topic hierarchy (as per documentation §7.2)
-──────────────────────────────────────────────────────
-  Level 1: Disruption Domain  (Geopolitical, Natural Disaster, Labor, etc.)
-  Level 2: Affected Industries (derived from term co-occurrence)
-
-When BERTopic is installed (pip install bertopic):
-  Full pipeline:  SBERT embeddings → UMAP → HDBSCAN → c-TF-IDF labelling
-
-When BERTopic is NOT installed (graceful fallback):
-  Cosine similarity to hard-coded domain centroid sentences → soft-label
-  each cluster to the closest domain using SBERT archetypes.
+Config (.env)
+─────────────
+  BERTOPIC_MIN_TOPIC_SIZE   int   Min articles per topic.  Default 3.
+  BERTOPIC_NR_TOPICS        int   Target topic count.  Default "auto".
+                                  Set to an int (e.g. 8) to force reduction.
 
 Public API
 ──────────
-  model_topics(clusters, articles)
-      Assign topic labels to both articles and clusters.
-      Returns TopicResult namedtuple.
+  model_topics(articles)  →  TopicResult
 
-  build_cross_industry_map(topic_result)
-      Compute cross-industry co-occurrence chains (§7.4).
-      Returns {source_industry: [(target_industry, confidence, count), ...]}
+  TopicResult:
+    .topics        list[TopicInfo]   — each named theme
+    .article_map   dict[str, int]    — article url → topic_id (-1 = outlier)
+    .topic_count   int
+    .outlier_count int
 
-  attach_topics(clusters, articles)
-      Convenience wrapper — mutates clusters and articles in-place.
-      Returns TopicResult.
+  TopicInfo:
+    .topic_id      int
+    .label         str               — auto-generated name (e.g. "lithium mine Chile")
+    .keywords      list[str]         — top representative words
+    .article_count int
+    .impact_level  str               — highest impact in topic
+    .risk_score    int               — max relevance_score in topic
+
+  attach_topics(clusters, topic_result)
+      Injects topic_id and topic_label into each cluster dict.
+      Returns the same list (mutated in-place).
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import re
-from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import Optional
 
 import numpy as np
+from dotenv import load_dotenv
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# DISRUPTION DOMAIN DEFINITIONS (Level 1)
+# CONFIG
 # ──────────────────────────────────────────────────────────────────────────────
 
-DISRUPTION_DOMAINS: dict[str, dict] = {
-    "geopolitical": {
-        "label":       "Geopolitical / Trade Policy",
-        "keywords":    ["tariff", "sanction", "embargo", "trade war", "export ban",
-                        "restriction", "levy", "duty", "geopolit", "conflict",
-                        "war", "tension", "ban", "blockade", "political"],
-        "industries":  ["Metals", "Energy", "Agriculture", "Semiconductors"],
-        "archetypes":  [
-            "New export restrictions were imposed on semiconductor materials.",
-            "Trade war tariffs have sharply increased the cost of imported raw materials.",
-            "Sanctions prevent the company from sourcing components from the supplier.",
-            "The government banned exports of critical minerals amid escalating tensions.",
-        ],
-    },
-    "natural_disaster": {
-        "label":       "Natural Disaster & Climate",
-        "keywords":    ["flood", "earthquake", "typhoon", "hurricane", "tsunami",
-                        "wildfire", "drought", "storm", "cyclone", "disaster",
-                        "rainfall", "climate", "inundated", "seismic", "evacuate"],
-        "industries":  ["Mining", "Agriculture", "Logistics", "Energy"],
-        "archetypes":  [
-            "A major earthquake struck the manufacturing region causing structural damage.",
-            "Severe flooding has inundated the industrial zone and halted logistics.",
-            "The typhoon destroyed warehouses and disrupted port access roads.",
-            "Wildfires forced the evacuation of workers and closure of the facility.",
-        ],
-    },
-    "labor": {
-        "label":       "Labor & Industrial Action",
-        "keywords":    ["strike", "walkout", "union", "labor", "labour", "worker",
-                        "wage", "protest", "picket", "dispute", "industrial action",
-                        "dock", "dockworker", "longshoreman", "slowdown"],
-        "industries":  ["Logistics", "Automotive", "Energy", "Mining"],
-        "archetypes":  [
-            "Workers walked off the job in a strike over wage disputes.",
-            "The union called a nationwide walkout disrupting logistics operations.",
-            "Labour unrest at the facility has stopped production for three days.",
-            "Dockworkers refused to unload vessels amid contract negotiations.",
-        ],
-    },
-    "infrastructure": {
-        "label":       "Infrastructure Failure",
-        "keywords":    ["port closure", "canal", "blocked", "grounded", "collision",
-                        "bridge", "rail", "infrastructure", "breakdown", "failure",
-                        "outage", "congestion", "chokepoint", "bottleneck"],
-        "industries":  ["Logistics", "Shipping", "Manufacturing"],
-        "archetypes":  [
-            "The container ship ran aground blocking the canal for several days.",
-            "Port operations suspended after crane malfunction caused terminal congestion.",
-            "Rail network outage disrupted overland freight across the region.",
-        ],
-    },
-    "regulatory": {
-        "label":       "Regulatory & Policy",
-        "keywords":    ["regulation", "compliance", "policy", "ban", "recall",
-                        "cbam", "carbon", "emission", "standard", "rule",
-                        "inspection", "license", "permit", "authority", "epa"],
-        "industries":  ["Pharmaceuticals", "Chemicals", "Agriculture", "Automotive"],
-        "archetypes":  [
-            "New EU carbon border adjustment mechanism regulations came into force.",
-            "Regulators issued a product recall affecting millions of units globally.",
-            "The government imposed new environmental compliance requirements on factories.",
-        ],
-    },
-    "financial": {
-        "label":       "Financial Shock",
-        "keywords":    ["currency", "exchange rate", "inflation", "interest rate",
-                        "credit", "default", "bankruptcy", "financial", "cost surge",
-                        "price spike", "futures", "commodity price", "usd", "yuan"],
-        "industries":  ["All commodity-intensive sectors"],
-        "archetypes":  [
-            "Rapid USD appreciation against emerging market currencies raised import costs.",
-            "Commodity price surge driven by speculative pressure and supply fears.",
-            "The supplier filed for bankruptcy protection citing raw material cost increases.",
-        ],
-    },
-    "pandemic_health": {
-        "label":       "Pandemic & Health",
-        "keywords":    ["covid", "pandemic", "lockdown", "quarantine", "outbreak",
-                        "health", "disease", "virus", "shutdown", "closure",
-                        "workforce", "absenteeism"],
-        "industries":  ["Pharmaceuticals", "Food", "Electronics", "Logistics"],
-        "archetypes":  [
-            "Factory shutdowns in manufacturing hubs due to pandemic lockdown measures.",
-            "Workforce quarantine requirements reduced production capacity significantly.",
-        ],
-    },
-    "cyber_technology": {
-        "label":       "Cyber & Technology",
-        "keywords":    ["cyberattack", "ransomware", "hack", "breach", "outage",
-                        "it failure", "system failure", "cyber", "malware",
-                        "disruption", "technology", "semiconductor shortage", "chip shortage"],
-        "industries":  ["Semiconductors", "Automotive", "Finance"],
-        "archetypes":  [
-            "TSMC production was halted following a sophisticated cyberattack on its systems.",
-            "Chip shortages continue to constrain automotive production globally.",
-            "A ransomware attack encrypted logistics management systems across the network.",
-        ],
-    },
-}
+_MIN_TOPIC_SIZE = int(os.getenv("BERTOPIC_MIN_TOPIC_SIZE", "3"))
+_NR_TOPICS_ENV  = os.getenv("BERTOPIC_NR_TOPICS", "auto")
+_NR_TOPICS      = None if _NR_TOPICS_ENV == "auto" else int(_NR_TOPICS_ENV)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# INDUSTRY TERMS FOR CO-OCCURRENCE MAPPING (Level 2, §7.4)
-# ──────────────────────────────────────────────────────────────────────────────
-
-INDUSTRY_KEYWORDS: dict[str, list[str]] = {
-    "Steel":          ["steel", "iron ore", "blast furnace", "flat-rolled", "rebar", "coil"],
-    "Automotive":     ["automotive", "vehicle", "toyota", "bmw", "volkswagen", "car", "ev",
-                       "electric vehicle", "automaker"],
-    "Semiconductors": ["semiconductor", "chip", "wafer", "tsmc", "intel", "fab", "silicon",
-                       "microchip", "integrated circuit"],
-    "Logistics":      ["port", "shipping", "container", "freight", "cargo", "vessel",
-                       "logistics", "dhl", "fedex", "maersk"],
-    "Energy":         ["oil", "gas", "lng", "fuel", "refinery", "pipeline", "energy",
-                       "petrochemical", "crude"],
-    "Agriculture":    ["wheat", "corn", "soybean", "grain", "harvest", "crop",
-                       "agriculture", "food", "fertilizer"],
-    "Mining":         ["mine", "mining", "ore", "lithium", "cobalt", "copper", "nickel",
-                       "rare earth", "extraction"],
-    "Pharmaceuticals":["pharma", "drug", "api", "medicine", "vaccine", "fda", "clinical"],
-    "Electronics":    ["electronics", "pcb", "display", "battery", "consumer electronics",
-                       "smartphone", "component"],
-    "Construction":   ["construction", "cement", "concrete", "steel rebar", "building",
-                       "infrastructure", "housing"],
-}
-
-# ──────────────────────────────────────────────────────────────────────────────
-# RESULT TYPES
+# DATA CLASSES
 # ──────────────────────────────────────────────────────────────────────────────
 
 @dataclass
-class TopicAssignment:
-    """Topic assignment for a single article or cluster."""
-    topic_id:        int          = -1   # -1 = outlier
-    domain:          str          = "unknown"
-    domain_label:    str          = "Unknown"
-    confidence:      float        = 0.0
-    industries:      list[str]    = field(default_factory=list)
-    keywords_hit:    list[str]    = field(default_factory=list)
+class TopicInfo:
+    topic_id:      int
+    label:         str
+    keywords:      list[str]
+    article_count: int
+    impact_level:  str  = "LOW"
+    risk_score:    int  = 0
 
 
 @dataclass
 class TopicResult:
-    """Return type from model_topics()."""
-    assignments:          list[TopicAssignment]   # one per article
-    cluster_assignments:  list[TopicAssignment]   # one per cluster
-    topic_counts:         dict[str, int]          # domain → article count
-    cross_industry_map:   dict[str, list]         # industry → [(industry, conf, count)]
-    bertopic_available:   bool
-    method:               str                     # "bertopic" | "keyword" | "cosine"
+    topics:        list[TopicInfo]
+    article_map:   dict[str, int]   # url → topic_id
+    topic_count:   int
+    outlier_count: int
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# KEYWORD-BASED DOMAIN CLASSIFIER (fallback)
+# HELPERS
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _text_for_article(article: dict) -> str:
-    """Concatenate all useful text fields from an article dict."""
-    parts = [
-        article.get("title", ""),
-        article.get("clean_title", ""),
-        article.get("summary", ""),
-        article.get("input_text", ""),
-    ]
-    # Include sentence text
-    for s in article.get("sentences", []):
-        parts.append(s)
-    return " ".join(p for p in parts if p).lower()
+_LEVEL_RANK = {"HIGH": 3, "MEDIUM": 2, "LOW": 1, "": 0}
+
+_STOP_WORDS = {
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+    "of", "with", "by", "from", "as", "is", "was", "are", "were", "be",
+    "been", "has", "have", "had", "will", "would", "could", "should",
+    "that", "this", "it", "its", "they", "their", "them", "he", "she",
+    "his", "her", "we", "our", "you", "your", "can", "may", "might",
+    "not", "no", "new", "report", "said", "says", "say", "also",
+    "after", "over", "more", "about", "up", "out", "into",
+    "amid", "due", "amid", "amid", "per", "vs",
+}
 
 
-def _keyword_domain_score(text: str, domain_key: str) -> tuple[float, list[str]]:
+def _doc_text(article: dict) -> str:
+    """Combine title + summary for keyword extraction."""
+    title   = article.get("clean_title") or article.get("title", "")
+    summary = article.get("clean_body")  or article.get("summary", "") or ""
+    return (title + " " + summary[:300]).lower()
+
+
+def _top_keywords(texts: list[str], n: int = 5) -> list[str]:
     """
-    Score an article's text against a domain's keyword list.
-    Returns (normalised_score, matched_keywords).
+    Lightweight c-TF-IDF keyword extraction (no sklearn required).
+    Returns the top-n class-distinctive terms.
     """
-    keywords = DISRUPTION_DOMAINS[domain_key]["keywords"]
-    hits = []
-    for kw in keywords:
-        if kw.lower() in text:
-            hits.append(kw)
-    score = len(hits) / max(len(keywords), 1)
-    return score, hits
+    from collections import Counter
+
+    # Tokenise
+    tokens_per_doc = [re.findall(r"[a-z]{4,}", t) for t in texts]
+
+    # TF per class (all docs in one pseudo-document)
+    class_tokens = [t for tokens in tokens_per_doc for t in tokens
+                    if t not in _STOP_WORDS]
+    tf = Counter(class_tokens)
+
+    # IDF proxy: how rare is each term across individual docs?
+    doc_freq: Counter = Counter()
+    for tokens in tokens_per_doc:
+        for tok in set(tokens):
+            if tok not in _STOP_WORDS:
+                doc_freq[tok] += 1
+
+    n_docs = max(len(texts), 1)
+    scores: dict[str, float] = {}
+    for tok, freq in tf.items():
+        idf = np.log(n_docs / (doc_freq.get(tok, 1)))
+        scores[tok] = freq * idf
+
+    top = sorted(scores, key=lambda k: -scores[k])[:n]
+    return top
 
 
-def _assign_domain_keyword(text: str) -> TopicAssignment:
-    """
-    Assign the best-matching disruption domain to an article via keyword scoring.
-    Falls back to 'unknown' if no keywords match at all.
-    """
-    best_domain = "unknown"
-    best_score  = 0.0
-    best_hits:  list[str] = []
-
-    for domain_key, domain_data in DISRUPTION_DOMAINS.items():
-        score, hits = _keyword_domain_score(text, domain_key)
-        if score > best_score:
-            best_score  = score
-            best_domain = domain_key
-            best_hits   = hits
-
-    domain_data = DISRUPTION_DOMAINS.get(best_domain, {})
-    industries  = _detect_industries(text)
-
-    return TopicAssignment(
-        topic_id     = -1 if best_score == 0 else hash(best_domain) % 1000,
-        domain       = best_domain,
-        domain_label = domain_data.get("label", "Unknown"),
-        confidence   = round(min(best_score * 3.0, 1.0), 3),   # scale up from fraction
-        industries   = industries,
-        keywords_hit = best_hits[:8],
-    )
-
-
-def _detect_industries(text: str) -> list[str]:
-    """
-    Detect which industries are mentioned in the text via keyword matching.
-    Returns a list of industry names (sorted by match count descending).
-    """
-    scores: dict[str, int] = {}
-    text_lower = text.lower()
-    for industry, kws in INDUSTRY_KEYWORDS.items():
-        count = sum(1 for kw in kws if kw.lower() in text_lower)
-        if count > 0:
-            scores[industry] = count
-    return sorted(scores, key=lambda i: -scores[i])
+def _build_topic_label(keywords: list[str]) -> str:
+    """Turn top keywords into a readable 3-word label."""
+    return " ".join(keywords[:3]).title() if keywords else "General News"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# COSINE-BASED DOMAIN CLASSIFIER (uses SBERT archetypes when available)
-# ──────────────────────────────────────────────────────────────────────────────
-
-_domain_archetype_embeddings: Optional[dict[str, np.ndarray]] = None
-
-
-def _get_domain_embeddings() -> Optional[dict[str, np.ndarray]]:
-    """
-    Build or return cached domain centroid embeddings from archetype sentences.
-    Requires sentence-transformers.  Returns None if unavailable.
-    """
-    global _domain_archetype_embeddings
-    if _domain_archetype_embeddings is not None:
-        return _domain_archetype_embeddings
-
-    try:
-        from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer("all-MiniLM-L6-v2")
-        embeddings = {}
-        for domain_key, domain_data in DISRUPTION_DOMAINS.items():
-            archetypes = domain_data.get("archetypes", [])
-            if not archetypes:
-                continue
-            embs = model.encode(
-                archetypes,
-                normalize_embeddings=True,
-                show_progress_bar=False,
-                convert_to_numpy=True,
-            )
-            centroid = embs.mean(axis=0)
-            norm = np.linalg.norm(centroid)
-            if norm > 0:
-                centroid /= norm
-            embeddings[domain_key] = centroid
-        _domain_archetype_embeddings = embeddings
-        logger.info(
-            f"Topic modeller: computed archetype embeddings for "
-            f"{len(embeddings)} disruption domains."
-        )
-        return _domain_archetype_embeddings
-    except ImportError:
-        logger.info("Topic modeller: sentence-transformers unavailable — using keyword fallback.")
-        return None
-    except Exception as e:
-        logger.warning(f"Topic modeller: archetype embedding failed ({e}) — using keyword fallback.")
-        return None
-
-
-def _assign_domain_cosine(doc_embedding: list | np.ndarray, text: str) -> TopicAssignment:
-    """
-    Assign domain by cosine similarity to archetype centroids.
-    Falls back to keyword scoring for industries and keyword_hits.
-    """
-    domain_embs = _get_domain_embeddings()
-    if domain_embs is None or doc_embedding is None:
-        return _assign_domain_keyword(text)
-
-    emb = np.array(doc_embedding, dtype=np.float32)
-    norm = np.linalg.norm(emb)
-    if norm > 0:
-        emb /= norm
-
-    best_domain = "unknown"
-    best_score  = -1.0
-    for domain_key, centroid in domain_embs.items():
-        sim = float(np.dot(emb, centroid))
-        if sim > best_score:
-            best_score  = sim
-            best_domain = domain_key
-
-    # Supplement with keyword hits for transparency
-    _, kw_hits = _keyword_domain_score(text, best_domain)
-
-    domain_data = DISRUPTION_DOMAINS.get(best_domain, {})
-    industries  = _detect_industries(text)
-
-    return TopicAssignment(
-        topic_id     = hash(best_domain) % 1000,
-        domain       = best_domain,
-        domain_label = domain_data.get("label", best_domain),
-        confidence   = round(max(0.0, best_score), 3),
-        industries   = industries,
-        keywords_hit = kw_hits[:8],
-    )
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# BERTOPIC INTEGRATION (optional, full pipeline)
+# BERTOPIC PATH
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _run_bertopic(
-    articles: list[dict],
-    doc_embeddings: Optional[np.ndarray],
-) -> Optional[list[TopicAssignment]]:
+    articles:   list[dict],
+    embeddings: np.ndarray,
+) -> Optional[TopicResult]:
     """
-    Run the full BERTopic pipeline on article texts.
-    Returns a list of TopicAssignment objects (one per article), or None
-    if BERTopic is not installed or fails.
+    Run BERTopic with pre-computed SBERT embeddings.
+    Returns None if bertopic is not installed.
     """
     try:
         from bertopic import BERTopic
-        from umap import UMAP
-        from hdbscan import HDBSCAN
+        from bertopic.representation import KeyBERTInspired
+        from sklearn.feature_extraction.text import CountVectorizer
     except ImportError:
         return None
 
-    try:
-        texts = [_text_for_article(a) for a in articles]
-        if len(texts) < 5:
-            logger.info("Topic modeller: fewer than 5 articles — skipping BERTopic.")
-            return None
+    docs = [_doc_text(a) for a in articles]
 
-        umap_model  = UMAP(n_components=5, n_neighbors=5, min_dist=0.0, metric="cosine")
-        hdbscan_model = HDBSCAN(
-            min_cluster_size=2, min_samples=1,
-            metric="euclidean", cluster_selection_method="eom"
-        )
-        topic_model = BERTopic(
-            umap_model=umap_model,
-            hdbscan_model=hdbscan_model,
-            calculate_probabilities=True,
-            verbose=False,
-        )
+    vectorizer = CountVectorizer(
+        stop_words="english",
+        ngram_range=(1, 2),
+        min_df=2,
+        max_features=5000,
+    )
+    representation = KeyBERTInspired()
 
-        if doc_embeddings is not None and len(doc_embeddings) == len(texts):
-            topics, probs = topic_model.fit_transform(texts, embeddings=doc_embeddings)
-        else:
-            topics, probs = topic_model.fit_transform(texts)
-
-        # Map BERTopic topic IDs to our domain taxonomy
-        assignments = []
-        for i, (topic_id, art) in enumerate(zip(topics, articles)):
-            text = _text_for_article(art)
-            doc_emb = art.get("doc_embedding") or art.get("embedding")
-            asgn = _assign_domain_cosine(doc_emb, text) if doc_emb else _assign_domain_keyword(text)
-            asgn.topic_id = int(topic_id)
-            asgn.confidence = round(float(max(probs[i])) if hasattr(probs[i], '__iter__') else float(probs[i]), 3)
-            assignments.append(asgn)
-
-        logger.info(
-            f"BERTopic: fitted {len(set(topics))} topics from "
-            f"{len(articles)} articles."
-        )
-        return assignments
-
-    except Exception as e:
-        logger.warning(f"BERTopic pipeline failed ({e}) — falling back to cosine/keyword.")
-        return None
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# CROSS-INDUSTRY MAP (§7.4)
-# ──────────────────────────────────────────────────────────────────────────────
-
-def build_cross_industry_map(
-    topic_result: TopicResult,
-    min_count: int = 2,
-) -> dict[str, list[tuple[str, float, int]]]:
-    """
-    Build a cross-industry co-occurrence map from topic assignments.
-
-    For each pair of industries (A, B), count how many articles or clusters
-    mention both.  The confidence is count / total_articles_mentioning_A.
-
-    Returns:
-        {industry_A: [(industry_B, confidence, co_occurrence_count), ...]}
-    Each list is sorted by confidence descending.
-
-    Parameters
-    ──────────
-    topic_result  TopicResult from model_topics().
-    min_count     Minimum co-occurrence count to include a link.
-    """
-    # Collect all (industry_list) from article-level assignments
-    industry_lists = [a.industries for a in topic_result.assignments]
-
-    # Count per-industry article volumes
-    industry_totals: dict[str, int] = Counter(
-        ind for inds in industry_lists for ind in inds
+    topic_model = BERTopic(
+        embedding_model=None,          # embeddings already computed
+        vectorizer_model=vectorizer,
+        representation_model=representation,
+        min_topic_size=_MIN_TOPIC_SIZE,
+        nr_topics=_NR_TOPICS,
+        calculate_probabilities=False,
+        verbose=False,
     )
 
-    # Count co-occurrences
-    pair_counts: dict[tuple[str, str], int] = Counter()
-    for inds in industry_lists:
-        unique = list(dict.fromkeys(inds))  # preserve order, deduplicate
-        for i in range(len(unique)):
-            for j in range(len(unique)):
-                if i != j:
-                    pair_counts[(unique[i], unique[j])] += 1
+    try:
+        topics_raw, _ = topic_model.fit_transform(docs, embeddings)
+    except Exception as e:
+        logger.warning(f"BERTopic fit_transform failed: {e}")
+        return None
 
-    cross_map: dict[str, list] = defaultdict(list)
-    for (src, tgt), count in pair_counts.items():
-        if count < min_count:
-            continue
-        total_src = industry_totals.get(src, 1)
-        confidence = round(count / total_src, 3)
-        cross_map[src].append((tgt, confidence, count))
+    # ── Build TopicInfo list ──────────────────────────────
+    topic_infos: dict[int, TopicInfo] = {}
+    article_map: dict[str, int] = {}
 
-    # Sort each list by confidence desc
-    for src in cross_map:
-        cross_map[src].sort(key=lambda x: -x[1])
-
-    return dict(cross_map)
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# CLUSTER-LEVEL TOPIC ASSIGNMENT
-# ──────────────────────────────────────────────────────────────────────────────
-
-def _assign_cluster_topic(
-    cluster: dict,
-    article_assignments: list[TopicAssignment],
-    article_idx_map: dict[str, int],
-) -> TopicAssignment:
-    """
-    Assign a domain to a cluster by majority vote over its member articles'
-    assignments.
-    """
-    cluster_arts = cluster.get("articles", [])
-    domain_votes: Counter = Counter()
-    all_industries: list[str] = []
-    all_kw_hits:    list[str] = []
-    best_conf = 0.0
-
-    for art in cluster_arts:
+    for art, tid in zip(articles, topics_raw):
         url = art.get("url", "")
-        idx = article_idx_map.get(url)
-        if idx is not None and idx < len(article_assignments):
-            asgn = article_assignments[idx]
-            domain_votes[asgn.domain] += 1
-            all_industries.extend(asgn.industries)
-            all_kw_hits.extend(asgn.keywords_hit)
-            if asgn.confidence > best_conf:
-                best_conf = asgn.confidence
+        article_map[url] = int(tid)
 
-    if not domain_votes:
-        # Fallback: assign from cluster text directly
-        text = " ".join(
-            a.get("title", "") + " " + a.get("summary", "")
-            for a in cluster_arts
-        )
-        doc_emb = cluster_arts[0].get("doc_embedding") if cluster_arts else None
-        return _assign_domain_cosine(doc_emb, text)
+        if tid == -1:
+            continue  # outlier
 
-    best_domain, _ = domain_votes.most_common(1)[0]
-    domain_data    = DISRUPTION_DOMAINS.get(best_domain, {})
+        if tid not in topic_infos:
+            # Get BERTopic keywords for this topic
+            try:
+                kw_scores = topic_model.get_topic(tid) or []
+                keywords  = [w for w, _ in kw_scores[:6]]
+            except Exception:
+                keywords = []
+            label = _build_topic_label(keywords)
+            topic_infos[tid] = TopicInfo(
+                topic_id=tid, label=label, keywords=keywords,
+                article_count=0, impact_level="LOW", risk_score=0,
+            )
 
-    # Deduplicate industry list, keep order, take top 5
-    seen_ind:   set[str] = set()
-    uniq_inds:  list[str] = []
-    for ind in all_industries:
-        if ind not in seen_ind:
-            seen_ind.add(ind)
-            uniq_inds.append(ind)
+        ti = topic_infos[tid]
+        ti.article_count += 1
 
-    return TopicAssignment(
-        topic_id     = hash(best_domain) % 1000,
-        domain       = best_domain,
-        domain_label = domain_data.get("label", best_domain),
-        confidence   = round(best_conf, 3),
-        industries   = uniq_inds[:5],
-        keywords_hit = list(dict.fromkeys(all_kw_hits))[:8],
+        level = art.get("impact_level", "LOW")
+        if _LEVEL_RANK.get(level, 0) > _LEVEL_RANK.get(ti.impact_level, 0):
+            ti.impact_level = level
+        score = art.get("relevance_score", 0)
+        if score > ti.risk_score:
+            ti.risk_score = score
+
+    topics = sorted(topic_infos.values(), key=lambda t: -t.article_count)
+    outlier_count = sum(1 for tid in topics_raw if tid == -1)
+
+    logger.info(
+        f"BERTopic: {len(topics)} topic(s), "
+        f"{outlier_count} outlier(s) from {len(articles)} articles"
+    )
+    return TopicResult(
+        topics=topics,
+        article_map=article_map,
+        topic_count=len(topics),
+        outlier_count=outlier_count,
+    )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FALLBACK: TF-IDF KMEANS PATH
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _run_tfidf_fallback(
+    articles:   list[dict],
+    embeddings: np.ndarray,
+    n_topics:   int = 8,
+) -> TopicResult:
+    """
+    Pure-numpy fallback using cosine k-means on SBERT embeddings.
+    No sklearn or bertopic required.
+    """
+    n = len(articles)
+    n_topics = min(n_topics, max(1, n // _MIN_TOPIC_SIZE))
+
+    # Normalise embeddings
+    norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+    norms[norms == 0] = 1.0
+    emb_norm = embeddings / norms
+
+    # K-means (cosine = 1 - dot after L2 norm)
+    rng = np.random.default_rng(42)
+    centers = emb_norm[rng.choice(n, size=n_topics, replace=False)]
+
+    labels = np.zeros(n, dtype=int)
+    for _ in range(30):
+        sims   = emb_norm @ centers.T          # (n, k)
+        new_labels = np.argmax(sims, axis=1)
+        if np.array_equal(new_labels, labels):
+            break
+        labels = new_labels
+        for k in range(n_topics):
+            mask = labels == k
+            if mask.any():
+                centers[k] = emb_norm[mask].mean(axis=0)
+                c_norm = np.linalg.norm(centers[k])
+                if c_norm > 0:
+                    centers[k] /= c_norm
+
+    # ── Build TopicInfo list ──────────────────────────────
+    topic_infos: dict[int, TopicInfo] = {}
+    article_map: dict[str, int]       = {}
+    topic_texts: dict[int, list[str]] = {}
+
+    for art, tid in zip(articles, labels):
+        tid = int(tid)
+        url = art.get("url", "")
+        article_map[url] = tid
+
+        if tid not in topic_infos:
+            topic_infos[tid] = TopicInfo(
+                topic_id=tid, label="", keywords=[],
+                article_count=0, impact_level="LOW", risk_score=0,
+            )
+            topic_texts[tid] = []
+
+        ti = topic_infos[tid]
+        ti.article_count += 1
+        topic_texts[tid].append(_doc_text(art))
+
+        level = art.get("impact_level", "LOW")
+        if _LEVEL_RANK.get(level, 0) > _LEVEL_RANK.get(ti.impact_level, 0):
+            ti.impact_level = level
+        score = art.get("relevance_score", 0)
+        if score > ti.risk_score:
+            ti.risk_score = score
+
+    for tid, ti in topic_infos.items():
+        keywords     = _top_keywords(topic_texts[tid])
+        ti.keywords  = keywords
+        ti.label     = _build_topic_label(keywords)
+
+    topics = sorted(topic_infos.values(), key=lambda t: -t.article_count)
+
+    logger.info(
+        f"TF-IDF fallback topics: {len(topics)} from {len(articles)} articles"
+    )
+    return TopicResult(
+        topics=topics,
+        article_map=article_map,
+        topic_count=len(topics),
+        outlier_count=0,
     )
 
 
@@ -550,133 +339,98 @@ def _assign_cluster_topic(
 # PUBLIC API
 # ──────────────────────────────────────────────────────────────────────────────
 
-def model_topics(
-    clusters: list[dict],
-    articles: list[dict],
-) -> TopicResult:
+def model_topics(articles: list[dict]) -> Optional[TopicResult]:
     """
-    Assign disruption domain topics to articles and clusters.
+    Run topic modelling over a list of articles.
 
-    Tries in order:
-      1. BERTopic full pipeline (if bertopic + umap + hdbscan installed)
-      2. Cosine similarity to archetype centroids (if sentence-transformers)
-      3. Pure keyword matching (always available)
+    Uses pre-computed ``doc_embedding`` or ``embedding`` fields.
+    If fewer than MIN_TOPIC_SIZE * 2 articles have embeddings,
+    returns None (not enough data to model).
+
+    Tries BERTopic first; falls back to TF-IDF k-means if not installed.
 
     Parameters
     ──────────
-    clusters  Cluster list from event_clusterer (after attach_summaries / attach_briefs).
-    articles  Flat list of all deduplicated articles (with SBERT fields injected).
+    articles   List of article dicts enriched by sbert_encoder.
 
     Returns
     ───────
-    TopicResult with per-article and per-cluster assignments.
+    TopicResult  or  None if insufficient data.
     """
-    if not articles:
-        return TopicResult(
-            assignments=[],
-            cluster_assignments=[],
-            topic_counts={},
-            cross_industry_map={},
-            bertopic_available=False,
-            method="none",
+    # ── Collect embeddings ────────────────────────────────
+    embedded_arts: list[dict]        = []
+    emb_list:      list[list[float]] = []
+
+    for art in articles:
+        emb = art.get("doc_embedding") or art.get("embedding")
+        if emb is not None and len(emb) > 0:
+            embedded_arts.append(art)
+            emb_list.append(emb)
+
+    min_needed = _MIN_TOPIC_SIZE * 2
+    if len(embedded_arts) < min_needed:
+        logger.info(
+            f"topic_modeller: only {len(embedded_arts)} embedded articles "
+            f"(need ≥ {min_needed}) — skipping."
         )
+        return None
 
-    # ── Attempt BERTopic ────────────────────────────────────────────────────
-    doc_embeddings = None
-    emb_list = [a.get("doc_embedding") or a.get("embedding") for a in articles]
-    if all(e is not None for e in emb_list):
-        try:
-            doc_embeddings = np.array(emb_list, dtype=np.float32)
-        except Exception:
-            pass
+    embeddings = np.array(emb_list, dtype=np.float32)
 
-    bertopic_assignments = _run_bertopic(articles, doc_embeddings)
-    bertopic_available   = bertopic_assignments is not None
-    method               = "bertopic"
+    # ── Try BERTopic, fall back to TF-IDF ─────────────────
+    result = _run_bertopic(embedded_arts, embeddings)
+    if result is None:
+        logger.info("BERTopic not available — using TF-IDF k-means fallback.")
+        result = _run_tfidf_fallback(embedded_arts, embeddings)
 
-    if bertopic_assignments:
-        article_assignments = bertopic_assignments
-    else:
-        # ── Cosine / keyword fallback ─────────────────────────────────────
-        article_assignments = []
-        for art in articles:
-            text    = _text_for_article(art)
-            doc_emb = art.get("doc_embedding") or art.get("embedding")
-            if doc_emb is not None:
-                asgn   = _assign_domain_cosine(doc_emb, text)
-                method = "cosine"
-            else:
-                asgn   = _assign_domain_keyword(text)
-                method = "keyword" if method == "bertopic" else method
-            article_assignments.append(asgn)
-
-    # ── Build URL→index map for cluster assignment ───────────────────────
-    url_to_idx = {a.get("url", ""): i for i, a in enumerate(articles)}
-
-    # ── Cluster-level assignments ─────────────────────────────────────────
-    cluster_assignments = [
-        _assign_cluster_topic(c, article_assignments, url_to_idx)
-        for c in clusters
-    ]
-
-    # ── Topic counts ─────────────────────────────────────────────────────
-    topic_counts: dict[str, int] = Counter(a.domain for a in article_assignments)
-
-    # ── Cross-industry map ────────────────────────────────────────────────
-    result = TopicResult(
-        assignments          = article_assignments,
-        cluster_assignments  = cluster_assignments,
-        topic_counts         = dict(topic_counts),
-        cross_industry_map   = {},
-        bertopic_available   = bertopic_available,
-        method               = method,
-    )
-    result.cross_industry_map = build_cross_industry_map(result)
-
-    logger.info(
-        f"Topic modelling complete ({method}) — "
-        f"{len(articles)} articles → {len(topic_counts)} domain(s) "
-        f"[{', '.join(f'{d}:{n}' for d, n in topic_counts.most_common(3))}]"
-    )
     return result
 
 
 def attach_topics(
-    clusters: list[dict],
-    articles: list[dict],
-) -> TopicResult:
+    clusters:     list[dict],
+    topic_result: Optional[TopicResult],
+) -> list[dict]:
     """
-    Convenience wrapper: run model_topics() and inject topic fields
-    back into cluster and article dicts in-place.
+    Inject ``topic_id`` and ``topic_label`` into each cluster dict,
+    derived from the topic assignments of their member articles.
 
-    Adds to each article dict:
-      - topic_domain        : str   (e.g. "geopolitical")
-      - topic_domain_label  : str   (e.g. "Geopolitical / Trade Policy")
-      - topic_confidence    : float
-      - topic_industries    : list[str]
-      - topic_keywords_hit  : list[str]
-
-    Adds to each cluster dict:
-      - topic_domain        : str
-      - topic_domain_label  : str
-      - topic_confidence    : float
-      - topic_industries    : list[str]
-
-    Returns the TopicResult.
+    A cluster's topic = the plurality topic among its member articles.
+    Mutates and returns the same list.
     """
-    result = model_topics(clusters, articles)
+    if topic_result is None:
+        for c in clusters:
+            c["topic_id"]    = -1
+            c["topic_label"] = "Uncategorised"
+        return clusters
 
-    for art, asgn in zip(articles, result.assignments):
-        art["topic_domain"]       = asgn.domain
-        art["topic_domain_label"] = asgn.domain_label
-        art["topic_confidence"]   = asgn.confidence
-        art["topic_industries"]   = asgn.industries
-        art["topic_keywords_hit"] = asgn.keywords_hit
+    # Build a label lookup
+    label_map = {t.topic_id: t.label for t in topic_result.topics}
 
-    for cluster, asgn in zip(clusters, result.cluster_assignments):
-        cluster["topic_domain"]       = asgn.domain
-        cluster["topic_domain_label"] = asgn.domain_label
-        cluster["topic_confidence"]   = asgn.confidence
-        cluster["topic_industries"]   = asgn.industries
+    for cluster in clusters:
+        votes: dict[int, int] = {}
+        for art in cluster.get("articles", []):
+            url = art.get("url", "")
+            tid = topic_result.article_map.get(url, -1)
+            votes[tid] = votes.get(tid, 0) + 1
 
-    return result
+        # Plurality vote; -1 (outlier) loses ties
+        best_tid = max(votes, key=lambda t: (t != -1, votes[t]))
+        cluster["topic_id"]    = int(best_tid)
+        cluster["topic_label"] = label_map.get(best_tid, "General News")
+
+    return clusters
+
+
+def topics_to_dict(topic_result: TopicResult) -> list[dict]:
+    """Serialise TopicResult.topics to a JSON-safe list for the API response."""
+    return [
+        {
+            "topic_id":      t.topic_id,
+            "label":         t.label,
+            "keywords":      t.keywords,
+            "article_count": t.article_count,
+            "impact_level":  t.impact_level,
+            "risk_score":    t.risk_score,
+        }
+        for t in topic_result.topics
+    ]

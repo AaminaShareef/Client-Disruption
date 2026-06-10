@@ -61,6 +61,7 @@ def _disruption():
 
 # Supply chain context keywords — must appear alongside a disruption signal
 _SC_KEYWORDS = [
+    # Core supply chain
     "supply chain", "supplier", "manufacturer", "factory", "plant",
     "production", "shipment", "freight", "logistics", "warehouse",
     "inventory", "procurement", "sourcing", "vendor", "component",
@@ -69,6 +70,18 @@ _SC_KEYWORDS = [
     "commodity", "stockpile", "shortage", "capacity", "throughput",
     "tier-1", "tier 1", "oem", "contract manufacturer", "foundry",
     "just-in-time", "just in time", "lead time", "bill of materials",
+    # Energy / LNG / petrochemical vocabulary
+    "lng", "liquefied natural gas", "natural gas", "pipeline",
+    "refinery", "oil field", "gas field", "oil terminal", "gas terminal",
+    "tanker", "supertanker", "vlcc", "lng carrier", "regasification",
+    "liquefaction", "petrochemical", "crude oil", "refined product",
+    "upstream", "downstream", "midstream", "wellhead", "rig",
+    "offshore platform", "onshore", "gas plant", "processing plant",
+    "feedstock", "fuel supply", "energy supply", "power grid",
+    "electricity grid", "grid outage", "blackout", "brownout",
+    "power plant", "solar farm", "wind farm", "battery storage",
+    "lithium", "cobalt", "nickel", "rare earth", "critical mineral",
+    "mining", "mine", "smelter", "ore", "concentrate",
 ]
 
 # Press-release / investor-relations signals (false-positive guard)
@@ -94,36 +107,85 @@ _GEO_NOISE = [
 # Per-domain point values — conflict and commodity get slight boosts
 # because they correlate most directly with supply chain impact
 _DOMAIN_POINTS = {
-    "conflict":   8,
-    "commodity":  8,
-    "labour":     7,
-    "weather":    6,
-    "infrastructure": 7,   # add if missing — covers power grid, pipeline disruptions
-    "regulatory": 6,       # sanctions, export controls hit energy hard
+    "conflict":       8,
+    "commodity":      8,
+    "labour":         7,
+    "weather":        6,
+    "political":      6,
+    "infrastructure": 7,   # pipeline/grid/refinery disruptions
+    "regulatory":     6,   # sanctions, export controls, permits
+    "pandemic":       5,
 }
 
 # Bonus for multiple distinct domains triggered simultaneously
 _MULTI_DOMAIN_BONUS = 5   # awarded when ≥ 2 domains trigger
 
 
+# Inline disruption terms for domains not always in disruption_terms.json.
+# These supplement the JSON config so energy/infrastructure profiles score
+# correctly without requiring config file edits.
+_INLINE_DISRUPTION_TERMS: dict[str, list[str]] = {
+    "infrastructure": [
+        "pipeline rupture", "pipeline explosion", "pipeline leak", "pipeline fire",
+        "refinery fire", "refinery explosion", "refinery outage", "refinery shutdown",
+        "plant shutdown", "plant explosion", "facility shutdown", "terminal closure",
+        "power outage", "blackout", "grid failure", "grid collapse", "grid disruption",
+        "gas leak", "oil spill", "tanker collision", "tanker grounding",
+        "platform shutdown", "rig accident", "well blowout",
+        "compressor failure", "pump failure", "equipment failure",
+        "infrastructure attack", "sabotage",
+    ],
+    "regulatory": [
+        "sanctions", "export ban", "import ban", "export restriction",
+        "trade embargo", "trade ban", "permit suspended", "licence revoked",
+        "regulatory halt", "regulatory shutdown", "compliance failure",
+        "forced shutdown", "government seizure", "nationalisation",
+        "expropriation", "asset freeze",
+    ],
+    "commodity": [
+        "price surge", "price spike", "supply crunch", "supply squeeze",
+        "shortage", "scarcity", "stockpile depletion", "inventory shortage",
+        "production cut", "output cut", "quota reduction",
+        "lng shortage", "gas shortage", "oil shortage", "fuel shortage",
+        "energy shortage", "power shortage", "electricity shortage",
+    ],
+}
+
+
 def _score_disruption(text: str) -> tuple[int, list[str]]:
     """
     Returns (points, triggered_domain_names).
     Cap: 35 pts.
+
+    Checks JSON config domains first, then inline supplementary terms
+    for infrastructure/regulatory/commodity which are commonly missing
+    from generic disruption_terms.json configs.
     """
     cfg         = _disruption()
     domains_hit = []
     points      = 0
+    seen_domains = set()
 
+    # ── JSON config domains ───────────────────────────────
     for domain_name, domain_data in cfg["domains"].items():
         for term in domain_data["terms"]:
-            # Whole-word boundary match — prevents "shortage" matching
-            # "shortage" inside "shortageless" etc.
             pattern = r'\b' + re.escape(term.lower()) + r'\b'
             if re.search(pattern, text):
                 domains_hit.append(domain_name)
+                seen_domains.add(domain_name)
                 points += _DOMAIN_POINTS.get(domain_name, 5)
-                break   # one term per domain is enough — avoid double-counting
+                break
+
+    # ── Inline supplementary terms ────────────────────────
+    for domain_name, terms in _INLINE_DISRUPTION_TERMS.items():
+        if domain_name in seen_domains:
+            continue   # already scored from JSON config
+        for term in terms:
+            if term in text:   # substring match fine here — terms are phrases
+                domains_hit.append(domain_name)
+                seen_domains.add(domain_name)
+                points += _DOMAIN_POINTS.get(domain_name, 5)
+                break
 
     if len(domains_hit) >= 2:
         points += _MULTI_DOMAIN_BONUS
@@ -317,9 +379,9 @@ def _impact_level(score: int, disruption_pts: int, sc_pts: int) -> str:
     """
     if disruption_pts == 0 or sc_pts == 0:
         return "LOW"
-    if score >= 60:
+    if score >= 55:
         return "HIGH"
-    if score >= 35:
+    if score >= 30:
         return "MEDIUM"
     return "LOW"
 

@@ -5,7 +5,19 @@ let suppliers  = [];
 let materials  = [];
 let logistics  = [];
 let facilities = [];
-let _lastData  = null;   // last /analyze response (for export)
+let _lastData    = null;   // last /analyze response (for export)
+let _nlpRawData  = null;   // immutable copy of last /analyze data (filter source of truth)
+let _currentRunId = null;  // run_id for semantic search
+
+// ── Filter state ──────────────────────────────────────────
+let _filters = {
+    risk:      new Set(),
+    domain:    new Set(),
+    country:   new Set(),
+    tier1Only: false,
+    dateRange: 'all',
+    semantic:  new Set(),
+};
 
 // ══════════════════════════════════════════════════════════
 //  ENTITY MANAGEMENT
@@ -145,6 +157,11 @@ function _applyStep(idx) {
     // Advance progress bar
     const bar = document.getElementById('loadingProgressBar');
     if (bar) bar.style.width = step.pct + '%';
+    const pct = document.getElementById('procPct');
+    if (pct) pct.textContent = step.pct + '%';
+    // Move glow to follow fill tip
+    const glow = document.getElementById('procProgressGlow');
+    if (glow) glow.style.left = `calc(${step.pct}% - 20px)`;
 
     // Update subtitle
     const sub = document.getElementById('loadingSubtitle');
@@ -161,10 +178,17 @@ function showLoading() {
     // Reset progress bar and subtitle
     const bar = document.getElementById('loadingProgressBar');
     const sub = document.getElementById('loadingSubtitle');
+    const pct = document.getElementById('procPct');
     if (bar) bar.style.width = '0%';
-    if (sub) sub.textContent = 'This typically takes 15–30 seconds';
+    if (sub) sub.textContent = 'Initialising pipeline…';
+    if (pct) pct.textContent = '0%';
 
-    document.getElementById('loadingOverlay').style.display = 'flex';
+    // Hide form, show processing screen full-page
+    const form = document.getElementById('formSection');
+    const proc = document.getElementById('processingScreen');
+    if (form) form.style.display = 'none';
+    if (proc) proc.style.display = 'flex';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     // Activate step 0 immediately, schedule the rest
     _applyStep(0);
@@ -179,19 +203,25 @@ function showLoading() {
 function hideLoading() {
     if (_stepTimer) { _stepTimer.forEach(clearTimeout); _stepTimer = null; }
 
-    // Flash all steps green before hiding
+    // Flash all steps green
     _LOADING_STEPS.forEach(s => {
         const el = document.getElementById(s.id);
         if (el) { el.classList.remove('active'); el.classList.add('done'); }
     });
     const bar = document.getElementById('loadingProgressBar');
-    if (bar) bar.style.width = '100%';
     const sub = document.getElementById('loadingSubtitle');
-    if (sub) sub.textContent = 'Done!';
+    const pct = document.getElementById('procPct');
+    if (bar) bar.style.width = '100%';
+    const glow = document.getElementById('procProgressGlow');
+    if (glow) glow.style.left = 'calc(100% - 20px)';
+    if (sub) sub.textContent = 'Analysis complete!';
+    if (pct) pct.textContent = '100%';
 
+    // Brief "done" pause, then swap processing → results
     setTimeout(() => {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }, 350);
+        const proc = document.getElementById('processingScreen');
+        if (proc) proc.style.display = 'none';
+    }, 600);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -205,8 +235,11 @@ async function analyzeProfile() {
     document.getElementById('resultsSection').style.display = 'none';
     document.getElementById('analyzeBtn').disabled          = true;
 
+    // Stamp client name on processing screen
+    const procClient = document.getElementById('procClientName');
+    if (procClient) procClient.textContent = clientName;
+
     showLoading();
-    document.getElementById('loadingOverlay').scrollIntoView({ behavior: 'smooth', block: 'center' });
 
     // Build payload
     const tier1_suppliers = suppliers.map(s => ({
@@ -248,21 +281,39 @@ async function analyzeProfile() {
 
         hideLoading();
 
-        // Show results
-        document.getElementById('resultsSection').style.display = 'block';
-        displayResults(data);
-        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Show full-page results after brief done-flash
+        setTimeout(() => {
+            document.getElementById('resultsSection').style.display = 'block';
+            displayResults(data);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 650);
 
     } catch (err) {
         console.error(err);
         hideLoading();
-        const eb = document.getElementById('errorBox');
-        document.getElementById('errorMsg').textContent = err.message || 'Could not reach the server. Is Flask running?';
-        eb.style.display = 'block';
-        eb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Bring form back so user sees the error
+        setTimeout(() => {
+            const form = document.getElementById('formSection');
+            if (form) form.style.display = '';
+            const eb = document.getElementById('errorBox');
+            document.getElementById('errorMsg').textContent = err.message || 'Could not reach the server. Is Flask running?';
+            eb.style.display = 'block';
+            eb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 650);
     } finally {
         document.getElementById('analyzeBtn').disabled = false;
     }
+}
+
+// ══════════════════════════════════════════════════════════
+//  NAVIGATION — back to form from results
+// ══════════════════════════════════════════════════════════
+function goBackToForm() {
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('processingScreen').style.display = 'none';
+    const form = document.getElementById('formSection');
+    if (form) form.style.display = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ══════════════════════════════════════════════════════════
@@ -270,15 +321,62 @@ async function analyzeProfile() {
 // ══════════════════════════════════════════════════════════
 function displayResults(data) {
 
+    // ── Store run_id for semantic search ─────────────────
+    if (data.run_id) _currentRunId = data.run_id;
+
+    // ── Stamp run label in results header ────────────────
+    const runLabel = document.getElementById('resultsRunLabel');
+    if (runLabel && data.run_id) runLabel.textContent = data.run_id;
+
+    // ── Freeze raw data + reset filters ──────────────────
+    _nlpRawData = data;
+    clearAllFilters(/* silent = */ true);
+
+    // ── Show filter bar ───────────────────────────────────
+    const fb = document.getElementById('filterBar');
+    if (fb) fb.style.display = 'block';
+
+    // ── Populate country dropdown ─────────────────────────
+    const countrySelect = document.getElementById('countrySelect');
+    if (countrySelect) {
+        const countries = (data.exposure_map && data.exposure_map.countries) ? data.exposure_map.countries : [];
+        countrySelect.innerHTML = '<option value="">All countries</option>';
+        countries.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c; opt.textContent = c;
+            countrySelect.appendChild(opt);
+        });
+    }
+
+    // ── Populate semantic category chips (≥2 distinct non-unknown values) ──
+    const allArticles = data.news || [];
+    const semCats = [...new Set(allArticles
+        .map(a => a.semantic_category)
+        .filter(v => v && v !== 'unknown'))];
+    const semanticRow   = document.getElementById('semanticFilterRow');
+    const semanticChips = document.getElementById('semanticChips');
+    if (semanticRow && semanticChips) {
+        if (semCats.length >= 2) {
+            semanticChips.innerHTML = semCats.map(cat =>
+                `<span class="filter-chip" data-dim="semantic" data-val="${esc(cat)}"
+                       onclick="toggleFilter('semantic','${esc(cat)}')">${esc(cat.replace('_',' '))}</span>`
+            ).join('');
+            semanticRow.style.display = '';
+        } else {
+            semanticRow.style.display = 'none';
+        }
+    }
+
     // ── Risk header ──────────────────────────────────────
     document.getElementById('clientNameDisplay').textContent = data.client_name;
     document.getElementById('timestampDisplay').innerHTML =
         `<i class="far fa-clock me-1"></i>${data.analysis_timestamp}`;
 
     const riskColors = {
-        HIGH:   { bg:'var(--orange-l)', color:'var(--orange)', border:'#FED7AA' },
-        MEDIUM: { bg:'var(--amber-l)',  color:'var(--amber)',  border:'#FDE68A' },
-        LOW:    { bg:'var(--green-l)',  color:'var(--green)',  border:'#A7F3D0' },
+        CRITICAL: { bg:'#FEF2F2', color:'#DC2626', border:'#FECACA' },
+        HIGH:     { bg:'var(--orange-l)', color:'var(--orange)', border:'#FED7AA' },
+        MEDIUM:   { bg:'var(--amber-l)',  color:'var(--amber)',  border:'#FDE68A' },
+        LOW:      { bg:'var(--green-l)',  color:'var(--green)',  border:'#A7F3D0' },
     };
     const rc = riskColors[data.overall_risk] || riskColors.LOW;
     const badge = document.getElementById('riskBadge');
@@ -320,8 +418,18 @@ function displayResults(data) {
         set('stClusters', data.stats.event_clusters != null ? data.stats.event_clusters : '—');
     }
 
+    // ── Intelligence themes (BERTopic) ──────────────────
+    renderTopics(data.topics || []);
+
     // ── Event clusters ───────────────────────────────────
     renderClusters(data.clusters || []);
+
+    // ── Semantic search panel ─────────────────────────────
+    const sp = document.getElementById('searchPanel');
+    if (sp) sp.style.display = data.run_id ? 'block' : 'none';
+
+    // ── Portfolio risk panel ──────────────────────────────
+    renderPortfolioRisk(data.portfolio_risk);
 
     // ── News feed ────────────────────────────────────────
     renderNewsFeed(data.news || []);
@@ -330,10 +438,14 @@ function displayResults(data) {
 // ══════════════════════════════════════════════════════════
 //  NEWS FEED RENDERER
 // ══════════════════════════════════════════════════════════
-function renderNewsFeed(articles) {
+function renderNewsFeed(articles = []) {
     const feed  = document.getElementById('newsFeed');
     const badge = document.getElementById('articleCountBadge');
-    badge.textContent = `${articles.length} articles`;
+    const total = _nlpRawData ? (_nlpRawData.news || []).length : articles.length;
+    const shown = articles.length;
+    badge.textContent = total !== shown
+        ? `${shown} of ${total} articles`
+        : `${shown} article${shown !== 1 ? 's' : ''}`;
 
     if (!articles.length) {
         feed.innerHTML = `
@@ -418,37 +530,48 @@ function newsFilter(el, filter) {
 // ══════════════════════════════════════════════════════════
 let _clusterData = [];
 
-function renderClusters(clusters) {
+function renderClusters(clusters = []) {
     const panel = document.getElementById('clustersPanel');
     const list  = document.getElementById('clustersList');
     const badge = document.getElementById('clusterCountBadge');
 
     const realClusters = clusters.filter(c => !c.is_noise && c.article_count > 1);
-    _clusterData = realClusters;
 
-    if (!realClusters.length) {
+    const rawMasterClusters = _nlpRawData
+        ? (_nlpRawData.clusters || []).filter(c => !c.is_noise && c.article_count > 1)
+        : realClusters;
+    // Update master _clusterData only on initial/full call (when passed raw clusters)
+    if (_nlpRawData && clusters === _nlpRawData.clusters) {
+        _clusterData = realClusters;
+    }
+
+    const totalClusters = Math.max(rawMasterClusters.length, _clusterData.length);
+    const shown = realClusters.length;
+
+    if (!realClusters.length && !_clusterData.length) {
         panel.style.display = 'none';
         return;
     }
 
     panel.style.display = 'block';
-    badge.textContent   = `${realClusters.length} event cluster${realClusters.length !== 1 ? 's' : ''}`;
+    badge.textContent = (totalClusters !== shown && shown > 0)
+        ? `${shown} of ${totalClusters} event cluster${totalClusters !== 1 ? 's' : ''}`
+        : `${shown} event cluster${shown !== 1 ? 's' : ''}`;
+
+    if (!realClusters.length) {
+        list.innerHTML = `<div class="text-center py-4" style="color:var(--text-3);font-size:.83rem;"><i class="fas fa-filter me-1"></i>No clusters match the active filters.</div>`;
+        return;
+    }
 
     list.innerHTML = realClusters.map((c, idx) => _renderClusterCard(c, idx)).join('');
 }
 
 function _renderClusterCard(c, idx) {
-    const level = c.impact_level || 'LOW';
-    const n     = c.article_count || 1;
-    const score = c.risk_score || 0;
-    const brief = c.brief || null;
+    const level   = c.impact_level || 'LOW';
+    const n       = c.article_count || 1;
+    const score   = c.risk_score || 0;
+    const summary = c.summary || '';
 
-    // Headline: prefer LLM brief headline, fall back to lead article title
-    const headline = (brief && brief.headline)
-        ? brief.headline
-        : (c.articles && c.articles[0] ? (c.articles[0].title || '') : '');
-
-    // Node chips
     const nodeChips = (c.linked_nodes || []).slice(0, 6).map(node => {
         const ci   = node.indexOf(':');
         const type = ci > -1 ? node.slice(0, ci) : '';
@@ -457,16 +580,15 @@ function _renderClusterCard(c, idx) {
         return `<span class="chip ${cls}" style="font-size:.63rem;padding:.12rem .45rem;">${esc(name)}</span>`;
     }).join('');
 
-    // Source chips
     const srcChips = (c.sources || []).slice(0, 4).map(s =>
         `<span class="api-source-tag" style="font-size:.62rem;">${esc(s)}</span>`
     ).join('');
 
-    // Article rows
+    // Use the rich articles array now sent from backend
     const artItems = (c.articles || []).map(a => {
         const alevel = a.impact_level || level;
         const ascore = a.relevance_score || 0;
-        const title  = a.title || '\u2014';
+        const title  = a.title || '—';
         const url    = a.url   || '#';
         const isReal = url !== '#';
         const sem    = a.semantic_category && a.semantic_category !== 'unknown'
@@ -482,61 +604,66 @@ function _renderClusterCard(c, idx) {
         </div>`;
     }).join('');
 
-    // Intelligence brief block (LLM) or LexRank fallback
-    let briefHtml = '';
-    if (brief && brief.source === 'llm') {
-        const affectedChips = (brief.affected_nodes || []).slice(0, 6)
-            .map(n => `<span class="chip chip-supplier" style="font-size:.6rem;padding:.1rem .4rem;">${esc(n)}</span>`)
-            .join('');
-        const outlookHtml = brief.outlook
-            ? `<div class="brief-section">
-                <span class="brief-section-label"><i class="fas fa-binoculars me-1"></i>Outlook</span>
-                <p class="brief-text">${esc(brief.outlook)}</p>
-               </div>`
-            : '';
-        briefHtml = `
-        <div class="cluster-brief">
-            <div class="brief-header">
-                <i class="fas fa-robot brief-icon"></i>
-                <span class="brief-label">Intelligence Brief</span>
-                <span class="brief-model-tag">${esc((brief.model || '').split('/').pop())}</span>
+    // Headline from first article
+    const headline = c.articles && c.articles[0] ? (c.articles[0].title || '') : '';
+
+    const sev          = c.severity || level.toUpperCase();
+    const composite    = c.composite_score != null ? c.composite_score : score;
+    const dimScores    = c.dimension_scores || {};
+    const riskNarr     = c.risk_narrative || '';
+    const SEV_COLOR    = { CRITICAL:'#DC2626', HIGH:'var(--orange)', MEDIUM:'var(--amber)', LOW:'var(--green)' };
+    const SEV_BG       = { CRITICAL:'#FEF2F2', HIGH:'var(--orange-l)', MEDIUM:'var(--amber-l)', LOW:'var(--green-l)' };
+    const SEV_BORDER   = { CRITICAL:'#FECACA', HIGH:'#FED7AA', MEDIUM:'#FDE68A', LOW:'#A7F3D0' };
+    const sevColor     = SEV_COLOR[sev]  || SEV_COLOR.LOW;
+    const sevBg        = SEV_BG[sev]    || SEV_BG.LOW;
+    const sevBorder    = SEV_BORDER[sev] || SEV_BORDER.LOW;
+    const sevBadge     = `<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-family:'DM Mono',monospace;font-size:.63rem;font-weight:700;letter-spacing:.06em;background:${sevBg};color:${sevColor};border:1px solid ${sevBorder};">${sev} · ${Math.round(composite)}</span>`;
+
+    const DIM_LABELS = {
+        intensity:'Signal Intensity', breadth:'Domain Breadth', node_crit:'Node Criticality',
+        geo_spread:'Geo Spread', corroboration:'Corroboration', velocity:'Velocity (24h)',
+        cluster_size:'Cluster Size', sem_confidence:'Semantic Confidence'
+    };
+    const dimBars = Object.entries(DIM_LABELS).map(([key, lbl]) => {
+        const pct = Math.min(Math.max(dimScores[key] || 0, 0), 100);
+        const fillColor = pct >= 75 ? '#ef4444' : pct >= 55 ? '#f97316' : pct >= 35 ? '#f59e0b' : '#22c55e';
+        return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="flex:0 0 130px;font-size:.68rem;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lbl}</span>
+            <div style="flex:1;height:4px;background:#E2E8F0;border-radius:2px;overflow:hidden;">
+                <div style="height:100%;width:${pct}%;background:${fillColor};border-radius:2px;transition:width .5s;"></div>
             </div>
-            <div class="brief-section">
-                <span class="brief-section-label"><i class="fas fa-file-lines me-1"></i>What Happened</span>
-                <p class="brief-text">${esc(brief.what_happened)}</p>
-            </div>
-            ${affectedChips ? `<div class="brief-section">
-                <span class="brief-section-label"><i class="fas fa-triangle-exclamation me-1"></i>Affected Nodes</span>
-                <div class="d-flex flex-wrap gap-1 mt-1">${affectedChips}</div>
-            </div>` : ''}
-            ${outlookHtml}
+            <span style="flex:0 0 26px;text-align:right;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--text-3);">${Math.round(pct)}</span>
         </div>`;
-    } else if (c.summary) {
-        briefHtml = `
-        <div class="cluster-summary-bar">
-            <i class="fas fa-align-left" style="color:var(--purple);flex-shrink:0;margin-top:.15rem;font-size:.75rem;"></i>
-            <span>${esc(c.summary)}</span>
-        </div>`;
-    }
+    }).join('');
+
+    const dimPanel = Object.keys(dimScores).length ? `
+        <div style="margin-top:10px;padding:10px 12px;background:#F8FAFC;border:1px solid var(--border);border-radius:6px;">
+            <div style="font-size:.63rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;">Risk Breakdown</div>
+            ${dimBars}
+        </div>` : '';
 
     return `
-    <div class="cluster-card impact-${level}" data-cidx="${idx}" data-clevel="${level}" data-csize="${n}">
+    <div class="cluster-card impact-${level}" data-cidx="${idx}" data-clevel="${sev}" data-csize="${n}">
         <div class="cluster-card-top" onclick="clusterToggle(${idx})">
             <div style="flex:1;min-width:0;">
                 <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                     <span class="cluster-id-badge">Event #${idx + 1}</span>
-                    <span class="impact-pill pill-${level}" style="font-size:.63rem;">${level}</span>
+                    ${sevBadge}
                     <span class="cluster-size-chip">${n} article${n !== 1 ? 's' : ''}</span>
-                    <span class="score-badge" style="font-size:.63rem;">${score}/100</span>
-                    ${brief && brief.source === 'llm' ? '<span class="brief-badge"><i class="fas fa-robot me-1"></i>Brief</span>' : ''}
                 </div>
                 ${headline ? `<div class="cluster-headline">${esc(headline)}</div>` : ''}
+                ${riskNarr ? `<div style="font-size:.72rem;color:var(--text-3);margin-top:3px;font-style:italic;">${esc(riskNarr)}</div>` : ''}
             </div>
             <i class="fas fa-chevron-down cluster-chevron" id="cluster-chevron-${idx}"
                style="color:var(--text-3);font-size:.75rem;transition:transform .2s;flex-shrink:0;margin-left:.75rem;"></i>
         </div>
-        ${briefHtml}
+        ${summary ? `
+        <div class="cluster-summary-bar">
+            <i class="fas fa-align-left" style="color:var(--purple);flex-shrink:0;margin-top:.15rem;font-size:.75rem;"></i>
+            <span>${esc(summary)}</span>
+        </div>` : ''}
         <div class="cluster-card-body" id="cluster-body-${idx}">
+            ${dimPanel}
             ${nodeChips ? `
             <div class="cluster-detail-row">
                 <span class="cluster-detail-label"><i class="fas fa-link me-1"></i>Linked Nodes</span>
@@ -564,6 +691,208 @@ function clusterToggle(idx) {
     body.classList.toggle('open', !open);
     if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
 }
+
+// ══════════════════════════════════════════════════════════
+//  FILTER ENGINE  (client-side, operates on _nlpRawData)
+// ══════════════════════════════════════════════════════════
+
+function toggleFilter(dimension, value) {
+    const s = _filters[dimension];
+    if (!(s instanceof Set)) return;
+    if (s.has(value)) s.delete(value); else s.add(value);
+    // Sync chip active state
+    document.querySelectorAll(`.filter-chip[onclick*="toggleFilter('${dimension}','${value}')"]`)
+        .forEach(el => el.classList.toggle('filter-chip-active', s.has(value)));
+    applyFilters();
+}
+
+function setDateRange(value) {
+    _filters.dateRange = value;
+    document.querySelectorAll('.date-seg').forEach(el => {
+        el.classList.toggle('date-seg-active', el.dataset.range === value);
+    });
+    applyFilters();
+}
+
+function setTier1(bool) {
+    _filters.tier1Only = bool;
+    applyFilters();
+}
+
+function handleCountrySelect(sel) {
+    _filters.country.clear();
+    if (sel.value) _filters.country.add(sel.value);
+    applyFilters();
+}
+
+function clearAllFilters(silent = false) {
+    _filters.risk      = new Set();
+    _filters.domain    = new Set();
+    _filters.country   = new Set();
+    _filters.tier1Only = false;
+    _filters.dateRange = 'all';
+    _filters.semantic  = new Set();
+
+    // Reset all chip active states
+    document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('filter-chip-active'));
+    // Reset date seg
+    document.querySelectorAll('.date-seg').forEach(el =>
+        el.classList.toggle('date-seg-active', el.dataset.range === 'all'));
+    // Reset tier1 checkbox
+    const cb = document.getElementById('tier1Checkbox');
+    if (cb) cb.checked = false;
+    // Reset country dropdown
+    const cs = document.getElementById('countrySelect');
+    if (cs) cs.value = '';
+
+    // Hide active strip + badge
+    const strip = document.getElementById('activeFilterStrip');
+    const badge = document.getElementById('filterCountBadge');
+    const clearBtn = document.getElementById('filterClearBtn');
+    if (strip) { strip.style.display = 'none'; strip.innerHTML = ''; }
+    if (badge) badge.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    if (!silent && _nlpRawData) {
+        renderClusters(_nlpRawData.clusters || []);
+        renderNewsFeed(_nlpRawData.news    || []);
+    }
+}
+
+function _countActiveFilters() {
+    return _filters.risk.size + _filters.domain.size + _filters.country.size +
+           (_filters.tier1Only ? 1 : 0) +
+           (_filters.dateRange !== 'all' ? 1 : 0) +
+           _filters.semantic.size;
+}
+
+function _passesFilters(item, type) {
+    // ── Risk ──────────────────────────────────────────────
+    if (_filters.risk.size) {
+        const level = type === 'cluster'
+            ? (item.severity || item.impact_level || 'LOW')
+            : (item.impact_level || 'LOW');
+        if (!_filters.risk.has(level)) return false;
+    }
+
+    // ── Domain ────────────────────────────────────────────
+    if (_filters.domain.size) {
+        let itemDomains = [];
+        if (type === 'cluster') {
+            // brief.affected_nodes or linked_nodes type prefixes
+            itemDomains = (item.disruption_domains || []).map(d => d.toLowerCase());
+            if (!itemDomains.length && item.brief && item.brief.affected_nodes) {
+                itemDomains = item.brief.affected_nodes.map(n => n.toLowerCase());
+            }
+        } else {
+            itemDomains = (item.disruption_domains || []).map(d => d.toLowerCase());
+        }
+        const anyMatch = [..._filters.domain].some(fd => itemDomains.includes(fd));
+        if (!anyMatch) return false;
+    }
+
+    // ── Country ───────────────────────────────────────────
+    if (_filters.country.size) {
+        let itemCountries = [];
+        if (type === 'cluster') {
+            itemCountries = (item.linked_nodes || [])
+                .filter(n => n.startsWith('country:'))
+                .map(n => n.slice(8));
+        } else {
+            if (item.country) itemCountries = [item.country];
+        }
+        const anyMatch = [..._filters.country].some(fc => itemCountries.includes(fc));
+        if (!anyMatch) return false;
+    }
+
+    // ── Date range (articles + clusters via first article date) ──
+    if (_filters.dateRange !== 'all') {
+        const hoursMap = { '24h': 24, '7d': 168, '30d': 720 };
+        const hours = hoursMap[_filters.dateRange] || Infinity;
+        const cutoff = Date.now() - hours * 3600000;
+        let pubDate = null;
+        if (type === 'article') {
+            pubDate = item.published ? new Date(item.published).getTime() : null;
+        } else {
+            // Use first article date or cluster's own timestamp
+            const firstArt = item.articles && item.articles[0];
+            const raw = (firstArt && firstArt.published) || item.published;
+            pubDate = raw ? new Date(raw).getTime() : null;
+        }
+        if (!pubDate || isNaN(pubDate) || pubDate < cutoff) return false;
+    }
+
+    // ── Tier-1 (articles only) ────────────────────────────
+    if (_filters.tier1Only && type === 'article') {
+        if ((item.trust_score || 0) < 0.85) return false;
+    }
+
+    // ── Semantic category (articles only) ─────────────────
+    if (_filters.semantic.size && type === 'article') {
+        if (!_filters.semantic.has(item.semantic_category)) return false;
+    }
+
+    return true;
+}
+
+function applyFilters() {
+    if (!_nlpRawData) return;
+
+    const activeCount = _countActiveFilters();
+    const badge    = document.getElementById('filterCountBadge');
+    const clearBtn = document.getElementById('filterClearBtn');
+    const strip    = document.getElementById('activeFilterStrip');
+
+    // Update badge
+    if (badge) {
+        badge.textContent = `${activeCount} active`;
+        badge.style.display = activeCount ? '' : 'none';
+    }
+    if (clearBtn) clearBtn.style.display = activeCount ? '' : 'none';
+
+    // Filter clusters
+    const rawClusters = (_nlpRawData.clusters || []).filter(c => !c.is_noise && c.article_count > 1);
+    const filteredClusters = activeCount
+        ? rawClusters.filter(c => _passesFilters(c, 'cluster'))
+        : rawClusters;
+
+    // Filter articles
+    const rawArticles = _nlpRawData.news || [];
+    const filteredArticles = activeCount
+        ? rawArticles.filter(a => _passesFilters(a, 'article'))
+        : rawArticles;
+
+    // Re-render
+    renderClusters(filteredClusters);
+    renderNewsFeed(filteredArticles);
+
+    // Build active-filter strip
+    if (strip) {
+        if (!activeCount) {
+            strip.style.display = 'none';
+            strip.innerHTML = '';
+        } else {
+            strip.style.display = 'flex';
+            const chips = [];
+            _filters.risk.forEach(v     => chips.push({ dim:'risk',     val:v,     label:`Risk: ${v}` }));
+            _filters.domain.forEach(v   => chips.push({ dim:'domain',   val:v,     label:`Domain: ${v}` }));
+            _filters.country.forEach(v  => chips.push({ dim:'country',  val:v,     label:`Country: ${v}` }));
+            _filters.semantic.forEach(v => chips.push({ dim:'semantic', val:v,     label:`Cat: ${v.replace('_',' ')}` }));
+            if (_filters.tier1Only)             chips.push({ dim:'tier1',    val:true,  label:'Tier-1 only', special:'tier1' });
+            if (_filters.dateRange !== 'all')   chips.push({ dim:'date',     val:_filters.dateRange, label:`Date: ${_filters.dateRange}`, special:'date' });
+
+            strip.innerHTML = chips.map(chip => {
+                let removeCall;
+                if (chip.special === 'tier1') removeCall = `setTier1(false);document.getElementById('tier1Checkbox').checked=false;`;
+                else if (chip.special === 'date') removeCall = `setDateRange('all')`;
+                else if (chip.dim === 'country') removeCall = `_filters.country.clear();document.getElementById('countrySelect').value='';applyFilters()`;
+                else removeCall = `toggleFilter('${chip.dim}','${chip.val}')`;
+                return `<span class="active-chip">${esc(chip.label)}<button class="active-chip-x" onclick="${removeCall}" title="Remove filter">&times;</button></span>`;
+            }).join('');
+        }
+    }
+}
+
 
 function clusterFilter(el, filter) {
     document.querySelectorAll('[data-cfilter]').forEach(c => c.classList.remove('active'));
@@ -777,4 +1106,200 @@ async function deleteProfile(e, clientId, clientName) {
         if (data.status === 'success') _renderProfileList();
         else alert('Delete failed: ' + (data.message||''));
     } catch(e) { alert('Server unreachable.'); }
+}
+
+
+// ══════════════════════════════════════════════════════════
+//  TOPICS RENDERER  (BERTopic thematic grouping)
+// ══════════════════════════════════════════════════════════
+
+function renderTopics(topics) {
+    const panel = document.getElementById('topicsPanel');
+    const list  = document.getElementById('topicsList');
+    const badge = document.getElementById('topicCountBadge');
+
+    if (!topics || !topics.length) {
+        if (panel) panel.style.display = 'none';
+        return;
+    }
+
+    panel.style.display = 'block';
+    badge.textContent   = `${topics.length} theme${topics.length !== 1 ? 's' : ''}`;
+
+    list.innerHTML = topics.map(t => {
+        const level    = t.impact_level || 'LOW';
+        const kwChips  = (t.keywords || []).slice(0, 5)
+            .map(k => `<span class="topic-kw-chip">${esc(k)}</span>`).join('');
+        return `
+        <div class="topic-row impact-${level}">
+            <div class="topic-row-left">
+                <span class="topic-label">${esc(t.label)}</span>
+                <div class="topic-kw-row">${kwChips}</div>
+            </div>
+            <div class="topic-row-right">
+                <span class="impact-pill pill-${level}" style="font-size:.58rem;">${level}</span>
+                <span class="topic-count-badge">${t.article_count} art.</span>
+                <span class="score-badge" style="font-size:.6rem;">${t.risk_score}/100</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+
+// ══════════════════════════════════════════════════════════
+//  SEMANTIC SEARCH
+// ══════════════════════════════════════════════════════════
+
+async function runSearch() {
+    const input  = document.getElementById('searchInput');
+    const status = document.getElementById('searchStatus');
+    const results = document.getElementById('searchResults');
+    const query  = (input ? input.value : '').trim();
+
+    if (!query)       { if (status) status.textContent = 'Enter a search query.'; return; }
+    if (!_currentRunId) { if (status) status.textContent = 'Run an analysis first.'; return; }
+
+    status.textContent  = 'Searching…';
+    results.innerHTML   = '';
+
+    try {
+        const resp = await fetch('/search', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ query, run_id: _currentRunId }),
+        });
+        const data = await resp.json();
+
+        if (data.status !== 'success') {
+            status.textContent = `Error: ${data.message || 'unknown error'}`;
+            return;
+        }
+
+        const hits = data.results || [];
+        status.textContent = hits.length
+            ? `${hits.length} result${hits.length !== 1 ? 's' : ''} for "${query}"`
+            : `No results found for "${query}"`;
+
+        results.innerHTML = hits.map(h => _renderSearchHit(h)).join('');
+
+    } catch (err) {
+        status.textContent = `Search failed: ${err.message}`;
+    }
+}
+
+function _renderSearchHit(h) {
+    const level = h.impact_level || 'LOW';
+    const sim   = h.similarity_score != null
+        ? `<span class="sim-score-badge" title="Semantic similarity">${(h.similarity_score * 100).toFixed(0)}% match</span>`
+        : '';
+    const sem   = h.semantic_category && h.semantic_category !== 'unknown'
+        ? `<span style="font-size:.58rem;background:#F5F3FF;color:var(--purple);border:1px solid #DDD6FE;padding:.1rem .35rem;border-radius:1rem;">${esc(h.semantic_category.replace('_',' '))}</span>`
+        : '';
+    const summary = h.summary
+        ? `<div class="search-hit-summary">${esc(h.summary)}</div>`
+        : '';
+    return `
+    <div class="search-hit-row">
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <span class="impact-pill pill-${level}" style="font-size:.6rem;">${level}</span>
+            <span class="score-badge" style="font-size:.6rem;">${h.relevance_score}/100</span>
+            ${sim}
+            ${sem}
+            <span style="font-size:.63rem;color:var(--text-3);margin-left:auto;">${esc(h.source || '')}</span>
+        </div>
+        <a href="${esc(h.url || '#')}" target="_blank" rel="noopener" class="search-hit-title">
+            ${esc(h.title || '—')}
+        </a>
+        ${summary}
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+//  PORTFOLIO RISK PANEL
+// ══════════════════════════════════════════════════════════
+
+function renderPortfolioRisk(portfolio) {
+    const panel = document.getElementById('portfolioRiskPanel');
+    if (!panel || !portfolio) return;
+
+    const sev   = portfolio.overall_severity || 'LOW';
+    const score = portfolio.overall_score != null ? portfolio.overall_score : 0;
+
+    const SEV_COLOR  = { CRITICAL:'#DC2626', HIGH:'var(--orange)', MEDIUM:'var(--amber)', LOW:'var(--green)' };
+    const SEV_BG     = { CRITICAL:'#FEF2F2', HIGH:'var(--orange-l)', MEDIUM:'var(--amber-l)', LOW:'var(--green-l)' };
+    const SEV_BORDER = { CRITICAL:'#FECACA', HIGH:'#FED7AA', MEDIUM:'#FDE68A', LOW:'#A7F3D0' };
+
+    const sevColor  = SEV_COLOR[sev]  || SEV_COLOR.LOW;
+    const sevBg     = SEV_BG[sev]    || SEV_BG.LOW;
+    const sevBorder = SEV_BORDER[sev] || SEV_BORDER.LOW;
+
+    // Severity count chips
+    const countChips = [
+        { s:'CRITICAL', n: portfolio.critical_count },
+        { s:'HIGH',     n: portfolio.high_count },
+        { s:'MEDIUM',   n: portfolio.medium_count },
+        { s:'LOW',      n: portfolio.low_count },
+    ].filter(c => c.n > 0).map(c => {
+        const bg  = SEV_BG[c.s]  || SEV_BG.LOW;
+        const col = SEV_COLOR[c.s] || SEV_COLOR.LOW;
+        const brd = SEV_BORDER[c.s] || SEV_BORDER.LOW;
+        return `<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-family:'DM Mono',monospace;font-size:.65rem;font-weight:700;background:${bg};color:${col};border:1px solid ${brd};">${c.n} ${c.s}</span>`;
+    }).join('');
+
+    // Domain chips
+    const domainHtml = Object.entries(portfolio.domain_breakdown || {}).slice(0, 8).map(([domain, count]) =>
+        `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:var(--blue-l);border:1px solid #BFDBFE;border-radius:12px;font-size:.70rem;">
+            <span style="color:var(--text-2);">${_cap(domain)}</span>
+            <span style="color:var(--text-3);font-family:monospace;">${count}</span>
+        </span>`
+    ).join('');
+
+    // Top-3 cluster mini cards
+    const topHtml = (portfolio.top_clusters || []).map(c => {
+        const cs = c.severity || 'LOW';
+        const cbg  = SEV_BG[cs]  || SEV_BG.LOW;
+        const ccol = SEV_COLOR[cs] || SEV_COLOR.LOW;
+        const cbrd = SEV_BORDER[cs] || SEV_BORDER.LOW;
+        const badgeHtml = `<span style="font-family:'DM Mono',monospace;font-size:.60rem;font-weight:700;padding:2px 7px;border-radius:3px;background:${cbg};color:${ccol};border:1px solid ${cbrd};">${cs} · ${Math.round(c.composite_score || 0)}</span>`;
+        return `
+        <div style="padding:9px 11px;background:var(--surface);border:1px solid var(--border);border-radius:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                ${badgeHtml}
+                <span style="font-size:.65rem;color:var(--text-3);">${c.article_count || 0} article${(c.article_count||0)!==1?'s':''}</span>
+            </div>
+            <div style="font-size:.78rem;font-weight:600;color:var(--text-1);line-height:1.4;margin-bottom:2px;">${esc(c.headline || '')}</div>
+            <div style="font-size:.70rem;color:var(--text-3);font-style:italic;line-height:1.4;">${esc(c.risk_narrative || '')}</div>
+        </div>`;
+    }).join('');
+
+    panel.innerHTML = `
+        <div class="breakdown-card" style="margin-bottom:1rem;">
+            <div class="card-header-bar">
+                <span><i class="fas fa-shield-alt me-2" style="color:${sevColor};"></i>Portfolio Risk</span>
+                <span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:3px;font-family:'DM Mono',monospace;font-size:.70rem;font-weight:700;letter-spacing:.06em;background:${sevBg};color:${sevColor};border:1px solid ${sevBorder};">${sev}</span>
+            </div>
+            <div style="padding:.875rem;">
+                <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:.875rem;flex-wrap:wrap;">
+                    <div style="text-align:center;">
+                        <div style="font-family:'DM Mono',monospace;font-size:2.8rem;font-weight:800;line-height:1;color:${sevColor};">${Math.round(score)}</div>
+                        <div style="font-size:.68rem;color:var(--text-3);margin-top:1px;">/ 100</div>
+                    </div>
+                    <div style="flex:1;">
+                        <p style="margin:0 0 8px;font-size:.83rem;line-height:1.5;color:var(--text-2);">${esc(portfolio.risk_message || '')}</p>
+                        <div style="display:flex;flex-wrap:wrap;gap:5px;">${countChips}</div>
+                    </div>
+                </div>
+                ${domainHtml ? `
+                <div style="font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px;">Active Disruption Domains</div>
+                <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.875rem;">${domainHtml}</div>` : ''}
+                ${topHtml ? `
+                <div style="font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px;">Top Risk Clusters</div>
+                <div style="display:flex;flex-direction:column;gap:6px;">${topHtml}</div>` : ''}
+            </div>
+        </div>`;
+    panel.style.display = 'block';
+}
+
+function _cap(str) {
+    return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
 }

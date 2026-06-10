@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
 <body>
 
@@ -61,9 +61,8 @@
     </div>
 </nav>
 
+<div id="formSection">
 <div class="container py-4">
-
-    <!-- HERO -->
     <div class="hero mb-4 fade-up">
         <div class="row align-items-center">
             <div class="col-md-8">
@@ -183,16 +182,44 @@
         <i class="fas fa-exclamation-triangle me-2"></i><span id="errorMsg"></span>
     </div>
 
-    <!-- LOADING OVERLAY (shown while analysis runs) -->
-    <div id="loadingOverlay" style="display:none;" class="loading-overlay">
-    <div class="loading-card">
-        <div class="loading-spinner"></div>
-        <div class="loading-title">Analysing Supply Chain…</div>
-        <div class="loading-subtitle" id="loadingSubtitle">This typically takes 15–30 seconds</div>
-        <div class="loading-progress-track">
-            <div class="loading-progress-bar" id="loadingProgressBar"></div>
+</div><!-- /container (form section closes here) -->
+</div><!-- /formSection -->
+
+<!-- ══════════════════════════════════════════════════
+     FULL-PAGE PROCESSING SCREEN
+     Hidden by default; replaces entire viewport while
+     the /analyze request is in flight.
+══════════════════════════════════════════════════ -->
+<div id="processingScreen" style="display:none;">
+    <div class="proc-bg-grid"></div>
+    <div class="proc-inner">
+
+        <!-- Animated logo mark -->
+        <div class="proc-logo-wrap">
+            <div class="proc-ring proc-ring-1"></div>
+            <div class="proc-ring proc-ring-2"></div>
+            <div class="proc-ring proc-ring-3"></div>
+            <div class="proc-icon-core">
+                <i class="fas fa-satellite-dish"></i>
+            </div>
         </div>
-        <div class="loading-steps" id="loadingSteps">
+
+        <!-- Title + client name -->
+        <div class="proc-title">Analysing Supply Chain</div>
+        <div class="proc-client" id="procClientName"></div>
+
+        <!-- Subtitle / current step -->
+        <div class="proc-subtitle" id="loadingSubtitle">Initialising pipeline…</div>
+
+        <!-- Progress bar -->
+        <div class="proc-progress-track">
+            <div class="proc-progress-fill" id="loadingProgressBar"></div>
+            <div class="proc-progress-glow" id="procProgressGlow"></div>
+        </div>
+        <div class="proc-pct" id="procPct">0%</div>
+
+        <!-- Step list -->
+        <div class="proc-steps" id="loadingSteps">
             <div class="lstep" id="ls1">
                 <div class="lstep-dot"><i class="fas fa-map-marker-alt"></i></div>
                 <div>
@@ -229,11 +256,23 @@
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
-    <!-- RESULTS -->
-    <div id="resultsSection" style="display:none;">
+<!-- ══════════════════════════════════════════════════
+     RESULTS  (full-page, shown after analysis)
+══════════════════════════════════════════════════ -->
+<div id="resultsSection" style="display:none;">
+<div class="container py-4">
+
+        <!-- Back / re-analyse button row -->
+        <div class="results-action-row mb-3">
+            <button class="results-back-btn" onclick="goBackToForm()">
+                <i class="fas fa-arrow-left me-1"></i>New Analysis
+            </button>
+            <span class="results-run-label" id="resultsRunLabel"></span>
+        </div>
 
         <!-- Risk header -->
         <div class="risk-card fade-up" id="riskCard">
@@ -264,9 +303,110 @@
         <div class="row g-3 mb-3 fade-up" id="statsRow" style="display:none;">
             <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stTotal">0</div><div class="stat-lbl">Articles</div></div></div>
             <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stDeduped">0</div><div class="stat-lbl">Deduplicated</div></div></div>
-            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stAlerts" style="color:var(--orange);">0</div><div class="stat-lbl">High Alerts</div></div></div>
+            <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stAlerts" style="color:var(--orange);">0</div><div class="stat-lbl">H+M Alerts</div></div></div>
             <div class="col-6 col-sm-3"><div class="stat-card"><div class="stat-num" id="stClusters" style="color:var(--purple);">—</div><div class="stat-lbl">Event Clusters</div></div></div>
         </div>
+
+        <!-- Portfolio Risk Panel (composite risk scorer) -->
+        <div id="portfolioRiskPanel" style="display:none;"></div>
+
+        <!-- ══ FILTER BAR ══════════════════════════════════ -->
+        <div class="filter-bar fade-up" id="filterBar" style="display:none;">
+            <!-- Header row -->
+            <div class="filter-bar-header">
+                <div class="filter-bar-title">
+                    <i class="fas fa-sliders-h me-2" style="color:var(--purple);font-size:.85rem;"></i>
+                    <span>Filters</span>
+                    <span class="filter-count-badge" id="filterCountBadge" style="display:none;">0 active</span>
+                </div>
+                <button class="filter-clear-btn" id="filterClearBtn" onclick="clearAllFilters()" style="display:none;">
+                    <i class="fas fa-times me-1"></i>Clear all
+                </button>
+                <!-- Narrow-screen toggle (CSS-only collapse trigger) -->
+                <label class="filter-toggle-btn" for="filterCollapseToggle">
+                    Filters <i class="fas fa-chevron-down" style="font-size:.7rem;"></i>
+                </label>
+            </div>
+            <input type="checkbox" id="filterCollapseToggle" class="filter-collapse-input">
+
+            <!-- Active-filter strip -->
+            <div class="active-filter-strip" id="activeFilterStrip" style="display:none;"></div>
+
+            <!-- Expandable filter body -->
+            <div class="filter-bar-body" id="filterBarBody">
+
+                <!-- Risk level -->
+                <div class="filter-row">
+                    <span class="filter-row-label">Risk</span>
+                    <div class="filter-chip-group">
+                        <span class="filter-chip fc-CRITICAL" onclick="toggleFilter('risk','CRITICAL')">CRITICAL</span>
+                        <span class="filter-chip fc-HIGH"     onclick="toggleFilter('risk','HIGH')">HIGH</span>
+                        <span class="filter-chip fc-MEDIUM"   onclick="toggleFilter('risk','MEDIUM')">MEDIUM</span>
+                        <span class="filter-chip fc-LOW"      onclick="toggleFilter('risk','LOW')">LOW</span>
+                    </div>
+                </div>
+
+                <!-- Disruption domain -->
+                <div class="filter-row">
+                    <span class="filter-row-label">Domain</span>
+                    <div class="filter-chip-group">
+                        <span class="filter-chip" onclick="toggleFilter('domain','conflict')">conflict</span>
+                        <span class="filter-chip" onclick="toggleFilter('domain','commodity')">commodity</span>
+                        <span class="filter-chip" onclick="toggleFilter('domain','labour')">labour</span>
+                        <span class="filter-chip" onclick="toggleFilter('domain','weather')">weather</span>
+                        <span class="filter-chip" onclick="toggleFilter('domain','infrastructure')">infrastructure</span>
+                        <span class="filter-chip" onclick="toggleFilter('domain','regulatory')">regulatory</span>
+                        <span class="filter-chip" onclick="toggleFilter('domain','pandemic')">pandemic</span>
+                    </div>
+                </div>
+
+                <!-- Date range -->
+                <div class="filter-row">
+                    <span class="filter-row-label">Date</span>
+                    <div class="filter-chip-group date-seg-group">
+                        <button class="date-seg" data-range="24h" onclick="setDateRange('24h')">24h</button>
+                        <button class="date-seg" data-range="7d"  onclick="setDateRange('7d')">7d</button>
+                        <button class="date-seg" data-range="30d" onclick="setDateRange('30d')">30d</button>
+                        <button class="date-seg date-seg-active" data-range="all" onclick="setDateRange('all')">All</button>
+                    </div>
+                </div>
+
+                <!-- Source tier + Country (same row on wide screens) -->
+                <div class="filter-row filter-row-mixed">
+                    <div class="filter-row-sub">
+                        <span class="filter-row-label">Source</span>
+                        <label class="tier1-toggle">
+                            <input type="checkbox" id="tier1Checkbox" onchange="setTier1(this.checked)">
+                            <span class="tier1-track"></span>
+                            <span class="tier1-label">Tier-1 only</span>
+                        </label>
+                    </div>
+                    <div class="filter-row-sub">
+                        <span class="filter-row-label">Country</span>
+                        <select class="country-select" id="countrySelect" onchange="handleCountrySelect(this)">
+                            <option value="">All countries</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Semantic category (rendered dynamically) -->
+                <div class="filter-row" id="semanticFilterRow" style="display:none;">
+                    <span class="filter-row-label">Category</span>
+                    <div class="filter-chip-group" id="semanticChips"></div>
+                </div>
+
+            </div><!-- /filter-bar-body -->
+        </div><!-- /filterBar -->
+
+        <!-- Topics Panel (BERTopic thematic grouping) -->
+        <div class="breakdown-card fade-up" id="topicsPanel" style="display:none;">
+            <div class="card-header-bar">
+                <span><i class="fas fa-layer-group me-2" style="color:var(--purple);"></i>Intelligence Themes</span>
+                <span id="topicCountBadge" class="nav-pill" style="font-size:.7rem;background:#F5F3FF;color:var(--purple);border-color:#DDD6FE;">0 themes</span>
+            </div>
+            <div id="topicsList" style="padding:.875rem;display:flex;flex-direction:column;gap:.5rem;"></div>
+        </div>
+
 
         <!-- Event clusters -->
         <div class="breakdown-card fade-up" id="clustersPanel" style="display:none;">
@@ -275,6 +415,7 @@
                 <div class="d-flex align-items-center gap-2">
                     <span id="clusterCountBadge" class="nav-pill" style="font-size:.7rem;background:#F5F3FF;color:var(--purple);border-color:#DDD6FE;">0 clusters</span>
                     <span class="filter-chip" data-cfilter="all" onclick="clusterFilter(this,'all')">All</span>
+                    <span class="filter-chip chip-CRITICAL" data-cfilter="CRITICAL" onclick="clusterFilter(this,'CRITICAL')">CRITICAL</span>
                     <span class="filter-chip chip-HIGH" data-cfilter="HIGH" onclick="clusterFilter(this,'HIGH')">HIGH</span>
                     <span class="filter-chip chip-MEDIUM" data-cfilter="MEDIUM" onclick="clusterFilter(this,'MEDIUM')">MEDIUM</span>
                     <span class="filter-chip chip-LOW" data-cfilter="LOW" onclick="clusterFilter(this,'LOW')">LOW</span>
@@ -283,10 +424,10 @@
             <div id="clustersList" style="padding:.875rem;display:flex;flex-direction:column;gap:.625rem;max-height:700px;overflow-y:auto;"></div>
         </div>
 
-        <!-- News feed — final filtered articles -->
+        <!-- News feed — relevant articles -->
         <div class="breakdown-card fade-up" id="newsFeedCard">
             <div class="card-header-bar">
-                <span><i class="fas fa-newspaper me-2" style="color:var(--blue);"></i>Filtered Intelligence Feed</span>
+                <span><i class="fas fa-newspaper me-2" style="color:var(--blue);"></i>Relevant Articles</span>
                 <div class="d-flex align-items-center gap-2">
                     <span id="articleCountBadge" class="nav-pill" style="font-size:.7rem;">0 articles</span>
                     <span class="filter-chip active" data-nfilter="all" onclick="newsFilter(this,'all')">All</span>
@@ -295,7 +436,7 @@
                     <span class="filter-chip chip-LOW" data-nfilter="LOW" onclick="newsFilter(this,'LOW')">LOW</span>
                 </div>
             </div>
-            <div id="newsFeed" class="p-3" style="max-height:720px;overflow-y:auto;">
+            <div id="newsFeed" class="p-3">
                 <div class="text-center py-5" style="color:var(--text-3);">
                     <i class="fas fa-satellite-dish fa-3x mb-3 opacity-50"></i>
                     <p>Results will appear here after analysis</p>
@@ -303,12 +444,11 @@
             </div>
         </div>
 
-    </div><!-- /results -->
-
-</div><!-- /container -->
+    </div><!-- /results inner container -->
+</div><!-- /resultsSection -->
 
 <footer>
-    <p><i class="fas fa-rss me-1"></i> RSS · NewsAPI · Google News &nbsp;|&nbsp; <i class="fas fa-brain me-1"></i> spaCy NER · SBERT · DBSCAN · LexRank &nbsp;|&nbsp; <i class="fas fa-bolt me-1"></i> Parallel fetch</p>
+    <p><i class="fas fa-rss me-1"></i> RSS · NewsAPI · Google News &nbsp;|&nbsp; <i class="fas fa-brain me-1"></i> spaCy NER · SBERT · DBSCAN · BERTopic · LexRank · MMR &nbsp;|&nbsp; <i class="fas fa-bolt me-1"></i> Parallel fetch</p>
     <p class="mt-1">© 2025 Supply Chain Risk Intelligence</p>
 </footer>
 
@@ -317,7 +457,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/static/js/app.js"></script>
+<script src="../static/js/app.js"></script>
 </body>
 </html>
-

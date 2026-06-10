@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 from datetime import datetime
 import os
 import json
@@ -52,6 +52,8 @@ from utils.article_preprocessor import (
 from utils.event_clusterer import cluster_articles, flatten_clusters
 from utils.summariser import attach_summaries, summarise_article
 from utils.briefer import attach_briefs
+from utils.topic_modeller import model_topics, attach_topics, topics_to_dict
+from utils.risk_scorer import score_all_clusters, portfolio_risk
 
 from utils.sbert_encoder import (
     encode_articles,
@@ -59,9 +61,7 @@ from utils.sbert_encoder import (
     find_similar,
 )
 
-from utils.topic_modeller import attach_topics
-from utils.risk_engine import enrich_clusters_with_risk, compute_overall_risk
-from utils.cross_cluster_dedup import deduplicate_clusters_within_run
+from utils.corpus_exporter import export_corpus, write_jsonl
 
 app = Flask(__name__)
 
@@ -98,6 +98,9 @@ MAX_QUERY_FETCHES = 15
 
 # Max queries sent to NewsAPI per run.
 MAX_NEWSAPI_QUERIES = 5
+
+# Tracks the most recent completed run (used by /search)
+_last_run_id: str = ""
 
 # ==========================================
 # WARM-LOAD spaCy AT STARTUP
@@ -596,6 +599,17 @@ def analyze():
             except Exception as e:
                 logger.warning(f"Brief generation failed (non-fatal): {e}")
 
+            # -- BERTopic Thematic Grouping --
+            topic_result = None
+            try:
+                topic_result = model_topics(deduped_articles)
+                attach_topics(clusters, topic_result)
+                logger.info(
+                    f"Topics: {topic_result.topic_count if topic_result else 0} theme(s)"
+                )
+            except Exception as e:
+                logger.warning(f"Topic modelling failed (non-fatal): {e}")
+
             for cluster in clusters:
                 for art in cluster["articles"]:
                     art["cluster_id"]      = cluster["cluster_id"]
@@ -608,37 +622,6 @@ def analyze():
         except Exception as e:
             logger.warning(f"Event clustering failed (non-fatal): {e} — skipping.")
             clusters = []
-
-        # ------------------------------
-        # Topic Modelling (BERTopic / cosine / keyword)
-        # Assigns disruption domain and industry labels to clusters + articles.
-        # ------------------------------
-        try:
-            attach_topics(clusters, deduped_articles)
-            logger.info("Topic modelling complete.")
-        except Exception as e:
-            logger.warning(f"Topic modelling failed (non-fatal): {e}")
-
-        # ------------------------------
-        # Enhanced Risk Scoring
-        # Five-dimension composite score: severity, propagation,
-        # concentration, velocity, verification multiplier.
-        # ------------------------------
-        try:
-            enrich_clusters_with_risk(clusters, deduped_articles)
-            logger.info("Enhanced risk scoring complete.")
-        except Exception as e:
-            logger.warning(f"Enhanced risk scoring failed (non-fatal): {e}")
-
-        # ------------------------------
-        # Within-Run Cluster Deduplication
-        # Merge near-identical clusters describing the same event.
-        # ------------------------------
-        try:
-            clusters = deduplicate_clusters_within_run(clusters)
-            logger.info(f"Post-dedup cluster count: {len(clusters)}")
-        except Exception as e:
-            logger.warning(f"Within-run cluster dedup failed (non-fatal): {e}")
 
         # ------------------------------
         # Per-article summaries (fallback for articles that skipped clustering)
@@ -656,31 +639,19 @@ def analyze():
         node_risk = build_node_risk_summary(deduped_articles, exposure)
 
         # ------------------------------
-        # Overall Risk Calculation (enhanced risk engine)
+        # Overall Risk Calculation  (8-dimension composite scorer)
         # ------------------------------
-        try:
-            overall_risk, risk_message, risk_score = compute_overall_risk(
-                clusters, deduped_articles
-            )
-        except Exception as e:
-            logger.warning(f"compute_overall_risk failed (non-fatal): {e}")
-            # Legacy fallback
-            high_count   = sum(1 for a in deduped_articles if a.get("impact_level") == "HIGH")
-            medium_count = sum(1 for a in deduped_articles if a.get("impact_level") == "MEDIUM")
-            risk_score   = min(high_count * 20 + medium_count * 10, 100)
-            if high_count >= 5:
-                overall_risk = "HIGH"
-                risk_message = "Multiple high-impact disruptions detected. Immediate review recommended."
-            elif high_count >= 1:
-                overall_risk = "MEDIUM"
-                risk_message = "Potentially disruptive events detected. Monitor closely."
-            else:
-                overall_risk = "LOW"
-                risk_message = "No significant disruption signals detected currently."
-
-        # Recompute high/medium counts from updated impact_level (post risk engine)
         high_count   = sum(1 for a in deduped_articles if a.get("impact_level") == "HIGH")
         medium_count = sum(1 for a in deduped_articles if a.get("impact_level") == "MEDIUM")
+
+        # Score every cluster with the composite scorer (mutates in-place),
+        # then derive portfolio-level risk from the scored clusters.
+        score_all_clusters(clusters)
+        port = portfolio_risk(clusters)
+
+        risk_score   = port.overall_score
+        overall_risk = port.overall_severity
+        risk_message = port.risk_message
 
         # ------------------------------
         # Save Preprocessed Run to Disk
@@ -688,6 +659,9 @@ def analyze():
         # ------------------------------
         run_save_result = {}
         try:
+            _last_run_id = _run_filename_base(
+                profile.get("client_name", "unknown"), timestamp
+            )
             run_save_result = save_preprocessed_run(
                 client_name  = profile.get("client_name", "unknown"),
                 timestamp    = timestamp,
@@ -726,7 +700,7 @@ def analyze():
                 "preprocessed_articles": len(preprocessed_articles),
                 "deduplicated_articles": len(deduped_articles),
                 "event_clusters":        len([c for c in clusters if not c.get("is_noise")]),
-                "critical_alerts":       sum(1 for c in clusters if c.get("risk_level") == "CRITICAL"),
+                "critical_alerts":       port.critical_count,
                 "high_alerts":           high_count,
                 "medium_alerts":         medium_count,
             },
@@ -743,24 +717,25 @@ def analyze():
             "news":               deduped_articles[:30],
             "clusters":           [
                 {
-                    "cluster_id":           c["cluster_id"],
-                    "is_noise":             c["is_noise"],
-                    "article_count":        c["article_count"],
-                    "impact_level":         c["impact_level"],
-                    "risk_score":           c["risk_score"],
-                    "composite_risk_score": c.get("composite_risk_score"),
-                    "risk_level":           c.get("risk_level", c["impact_level"]),
-                    "risk_breakdown":       c.get("risk_breakdown"),
-                    "linked_nodes":         c["linked_nodes"],
-                    "sources":              c["sources"],
-                    "summary":              c.get("summary", ""),
-                    "brief":                c.get("brief"),
-                    "mmr_sentences":        c.get("mmr_sentences", []),
-                    "topic_domain":         c.get("topic_domain", "unknown"),
-                    "topic_domain_label":   c.get("topic_domain_label", ""),
-                    "topic_confidence":     c.get("topic_confidence", 0.0),
-                    "topic_industries":     c.get("topic_industries", []),
-                    "article_urls":         [a.get("url", "") for a in c["articles"]],
+                    "cluster_id":      c["cluster_id"],
+                    "is_noise":        c["is_noise"],
+                    "article_count":   c["article_count"],
+                    "impact_level":    c["impact_level"],
+                    "risk_score":      c["risk_score"],
+                    # ── composite scorer fields ──────────────────────
+                    "composite_score":  c.get("composite_score", 0),
+                    "severity":         c.get("severity", "LOW"),
+                    "dimension_scores": c.get("dimension_scores", {}),
+                    "risk_narrative":   c.get("risk_narrative", ""),
+                    # ────────────────────────────────────────────────
+                    "linked_nodes":    c["linked_nodes"],
+                    "sources":         c["sources"],
+                    "summary":         c.get("summary", ""),
+                    "brief":           c.get("brief"),
+                    "mmr_sentences":   c.get("mmr_sentences", []),
+                    "topic_id":        c.get("topic_id", -1),
+                    "topic_label":     c.get("topic_label", ""),
+                    "article_urls":    [a.get("url", "") for a in c["articles"]],
                     "articles": [
                         {
                             "title":             a.get("title", ""),
@@ -770,16 +745,16 @@ def analyze():
                             "impact_level":      a.get("impact_level", "LOW"),
                             "relevance_score":   a.get("relevance_score", 0),
                             "semantic_category": a.get("semantic_category", ""),
-                            "topic_domain":      a.get("topic_domain", ""),
-                            "verified":          a.get("verified", False),
-                            "rejected":          a.get("rejected", False),
                         }
                         for a in c["articles"]
                     ],
                 }
                 for c in clusters
             ],
+            "portfolio_risk":     port.to_dict(),
             "run_saved":          run_save_result,
+            "topics":             topics_to_dict(topic_result) if topic_result else [],
+            "run_id":             _last_run_id,
         }
 
         return jsonify(response)
@@ -805,53 +780,95 @@ def analyze():
 # you make code changes during development.
 # ==========================================
 
-# ==========================================
-# SEMANTIC SEARCH
-# POST /search
-# ==========================================
 
-@app.route("/search", methods=["POST"])
+
+@app.route("/export/corpus", methods=["GET"])
+def export_corpus_endpoint():
+    """
+    GET /export/corpus?run_id=<run_id>
+        → file download: {run_id}_corpus.jsonl
+
+    GET /export/corpus?run_id=<run_id>&format=json
+        → JSON stats preview (by_industry, by_domain, by_impact, relevant_ratio, total)
+
+    Returns 400 if run_id is missing, 404 if the run file is not found.
+    """
+    run_id = request.args.get("run_id", "").strip()
+    fmt    = request.args.get("format", "file").strip().lower()
+
+    if not run_id:
+        return jsonify({"status": "error", "message": "run_id query parameter is required"}), 400
+
+    try:
+        corpus = export_corpus(run_id, RUNS_DIR)
+    except FileNotFoundError:
+        return jsonify({"status": "error", "message": f"Run not found: {run_id}"}), 404
+    except Exception as e:
+        logger.exception("Error building corpus export")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+    # ── JSON stats preview ────────────────────────────────────────────────────
+    if fmt == "json":
+        return jsonify({
+            "status":         "success",
+            "run_id":         corpus.run_id,
+            "exported_at":    corpus.exported_at,
+            "total":          corpus.total,
+            "relevant_ratio": corpus.relevant_ratio,
+            "by_industry":    corpus.by_industry,
+            "by_domain":      corpus.by_domain,
+            "by_impact":      corpus.by_impact,
+        })
+
+    # ── File download ─────────────────────────────────────────────────────────
+    # Write to a stable path under data/runs/ (idempotent — overwrites on re-export)
+    safe_id   = "".join(c for c in run_id if c.isalnum() or c in ("_", "-"))
+    out_path  = os.path.join(RUNS_DIR, f"{safe_id}_corpus_labelled.jsonl")
+
+    try:
+        write_jsonl(corpus, out_path)
+    except Exception as e:
+        logger.exception("Error writing corpus JSONL")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+    logger.info(f"Serving corpus download: {out_path} ({corpus.total} articles)")
+    return send_file(
+        out_path,
+        as_attachment   = True,
+        download_name   = f"{safe_id}_corpus.jsonl",
+        mimetype        = "application/x-ndjson",
+    )
+
+
+
 def semantic_search():
-    """
-    Semantic search over a saved analysis run.
-
-    POST body: { "query": "port closure China", "run_id": "tesla_20260608_155130" }
-    Loads the run's preprocessed JSON, encodes the query with SBERT,
-    and returns the top-10 semantically similar articles.
-    """
+    """Semantic search over a saved analysis run via SBERT similarity."""
     try:
         body   = request.json or {}
-        query  = body.get("query", "").strip()
+        query  = body.get("query",  "").strip()
         run_id = body.get("run_id", "").strip()
 
         if not query:
             return jsonify({"status": "error", "message": "query is required"}), 400
-
         if not run_id:
             return jsonify({"status": "error", "message": "run_id is required"}), 400
 
-        # Sanitise run_id to prevent path traversal
-        safe_run_id = "".join(c for c in run_id if c.isalnum() or c in ("_", "-"))
-        fpath = os.path.join(RUNS_DIR, f"{safe_run_id}_preprocessed.json")
-
+        safe_id = "".join(c for c in run_id if c.isalnum() or c in ("_", "-"))
+        fpath   = os.path.join(RUNS_DIR, f"{safe_id}_preprocessed.json")
         if not os.path.exists(fpath):
-            return jsonify({"status": "error", "message": f"Run '{safe_run_id}' not found"}), 404
+            return jsonify({"status": "error", "message": f"Run not found"}), 404
 
         with open(fpath, "r", encoding="utf-8") as f:
-            data = json.load(f)
+            run_data = json.load(f)
+        articles = run_data.get("articles", [])
 
-        articles = data.get("articles", [])
         if not articles:
             return jsonify({"status": "success", "query": query, "results": []})
 
-        enc_result = encode_articles(articles)
-        hits       = find_similar(query, enc_result, top_k=10)
-
-        return jsonify({
-            "status":  "success",
-            "query":   query,
-            "run_id":  safe_run_id,
-            "results": [
+        try:
+            enc_result = encode_articles(articles)
+            hits       = find_similar(query, enc_result, top_k=10)
+            results = [
                 {
                     "title":             h.get("clean_title") or h.get("title", ""),
                     "url":               h.get("url", ""),
@@ -859,172 +876,43 @@ def semantic_search():
                     "source":            h.get("source", ""),
                     "impact_level":      h.get("impact_level", "LOW"),
                     "relevance_score":   h.get("relevance_score", 0),
-                    "similarity_score":  h.get("similarity_score", 0.0),
+                    "similarity_score":  round(h.get("similarity_score", 0.0), 3),
                     "semantic_category": h.get("semantic_category", ""),
-                    "topic_domain":      h.get("topic_domain", ""),
-                    "verified":          h.get("verified", False),
+                    "summary":           (h.get("summary") or "")[:200],
                 }
                 for h in hits
-            ],
+            ]
+        except Exception as e:
+            logger.warning(f"SBERT search failed, falling back to keyword scan: {e}")
+            q_lower = query.lower()
+            matched = [a for a in articles
+                       if q_lower in (a.get("title","")+" "+a.get("summary","")).lower()]
+            results = [
+                {
+                    "title":             a.get("clean_title") or a.get("title",""),
+                    "url":               a.get("url",""),
+                    "published":         a.get("published",""),
+                    "source":            a.get("source",""),
+                    "impact_level":      a.get("impact_level","LOW"),
+                    "relevance_score":   a.get("relevance_score",0),
+                    "similarity_score":  None,
+                    "semantic_category": a.get("semantic_category",""),
+                    "summary":           (a.get("summary") or "")[:200],
+                }
+                for a in matched[:10]
+            ]
+
+        return jsonify({
+            "status":  "success",
+            "query":   query,
+            "run_id":  run_id,
+            "count":   len(results),
+            "results": results,
         })
 
     except Exception as e:
         logger.exception("Error in /search")
         return jsonify({"status": "error", "message": str(e)}), 500
-
-
-# ==========================================
-# ARTICLE VERIFICATION
-# POST /verify
-# ==========================================
-
-@app.route("/verify", methods=["POST"])
-def verify_article():
-    """
-    Analyst verification endpoint.  Patches a run's preprocessed JSON
-    to mark an article as verified or rejected.
-
-    POST body:
-    {
-        "run_id":           "tesla_20260608_155130",
-        "article_url":      "https://reuters.com/...",
-        "verified":         true,          // false to un-verify
-        "rejected":         false,
-        "verification_type": "full",       // "content" | "relevance" | "risk" | "full"
-        "verification_note": "Confirmed with supplier in Shanghai.",
-        "analyst_id":       "analyst_007"  // optional
-    }
-
-    Returns the updated article record.
-    """
-    try:
-        body = request.json or {}
-        run_id           = body.get("run_id", "").strip()
-        article_url      = body.get("article_url", "").strip()
-        verified         = bool(body.get("verified", False))
-        rejected         = bool(body.get("rejected", False))
-        verification_type = body.get("verification_type", "content")
-        verification_note = body.get("verification_note", "")
-        analyst_id       = body.get("analyst_id", "analyst")
-
-        if not run_id or not article_url:
-            return jsonify({"status": "error", "message": "run_id and article_url are required"}), 400
-
-        safe_run_id = "".join(c for c in run_id if c.isalnum() or c in ("_", "-"))
-        fpath = os.path.join(RUNS_DIR, f"{safe_run_id}_preprocessed.json")
-
-        if not os.path.exists(fpath):
-            return jsonify({"status": "error", "message": f"Run '{safe_run_id}' not found"}), 404
-
-        with open(fpath, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        articles    = data.get("articles", [])
-        found       = False
-        updated_art = None
-
-        for art in articles:
-            if art.get("url", "") == article_url:
-                art["verified"]          = verified
-                art["rejected"]          = rejected
-                art["verified_by"]       = analyst_id if (verified or rejected) else None
-                art["verified_at"]       = datetime.now().isoformat() if (verified or rejected) else None
-                art["verification_type"] = verification_type if verified else None
-                art["verification_note"] = verification_note
-                found       = True
-                updated_art = art
-                break
-
-        if not found:
-            return jsonify({"status": "error", "message": "Article not found in run"}), 404
-
-        # Persist the updated run file
-        with open(fpath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-
-        action = "verified" if verified else ("rejected" if rejected else "unverified")
-        logger.info(
-            f"Article {action} by {analyst_id}: {article_url[:80]} "
-            f"[run={safe_run_id}]"
-        )
-
-        return jsonify({
-            "status":      "success",
-            "action":      action,
-            "article_url": article_url,
-            "run_id":      safe_run_id,
-            "article":     {
-                "url":               updated_art.get("url", ""),
-                "title":             updated_art.get("title", ""),
-                "verified":          updated_art.get("verified", False),
-                "rejected":          updated_art.get("rejected", False),
-                "verified_by":       updated_art.get("verified_by"),
-                "verified_at":       updated_art.get("verified_at"),
-                "verification_type": updated_art.get("verification_type"),
-                "verification_note": updated_art.get("verification_note", ""),
-            },
-        })
-
-    except Exception as e:
-        logger.exception("Error in /verify")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-# ==========================================
-# TOPIC SUMMARY
-# GET /topics?run_id=<id>
-# ==========================================
-
-@app.route("/topics", methods=["GET"])
-def get_topics():
-    """
-    Return the topic distribution and cross-industry map for a saved run.
-    GET /topics?run_id=tesla_20260608_155130
-    """
-    try:
-        run_id = request.args.get("run_id", "").strip()
-        if not run_id:
-            return jsonify({"status": "error", "message": "run_id is required"}), 400
-
-        safe_run_id = "".join(c for c in run_id if c.isalnum() or c in ("_", "-"))
-        fpath = os.path.join(RUNS_DIR, f"{safe_run_id}_preprocessed.json")
-
-        if not os.path.exists(fpath):
-            return jsonify({"status": "error", "message": f"Run '{safe_run_id}' not found"}), 404
-
-        with open(fpath, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        articles = data.get("articles", [])
-        if not articles:
-            return jsonify({"status": "success", "topics": {}, "cross_industry_map": {}})
-
-        from utils.topic_modeller import model_topics
-        result = model_topics([], articles)
-
-        # Serialise cross-industry map (tuples → lists for JSON)
-        cross_map_serialisable = {
-            src: [(tgt, conf, cnt) for tgt, conf, cnt in links]
-            for src, links in result.cross_industry_map.items()
-        }
-
-        return jsonify({
-            "status":             "success",
-            "run_id":             safe_run_id,
-            "method":             result.method,
-            "topic_counts":       result.topic_counts,
-            "cross_industry_map": cross_map_serialisable,
-            "domain_labels": {
-                k: v["label"] for k, v in
-                __import__("utils.topic_modeller", fromlist=["DISRUPTION_DOMAINS"])
-                .DISRUPTION_DOMAINS.items()
-            },
-        })
-
-    except Exception as e:
-        logger.exception("Error in /topics")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
 
 if __name__ == "__main__":
     app.run(
