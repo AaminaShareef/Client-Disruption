@@ -427,11 +427,8 @@ function displayResults(data) {
         set('stTotal',    data.stats.total_articles      || 0);
         set('stDeduped',  data.stats.deduplicated_articles || data.stats.preprocessed_articles || 0);
         set('stAlerts',   (data.stats.high_alerts || 0) + (data.stats.medium_alerts || 0));
-        set('stTopics',   (data.topics || []).length || '—');
+        set('stTopics',   Object.keys((data.portfolio_risk && data.portfolio_risk.domain_breakdown) || {}).length || '—');
     }
-
-    // ── Intelligence themes (BERTopic) ──────────────────
-    renderTopics(data.topics || []);
 
     // ── Charts ───────────────────────────────────────────
     renderRiskCharts(data);
@@ -527,14 +524,22 @@ function _renderNewsCard(a) {
     </div>`;
 }
 
-// ── News filter chips ──────────────────────────────────────
+// ── News card quick-filter (feeds into main risk filter) ──
 function newsFilter(el, filter) {
+    // Sync button active state
     document.querySelectorAll('[data-nfilter]').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
-    document.querySelectorAll('.news-item').forEach(item => {
-        const show = filter === 'all' || item.dataset.level === filter;
-        item.style.display = show ? '' : 'none';
+
+    // Drive the main risk filter so applyFilters handles re-render
+    _filters.risk = new Set();
+    if (filter !== 'all') _filters.risk.add(filter);
+
+    // Sync the filter bar risk chips to match
+    document.querySelectorAll('.filter-chip[data-dim="risk"]').forEach(chip => {
+        chip.classList.toggle('filter-chip-active', _filters.risk.has(chip.dataset.val));
     });
+
+    applyFilters();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -747,6 +752,9 @@ function clearAllFilters(silent = false) {
 
     // Reset all chip active states
     document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('filter-chip-active'));
+    // Reset news card quick-filter buttons
+    document.querySelectorAll('[data-nfilter]').forEach(el =>
+        el.classList.toggle('active', el.dataset.nfilter === 'all'));
     // Reset date seg
     document.querySelectorAll('.date-seg').forEach(el =>
         el.classList.toggle('date-seg-active', el.dataset.range === 'all'));
@@ -766,8 +774,7 @@ function clearAllFilters(silent = false) {
     if (clearBtn) clearBtn.style.display = 'none';
 
     if (!silent && _nlpRawData) {
-        renderClusters(_nlpRawData.clusters || []);
-        renderNewsFeed(_nlpRawData.news    || []);
+        renderNewsFeed(_nlpRawData.news || []);
     }
 }
 
@@ -817,21 +824,43 @@ function _passesFilters(item, type) {
         if (!anyMatch) return false;
     }
 
-    // ── Date range (articles + clusters via first article date) ──
+    // ── Date range ────────────────────────────────────────
     if (_filters.dateRange !== 'all') {
         const hoursMap = { '24h': 24, '7d': 168, '30d': 720 };
-        const hours = hoursMap[_filters.dateRange] || Infinity;
-        const cutoff = Date.now() - hours * 3600000;
+        const hours  = hoursMap[_filters.dateRange] || Infinity;
+        const cutoff = Date.now() - hours * 3600_000;
+
+        const _parseDate = raw => {
+            if (!raw) return null;
+            // 1. Direct parse (ISO 8601, RFC 2822 — both work in all browsers)
+            let ms = new Date(raw).getTime();
+            if (!isNaN(ms)) return ms;
+            // 2. feedparser space-separator: "2025-06-05 10:00:00" → "2025-06-05T10:00:00Z"
+            ms = new Date(raw.trim().replace(/^(\d{4}-\d{2}-\d{2}) /, '$1T') + 'Z').getTime();
+            if (!isNaN(ms)) return ms;
+            // 3. feedparser with offset: "2025-06-05 10:00:00 +0530" → ISO with offset
+            const m = raw.trim().match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})\s*([+-]\d{4})?/);
+            if (m) {
+                ms = new Date(`${m[1]}T${m[2]}${m[3] || 'Z'}`).getTime();
+                if (!isNaN(ms)) return ms;
+            }
+            console.warn('[DateFilter] Could not parse date:', raw);
+            return null;
+        };
+
         let pubDate = null;
         if (type === 'article') {
-            pubDate = item.published ? new Date(item.published).getTime() : null;
+            pubDate = _parseDate(item.published || item.published_at || item.pub_date || item.date);
         } else {
-            // Use first article date or cluster's own timestamp
             const firstArt = item.articles && item.articles[0];
-            const raw = (firstArt && firstArt.published) || item.published;
-            pubDate = raw ? new Date(raw).getTime() : null;
+            pubDate = _parseDate(
+                (firstArt && (firstArt.published || firstArt.published_at)) ||
+                item.published || item.published_at
+            );
         }
-        if (!pubDate || isNaN(pubDate) || pubDate < cutoff) return false;
+
+        // If we can't parse the date, let the article through (don't silently drop it)
+        if (pubDate !== null && pubDate < cutoff) return false;
     }
 
     // ── Tier-1 (articles only) ────────────────────────────
@@ -862,20 +891,22 @@ function applyFilters() {
     }
     if (clearBtn) clearBtn.style.display = activeCount ? '' : 'none';
 
-    // Filter clusters
-    const rawClusters = (_nlpRawData.clusters || []).filter(c => !c.is_noise && c.article_count > 1);
-    const filteredClusters = activeCount
-        ? rawClusters.filter(c => _passesFilters(c, 'cluster'))
-        : rawClusters;
-
     // Filter articles
     const rawArticles = _nlpRawData.news || [];
     const filteredArticles = activeCount
         ? rawArticles.filter(a => _passesFilters(a, 'article'))
         : rawArticles;
 
-    // Re-render
-    renderClusters(filteredClusters);
+    // Debug: log date filter results to console
+    if (_filters.dateRange !== 'all') {
+        const excluded = rawArticles.filter(a => !filteredArticles.includes(a));
+        console.log(`[DateFilter] range=${_filters.dateRange} | total=${rawArticles.length} | passed=${filteredArticles.length} | excluded=${excluded.length}`);
+        if (excluded.length > 0) {
+            console.log('[DateFilter] Excluded article dates (first 5):', excluded.slice(0,5).map(a => a.published || a.published_at || '(no date field)'));
+        }
+    }
+
+    // Re-render news only (clusters panel removed)
     renderNewsFeed(filteredArticles);
 
     // Build active-filter strip
