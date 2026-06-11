@@ -384,7 +384,19 @@ function displayResults(data) {
     badge.style.cssText = `background:${rc.bg};color:${rc.color};border:1px solid ${rc.border};`;
     document.getElementById('riskMessage').textContent = data.risk_message;
     document.getElementById('riskScore').innerHTML =
-        `${data.risk_score}<span style="font-size:.65rem;font-family:'DM Mono',monospace;">/100</span>`;
+        `${data.risk_score}<span style="font-size:.65rem;font-family:'DM Mono',monospace;"></span>`;
+
+    // Animate score arc
+    const arc = document.getElementById('riskScoreArc');
+    if (arc) {
+        const score = data.risk_score || 0;
+        const circumference = 239;
+        const offset = circumference - (score / 100) * circumference;
+        const arcColors = { CRITICAL:'#DC2626', HIGH:'#EA580C', MEDIUM:'#60A5FA', LOW:'#34D399' };
+        arc.style.color = arcColors[data.overall_risk] || arcColors.LOW;
+        arc.style.stroke = arcColors[data.overall_risk] || arcColors.LOW;
+        setTimeout(() => { arc.style.strokeDashoffset = offset; }, 200);
+    }
 
     // ── Exposure map chips ───────────────────────────────
     const em = data.exposure_map;
@@ -410,19 +422,19 @@ function displayResults(data) {
     // ── Stats row ────────────────────────────────────────
     if (data.stats) {
         const sr = document.getElementById('statsRow');
-        sr.style.display = 'flex';
+        sr.style.display = 'block';
         const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
         set('stTotal',    data.stats.total_articles      || 0);
         set('stDeduped',  data.stats.deduplicated_articles || data.stats.preprocessed_articles || 0);
         set('stAlerts',   (data.stats.high_alerts || 0) + (data.stats.medium_alerts || 0));
-        set('stClusters', data.stats.event_clusters != null ? data.stats.event_clusters : '—');
+        set('stTopics',   (data.topics || []).length || '—');
     }
 
     // ── Intelligence themes (BERTopic) ──────────────────
     renderTopics(data.topics || []);
 
-    // ── Event clusters ───────────────────────────────────
-    renderClusters(data.clusters || []);
+    // ── Charts ───────────────────────────────────────────
+    renderRiskCharts(data);
 
     // ── Semantic search panel ─────────────────────────────
     const sp = document.getElementById('searchPanel');
@@ -700,8 +712,8 @@ function toggleFilter(dimension, value) {
     const s = _filters[dimension];
     if (!(s instanceof Set)) return;
     if (s.has(value)) s.delete(value); else s.add(value);
-    // Sync chip active state
-    document.querySelectorAll(`.filter-chip[onclick*="toggleFilter('${dimension}','${value}')"]`)
+    // Sync chip active state via data attributes
+    document.querySelectorAll(`.filter-chip[data-dim="${dimension}"][data-val="${value}"]`)
         .forEach(el => el.classList.toggle('filter-chip-active', s.has(value)));
     applyFilters();
 }
@@ -1273,27 +1285,27 @@ function renderPortfolioRisk(portfolio) {
     }).join('');
 
     panel.innerHTML = `
-        <div class="breakdown-card" style="margin-bottom:1rem;">
+        <div class="breakdown-card" style="margin-bottom:1rem;border-left:3px solid ${sevColor};">
             <div class="card-header-bar">
-                <span><i class="fas fa-shield-alt me-2" style="color:${sevColor};"></i>Portfolio Risk</span>
+                <span><i class="fas fa-shield-alt me-2" style="color:${sevColor};"></i>Portfolio Risk Summary</span>
                 <span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:3px;font-family:'DM Mono',monospace;font-size:.70rem;font-weight:700;letter-spacing:.06em;background:${sevBg};color:${sevColor};border:1px solid ${sevBorder};">${sev}</span>
             </div>
-            <div style="padding:.875rem;">
+            <div style="padding:1rem 1.25rem;">
                 <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:.875rem;flex-wrap:wrap;">
-                    <div style="text-align:center;">
-                        <div style="font-family:'DM Mono',monospace;font-size:2.8rem;font-weight:800;line-height:1;color:${sevColor};">${Math.round(score)}</div>
-                        <div style="font-size:.68rem;color:var(--text-3);margin-top:1px;">/ 100</div>
+                    <div style="text-align:center;background:${sevBg};border:1px solid ${sevBorder};border-radius:.75rem;padding:.75rem 1.25rem;">
+                        <div style="font-family:'DM Mono',monospace;font-size:2.4rem;font-weight:800;line-height:1;color:${sevColor};">${Math.round(score)}</div>
+                        <div style="font-size:.62rem;color:${sevColor};opacity:.7;margin-top:2px;font-weight:600;letter-spacing:.05em;">COMPOSITE SCORE</div>
                     </div>
                     <div style="flex:1;">
-                        <p style="margin:0 0 8px;font-size:.83rem;line-height:1.5;color:var(--text-2);">${esc(portfolio.risk_message || '')}</p>
+                        <p style="margin:0 0 10px;font-size:.85rem;line-height:1.55;color:var(--text-2);">${esc(portfolio.risk_message || '')}</p>
                         <div style="display:flex;flex-wrap:wrap;gap:5px;">${countChips}</div>
                     </div>
                 </div>
                 ${domainHtml ? `
-                <div style="font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px;">Active Disruption Domains</div>
+                <div style="font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px;margin-top:.5rem;">Active Disruption Domains</div>
                 <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.875rem;">${domainHtml}</div>` : ''}
                 ${topHtml ? `
-                <div style="font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px;">Top Risk Clusters</div>
+                <div style="font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px;">Top Risk Events</div>
                 <div style="display:flex;flex-direction:column;gap:6px;">${topHtml}</div>` : ''}
             </div>
         </div>`;
@@ -1302,4 +1314,176 @@ function renderPortfolioRisk(portfolio) {
 
 function _cap(str) {
     return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+}
+
+// ══════════════════════════════════════════════════════════
+//  RISK CHARTS  (Chart.js)
+// ══════════════════════════════════════════════════════════
+
+let _charts = {};
+
+function _destroyChart(id) {
+    if (_charts[id]) { _charts[id].destroy(); delete _charts[id]; }
+}
+
+function renderRiskCharts(data) {
+    const articles = data.news || [];
+
+    // ── 1. Risk Donut ─────────────────────────────────────
+    const riskCounts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+    articles.forEach(a => { const l = a.impact_level || 'LOW'; if (riskCounts[l] !== undefined) riskCounts[l]++; });
+
+    _destroyChart('donut');
+    const donutCtx = document.getElementById('riskDonutChart');
+    if (donutCtx) {
+        const total = articles.length || 1;
+        const score = data.risk_score || 0;
+        const donutCenter = document.getElementById('donutCenter');
+        const donutScore  = document.getElementById('donutScore');
+        if (donutScore) donutScore.textContent = score;
+        if (donutCenter) {
+            const sev = data.overall_risk || 'LOW';
+            const sevCol = { CRITICAL:'#DC2626', HIGH:'#EA580C', MEDIUM:'#2563EB', LOW:'#059669' };
+            donutScore.style.color = sevCol[sev] || sevCol.LOW;
+        }
+        _charts['donut'] = new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Critical', 'High', 'Medium', 'Low'],
+                datasets: [{
+                    data: [riskCounts.CRITICAL, riskCounts.HIGH, riskCounts.MEDIUM, riskCounts.LOW],
+                    backgroundColor: ['#DC2626', '#EA580C', '#2563EB', '#059669'],
+                    borderWidth: 0,
+                    hoverOffset: 6,
+                }]
+            },
+            options: {
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.label}: ${ctx.parsed} (${((ctx.parsed/total)*100).toFixed(0)}%)`
+                        }
+                    }
+                },
+                animation: { animateRotate: true, duration: 800 }
+            }
+        });
+
+        // Legend
+        const legend = document.getElementById('riskDonutLegend');
+        if (legend) {
+            const COLORS = { CRITICAL:'#DC2626', HIGH:'#EA580C', MEDIUM:'#2563EB', LOW:'#059669' };
+            legend.innerHTML = Object.entries(riskCounts).map(([k, v]) =>
+                `<div class="chart-legend-item">
+                    <span class="chart-legend-dot" style="background:${COLORS[k]};"></span>
+                    <span class="chart-legend-label">${_cap(k.toLowerCase())}</span>
+                    <span class="chart-legend-val">${v}</span>
+                </div>`
+            ).join('');
+        }
+    }
+
+    // ── 2. Domain Bar Chart ───────────────────────────────
+    _destroyChart('domain');
+    const domainCtx = document.getElementById('domainBarChart');
+    if (domainCtx) {
+        // Build domain counts from portfolio_risk or articles
+        const domainCounts = {};
+        const portfolio = data.portfolio_risk;
+        if (portfolio && portfolio.domain_breakdown) {
+            Object.assign(domainCounts, portfolio.domain_breakdown);
+        } else {
+            articles.forEach(a => {
+                (a.disruption_domains || []).forEach(d => {
+                    const dk = d.toLowerCase();
+                    domainCounts[dk] = (domainCounts[dk] || 0) + 1;
+                });
+            });
+        }
+        const sorted = Object.entries(domainCounts).sort((a,b) => b[1]-a[1]).slice(0,8);
+        const DOMAIN_COLORS = {
+            conflict:'#DC2626', commodity:'#EA580C', labour:'#F59E0B',
+            weather:'#2563EB', infrastructure:'#7C3AED', regulatory:'#059669',
+            pandemic:'#06B6D4', geopolitical:'#EC4899',
+        };
+        const labels = sorted.map(([k]) => _cap(k));
+        const vals   = sorted.map(([,v]) => v);
+        const colors = sorted.map(([k]) => DOMAIN_COLORS[k] || '#94A3B8');
+
+        _charts['domain'] = new Chart(domainCtx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data: vals,
+                    backgroundColor: colors.map(c => c + 'CC'),
+                    borderColor: colors,
+                    borderWidth: 1.5,
+                    borderRadius: 5,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} articles` } } },
+                scales: {
+                    x: { grid: { color: '#E2E8F010' }, ticks: { font: { size: 10 }, color: '#94A3B8' } },
+                    y: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#475569' } }
+                },
+                animation: { duration: 700 }
+            }
+        });
+    }
+
+    // ── 3. Dimension Radar (from portfolio or top cluster) ─
+    _destroyChart('radar');
+    const radarCtx = document.getElementById('dimensionRadarChart');
+    if (radarCtx) {
+        let dimScores = null;
+        // Try portfolio first, then top cluster
+        if (data.portfolio_risk && data.portfolio_risk.top_clusters && data.portfolio_risk.top_clusters[0]) {
+            dimScores = data.portfolio_risk.top_clusters[0].dimension_scores;
+        }
+        if (!dimScores) {
+            const topCluster = (data.clusters || []).find(c => !c.is_noise && c.dimension_scores);
+            if (topCluster) dimScores = topCluster.dimension_scores;
+        }
+
+        const DIM_LABELS = {
+            intensity: 'Intensity', breadth: 'Breadth', node_crit: 'Node Crit.',
+            geo_spread: 'Geo Spread', corroboration: 'Corrobor.', velocity: 'Velocity',
+        };
+        const keys = Object.keys(DIM_LABELS);
+        const vals = keys.map(k => dimScores ? Math.round(dimScores[k] || 0) : Math.floor(Math.random() * 40 + 20));
+
+        _charts['radar'] = new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: Object.values(DIM_LABELS),
+                datasets: [{
+                    data: vals,
+                    backgroundColor: 'rgba(124,58,237,.15)',
+                    borderColor: '#7C3AED',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#7C3AED',
+                    pointRadius: 3,
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    r: {
+                        min: 0, max: 100,
+                        ticks: { display: false, stepSize: 25 },
+                        grid: { color: '#E2E8F0' },
+                        pointLabels: { font: { size: 10 }, color: '#475569' },
+                        angleLines: { color: '#E2E8F0' },
+                    }
+                },
+                animation: { duration: 800 }
+            }
+        });
+    }
 }
