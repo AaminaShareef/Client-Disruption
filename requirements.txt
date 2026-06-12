@@ -1,4 +1,31 @@
-flask>=3.0.0
-feedparser>=6.0.10
-requests>=2.31.0
-python-dotenv>=1.0.0
+Flask
+Werkzeug
+
+# NLP / preprocessing
+spacy
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
+
+# Embeddings / semantic similarity
+sentence-transformers
+huggingface_hub
+torch
+transformers
+
+# Clustering / topic modelling
+scikit-learn
+bertopic
+umap-learn
+hdbscan
+numpy
+
+# Summarisation (LexRank / MMR)
+sumy
+nltk
+
+# News / RSS fetching
+feedparser
+requests
+httpx
+
+# Environment / config
+python-dotenv
